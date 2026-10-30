@@ -1,0 +1,12 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY pyproject.toml ./
+COPY backend ./backend
+
+RUN python -m pip install --no-cache-dir .
+
+EXPOSE 8000
+
+CMD ["python", "-m", "uvicorn", "grievance.main:app", "--app-dir", "backend/src", "--host", "0.0.0.0", "--port", "8000"]

@@ -338,8 +338,9 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 
 | Component | Status |
 |---|---|
-| Repo, docs, AGENTS.md | In progress |
-| Backend scaffold, health endpoints, CI | Planned |
+| Repo, docs, AGENTS.md | Done |
+| Backend scaffold | Done |
+| Health endpoints and CI | Planned |
 | Database models and migrations | Planned |
 | Language detection and templates | Planned |
 | Dataset and baseline classifier | Planned |

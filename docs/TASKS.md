@@ -26,7 +26,7 @@ Rules:
 
 ## Phase 1: Backend foundation (target: Oct 30 to 31)
 
-- [ ] **T-01** Backend scaffold
+- [x] **T-01** Backend scaffold
   - Create the folder structure from AGENTS.md, `pyproject.toml`, FastAPI app factory, `Makefile` (dev, test, lint, format), `.env.example`, `.pre-commit-config.yaml`, `Dockerfile`, `docker-compose.yml` (api and postgres).
   - Done when: `make lint` and `make test` pass, and the app starts.
   - Commit: `chore(backend): scaffold backend structure and tooling`
@@ -242,3 +242,4 @@ Never cut: T-09 to T-11 (real metrics), T-15 (clarification flow), T-18 (escalat
 Add one line per day: what was finished, what is blocked.
 
 - 2026-10-30: repo, AGENTS.md, PRD and architecture committed.
+- 2026-10-30: completed T-01 backend scaffold, tooling and local Docker setup.
