@@ -3,7 +3,7 @@
 **Project:** neural-storm-hi02, Multilingual Citizen Grievance Chatbot
 **Event:** Neural Storm 2026, problem statement HI-02
 **Status:** Design stage. Nothing here is implemented yet. Requirement status is tracked in `docs/TASKS.md`.
-**Demo setting:** a fictional city, "Sundarpur Municipal Corporation" (SMC). All data is synthetic.
+**Demo setting:** a fictional city, "Furfuri Nagar Municipal Corporation" (FMC). All data is synthetic.
 
 ---
 
@@ -121,7 +121,7 @@ Priority: **P0** = must have for the MVP, **P1** = should have, **P2** = stretch
 
 **Ticketing**
 - FR-20. A ticket is created only when a department and a location are known.
-- FR-21. A ticket has a human-friendly ID (for example `SMC-261030-7K3F`), the original complaint text, the language, the department, the location, a status, timestamps and a history of events.
+- FR-21. A ticket has a human-friendly ID (for example `FMC-261030-7K3F`), the original complaint text, the language, the department, the location, a status, timestamps and a history of events.
 - FR-22. Status transitions are validated (see `docs/ARCHITECTURE.md`). Invalid transitions return an error.
 - FR-23. Every change to a ticket records an event with who or what changed it, and an optional note.
 - FR-24. A public status lookup by ticket ID returns status, department, timestamps and public notes only, never internal data.
@@ -175,7 +175,7 @@ Values below are **targets to design for and verify**, not results. Actual measu
 3. Citizen picks one or describes it further. System continues as above.
 
 ### 9.4 Status check
-1. Citizen sends `SMC-261030-7K3F`.
+1. Citizen sends `FMC-261030-7K3F`.
 2. System replies with the current status, department, last update and notes, in the citizen's language.
 
 ## 10. Success metrics

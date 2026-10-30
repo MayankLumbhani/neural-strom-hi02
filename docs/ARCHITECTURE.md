@@ -205,13 +205,13 @@ erDiagram
 | `officers` | `id`, `username` (unique), `password_hash`, `role` (`DEPARTMENT_OFFICER` or `ADMIN`), `department_id` (nullable for admins), `is_active` |
 | `conversations` | `id` (UUID), `state`, `language`, `pending_text`, `pending_department`, `pending_location`, `created_at`, `updated_at` |
 | `messages` | `id`, `conversation_id`, `sender` (`citizen` or `bot`), `text`, `language`, `created_at` |
-| `tickets` | `id`, `public_id` (unique, for example `SMC-261030-7K3F`), `conversation_id`, `department_id`, `complaint_text`, `language`, `location_text`, `contact_phone` (nullable), `status`, `status_changed_at`, `escalation_level`, `predicted_confidence`, `created_at`, `resolved_at` |
+| `tickets` | `id`, `public_id` (unique, for example `FMC-261030-7K3F`), `conversation_id`, `department_id`, `complaint_text`, `language`, `location_text`, `contact_phone` (nullable), `status`, `status_changed_at`, `escalation_level`, `predicted_confidence`, `created_at`, `resolved_at` |
 | `ticket_events` | `id`, `ticket_id`, `from_status`, `to_status`, `actor_type` (`system`, `officer`, `citizen`), `officer_id` (nullable), `note`, `is_public`, `created_at` |
 
 Indexes: `tickets(public_id)`, `tickets(department_id, status)`, `tickets(status, status_changed_at)` for the escalation query, `messages(conversation_id, created_at)`.
 
 Notes:
-- `public_id` format: `SMC-<yymmdd>-<4 random chars>`, generated with a retry on collision. It is hard to guess but short enough to type.
+- `public_id` format: `FMC-<yymmdd>-<4 random chars>`, generated with a retry on collision. It is hard to guess but short enough to type.
 - Complaint text is stored in the database (needed to work the ticket) but is never written to application logs.
 - All data is synthetic in this project.
 
