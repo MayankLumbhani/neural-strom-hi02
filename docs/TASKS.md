@@ -137,6 +137,11 @@ Rules:
   - Done when: `npm run lint` and `npm run build` pass.
   - Commit: `chore(frontend): scaffold React app with tooling`
 
+  - [ ] **T-21b** Design tokens and base components
+  - Create `tokens.css` from DESIGN.md section 3, map it into Tailwind and remap the shadcn variables, load the fonts, build the base components from section 4 (Button, Input, Card, StatusBadge, ChatBubble, QuickReply, TicketCard, Table, Drawer, EmptyState, ErrorState, Skeleton), add a dev-only `/design` preview page showing every component with English, Hindi and Gujarati text, and add `check-design-tokens.sh` to CI.
+  - Done when: the preview page renders correctly in all three scripts and the token check passes in CI.
+  - Commit: `feat(frontend): add design tokens and base component library`
+
 - [ ] **T-22** Chat UI
   - Chat window, message list, quick-reply buttons, ticket confirmation card, language-aware rendering, "waking up the server" state, error handling.
   - Done when: you can file a Gujarati, a Hinglish and an ambiguous complaint end to end locally.

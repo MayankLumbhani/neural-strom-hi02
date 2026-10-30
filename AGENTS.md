@@ -79,6 +79,14 @@ docs/            PRD, ARCHITECTURE, DECISIONS, TASKS, MODEL_CARD, API, RUNBOOK, 
 
 If a gate fails, fix it. Do not skip, weaken or delete tests to make a task pass.
 
+## Frontend design rules
+- Read docs/DESIGN.md before every UI task and follow it exactly.
+- All visual values come from frontend/src/styles/tokens.css. Never hardcode
+  hex colors, pixel sizes, arbitrary Tailwind values or default palette classes.
+- Use only the semantic token classes and the base components in components/ui/.
+- No emoji as icons. No gradients or styles from the "Do not do" list.
+- Test every UI change with Gujarati and Hindi text, not just English.
+
 ## Documentation rule
 
 After every meaningful change, update docs in the same task:
