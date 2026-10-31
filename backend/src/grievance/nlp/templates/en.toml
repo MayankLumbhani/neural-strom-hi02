@@ -1,0 +1,14 @@
+ticket_created = "Your complaint has been filed. Ticket ID: {ticket_id}. Department: {department}."
+ask_location = "Please share the area, street, or landmark for this complaint."
+ask_department = "Which department should handle this complaint? Please choose or clarify."
+status_reply = "Ticket {ticket_id} is currently: {status}."
+not_found = "We could not find that ticket. Please check the ticket ID and try again."
+help = "Describe your civic problem in a message. You can also send a ticket ID to check its status."
+error_generic = "We could not process that message. Please try again."
+
+[status_labels]
+filed = "Filed"
+assigned = "Assigned"
+in_progress = "In Progress"
+resolved = "Resolved"
+escalated = "Escalated"

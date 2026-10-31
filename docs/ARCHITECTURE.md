@@ -82,10 +82,11 @@ Rules (also in `AGENTS.md`):
 | `services/escalation_service.py` | find and escalate overdue tickets |
 | `services/analytics_service.py` | aggregate counts and resolution times |
 | `nlp/languages.py` | language registry: every supported language, its tier, script, font and template file |
-| `nlp/language.py` | script detection, Hindi vs Marathi disambiguation and Hinglish heuristic, driven by the registry |
+| `nlp/language.py` | script detection, registry-marker-based Hindi vs Marathi disambiguation, Hinglish heuristic and unknown-script fallback |
 | `nlp/classifier.py` | `Classifier` protocol and implementations |
 | `nlp/extraction.py` | location extraction (LLM with rule-based fallback) |
-| `nlp/templates/` | one message template file per registry language (Tier 1 written by hand, Tier 2 machine-translated and flagged) |
+| `nlp/templates/` | one TOML message template per registry language (Tier 1 written by hand, Tier 2 machine-translated and flagged) |
+| `nlp/template_loader.py` | loads and validates the shared template schema |
 | `jobs/scheduler.py` | registers the escalation job |
 | `seed.py` | idempotent initial departments and demo-account seed command |
 
@@ -134,7 +135,7 @@ Thresholds are environment config. The values above are starting points, not res
 
 ### 6.1 Language registry and detection
 
-All supported languages live in one registry, `nlp/languages.py`. Each entry holds: code, English name, native name, script, tier (1 or 2), font family, template file and a `verified` flag. Adding a language means a registry entry, a template file, tests and docs, with no changes to business logic. A Tier 2 language can be switched off by disabling it in the registry.
+All supported languages live in one registry, `nlp/languages.py`. Each entry holds: code, English name, native name, script, tier (1 or 2), font family, template file, detection markers, an `enabled` flag and a `verified` flag. Script ranges and unknown-script fallback codes are also defined there. Adding a language means a registry entry, a template file, tests and docs, with no changes to business logic. A Tier 2 language can be switched off by disabling it in the registry.
 
 | Tier | Languages |
 |---|---|
@@ -156,9 +157,9 @@ Detection steps:
 | Malayalam | U+0D00 to U+0D7F | ml |
 | Latin | basic Latin letters | en or hinglish (step 3) |
 
-2. Devanagari is shared by Hindi and Marathi. Count marker words for each language (the exact method is recorded in `docs/DECISIONS.md`). If the counts tie or there is no signal, use Hindi.
-3. For Latin script, a heuristic checks for common romanized Hindi words (for example "nahi", "paani", "mere", "hai", "raha") and decides Hinglish vs English.
-4. If the script is unknown or unsupported (for example Arabic script), the reply is in English and Hindi.
+2. Devanagari is shared by Hindi and Marathi. Count whole-word markers configured in the registry; if the counts tie or there is no signal, use Hindi. The marker sets are documented in `docs/DECISIONS.md`.
+3. For Latin script, select Hinglish when its configured romanized-Hindi markers outscore English; otherwise use English.
+4. If the script is unknown or unsupported (for example Arabic script), detection returns no single language and provides English and Hindi as fallback reply languages.
 
 Detection chooses the reply language only. Classification does not depend on it, because the classifier reads the text directly. Before a Tier 2 language is enabled, check that the base model covers it (see the MuRIL model card) and that its templates exist.
 
@@ -188,7 +189,7 @@ The active implementation is chosen by `CLASSIFIER_BACKEND`. The model is loaded
 - The LLM never writes user-facing replies and never decides the department. The classifier does.
 
 ### 6.4 Templates
-Each language file has the same keys, for example `ticket_created`, `ask_location`, `ask_department`, `status_reply`, `status_labels.*`, `not_found`, `help`, `error_generic`. There is one template file per registry language. A test asserts that every language file has identical keys. Tier 2 files are machine-translated and carry a header comment saying so.
+Each TOML language file has the same keys: `ticket_created`, `ask_location`, `ask_department`, `status_reply`, `status_labels.filed`, `status_labels.assigned`, `status_labels.in_progress`, `status_labels.resolved`, `status_labels.escalated`, `not_found`, `help` and `error_generic`. Templates are loaded and validated against a typed schema. A test asserts identical keys and interpolation fields across all files. Tier 1 templates are hand-written; Tier 2 files are machine-translated and carry a header comment stating they are not verified by native speakers.
 
 ## 7. Ticket lifecycle
 
@@ -385,8 +386,8 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Core configuration, logging and errors | Done |
 | Database models and migrations | Done |
 | Seed data | Done |
-| Language registry, detection and Tier 1 templates | Planned |
-| Tier 2 languages (templates, data, evaluation) | Planned |
+| Language registry, script detection and templates | Done (Tier 2 templates are experimental and machine-translated) |
+| Tier 2 datasets and evaluation | Planned |
 | Dataset and baseline classifier | Planned |
 | MuRIL fine-tune and evaluation | Planned |
 | Chat service and clarification flow | Planned |

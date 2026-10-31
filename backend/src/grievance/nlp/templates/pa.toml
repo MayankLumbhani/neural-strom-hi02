@@ -1,0 +1,15 @@
+# Machine-translated template; not verified by native speakers.
+ticket_created = "ਤੁਹਾਡੀ ਸ਼ਿਕਾਇਤ ਦਰਜ ਹੋ ਗਈ ਹੈ। ਟਿਕਟ ਆਈਡੀ: {ticket_id}। ਵਿਭਾਗ: {department}।"
+ask_location = "ਇਸ ਸ਼ਿਕਾਇਤ ਲਈ ਇਲਾਕਾ, ਗਲੀ ਜਾਂ ਨੇੜਲੀ ਥਾਂ ਦੱਸੋ।"
+ask_department = "ਇਸ ਸ਼ਿਕਾਇਤ ਨੂੰ ਕਿਹੜਾ ਵਿਭਾਗ ਸੰਭਾਲੇ? ਕਿਰਪਾ ਕਰਕੇ ਵਿਭਾਗ ਚੁਣੋ ਜਾਂ ਸਪਸ਼ਟ ਕਰੋ।"
+status_reply = "ਟਿਕਟ {ticket_id} ਦੀ ਮੌਜੂਦਾ ਸਥਿਤੀ: {status}।"
+not_found = "ਇਹ ਟਿਕਟ ਨਹੀਂ ਮਿਲੀ। ਕਿਰਪਾ ਕਰਕੇ ਟਿਕਟ ਆਈਡੀ ਜਾਂਚ ਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
+help = "ਆਪਣੀ ਨਾਗਰਿਕ ਸਮੱਸਿਆ ਇੱਕ ਸੁਨੇਹੇ ਵਿੱਚ ਦੱਸੋ। ਸਥਿਤੀ ਜਾਣਨ ਲਈ ਟਿਕਟ ਆਈਡੀ ਭੇਜੋ।"
+error_generic = "ਅਸੀਂ ਇਸ ਸੁਨੇਹੇ ਨੂੰ ਪ੍ਰਕਿਰਿਆ ਨਹੀਂ ਕਰ ਸਕੇ। ਕਿਰਪਾ ਕਰਕੇ ਦੁਬਾਰਾ ਕੋਸ਼ਿਸ਼ ਕਰੋ।"
+
+[status_labels]
+filed = "ਦਰਜ"
+assigned = "ਸੌਂਪੀ ਗਈ"
+in_progress = "ਕੰਮ ਜਾਰੀ ਹੈ"
+resolved = "ਹੱਲ ਹੋ ਗਿਆ"
+escalated = "ਉੱਚ ਪੱਧਰ ਤੇ ਭੇਜਿਆ"

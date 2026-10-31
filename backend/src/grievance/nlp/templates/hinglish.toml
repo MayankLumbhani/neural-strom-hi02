@@ -1,0 +1,14 @@
+ticket_created = "Aapki complaint file ho gayi hai. Ticket ID: {ticket_id}. Department: {department}."
+ask_location = "Please is complaint ka area, street ya paas ka landmark batayein."
+ask_department = "Is complaint ko kaunsa department handle kare? Please choose ya clarify karein."
+status_reply = "Ticket {ticket_id} ka current status: {status}."
+not_found = "Yeh ticket nahi mila. Please ticket ID check karke phir try karein."
+help = "Apni civic problem ek message mein batayein. Status check karne ke liye ticket ID bhejein."
+error_generic = "Hum is message ko process nahi kar paaye. Please phir try karein."
+
+[status_labels]
+filed = "File ho gaya"
+assigned = "Assign ho gaya"
+in_progress = "Kaam chal raha hai"
+resolved = "Resolve ho gaya"
+escalated = "Senior level par bheja gaya"

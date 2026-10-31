@@ -55,7 +55,7 @@ Language tiers used in this file:
   - Done when: `make seed` is idempotent (safe to run twice).
   - Commit: `feat(db): add idempotent seed script for departments and demo users`
 
-- [ ] **T-06** Language registry, detection and templates
+- [x] **T-06** Language registry, detection and templates
   - `nlp/languages.py` registry (code, names, script, tier, font, template file, verified flag), `nlp/language.py` (script detection for all registry scripts, Hindi vs Marathi disambiguation, Hinglish heuristic, unknown script falls back to a reply in English plus Hindi), `nlp/templates/` with Tier 1 templates (en, hi, gu, hinglish) and Tier 2 templates (mr, bn, ta, te, kn, ml, pa) flagged as machine-translated in a header comment, all with the keys from ARCHITECTURE 6.4.
   - Done when: unit tests cover every registry language and the unknown-script fallback, and a test asserts identical template keys across all language files.
   - Commit: `feat(nlp): add language registry, detection and multilingual message templates`
@@ -253,3 +253,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-10-31: completed T-03 validated settings, request logging and standard error responses.
 - 2026-10-31: completed T-04 SQLModel tables, initial Alembic migration, database session dependency and department repository test.
 - 2026-10-31: completed T-05 idempotent synthetic department and demo-account seeding with bcrypt password hashes.
+- 2026-10-31: completed T-06 registry-driven language detection, fixed-message templates and parity tests; Tier 2 templates remain experimental and machine-translated.

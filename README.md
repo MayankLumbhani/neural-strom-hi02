@@ -46,3 +46,11 @@ readiness. Database and model readiness are reported as `unknown` until those
 components are implemented. GitHub Actions runs Ruff, mypy, and pytest on pushes
 to `main` and pull requests targeting `main`; application features are tracked
 in [docs/TASKS.md](docs/TASKS.md).
+
+## Language support
+
+The backend registry detects English, Hindi, Gujarati, and romanized Hindi
+(Hinglish), plus experimental Marathi, Bengali, Tamil, Telugu, Kannada,
+Malayalam, and Punjabi. Unsupported or ambiguous scripts use English and Hindi
+fallback reply languages. Tier 1 templates are hand-written; Tier 2 templates
+are machine-translated and have not been verified by native speakers.

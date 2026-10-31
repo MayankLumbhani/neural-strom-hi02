@@ -62,9 +62,9 @@ Short log of technology and design choices. Newest at the bottom. Format: contex
 ## D-08 Hindi vs Marathi detection
 
 - **Context:** Both use Devanagari, so the Unicode block alone cannot tell them apart.
-- **Decision:** Start with marker-word counts for each language (for example words that are common in one and rare in the other), falling back to Hindi on a tie or no signal. A detector library is added only if the marker words prove too weak, and then it needs its own entry here.
+- **Decision:** Count whole-word markers from the central language registry. Hindi markers include `है`, `हैं`, `नहीं`, `मुझे`, `मेरे`, `रहा` and `रही`; Marathi markers include `आहे`, `नाही`, `मला`, `माझा`, `माझ्या`, `मध्ये` and `करा`. Fall back to Hindi on a tie or no signal. For Latin text, choose Hinglish when its registry markers (such as `nahi`, `paani`, `mere`, `hai` and `raha`) outscore English; otherwise choose English.
 - **Alternatives:** a language-ID library from the start.
-- **Consequences:** No extra dependency at first. Accuracy of this step is measured on the evaluation set and reported. It affects only the reply language, not the department classification.
+- **Consequences:** No extra dependency. Unsupported or ambiguous scripts return English and Hindi fallback reply languages. Detection affects only reply language, not department classification; results must be measured on the evaluation set before making quality claims.
 
 ## D-09 Demo account hashing and seed data
 
@@ -72,3 +72,10 @@ Short log of technology and design choices. Newest at the bottom. Format: contex
 - **Decision:** Seed the nine departments with initial synthetic SLA hours, require demo usernames and passwords from environment variables, and hash passwords with bcrypt (12 rounds; 12 to 72 UTF-8 bytes). Re-running the seed updates seeded department/account fields while retaining hashes when passwords are unchanged.
 - **Alternatives:** Store passwords directly, choose default demo passwords, or use Argon2.
 - **Consequences:** Demo credentials must be configured before seeding, and bcrypt is an explicit backend dependency. The seeded SLA values are illustrative and are not legal or service guarantees.
+
+## D-10 Localized template format
+
+- **Context:** All supported languages need the same fixed-message keys, with Tier 2 files visibly labelled as machine-translated.
+- **Decision:** Store template data in TOML files, load it with Python 3.11's built-in `tomllib`, and validate it with a typed Pydantic schema.
+- **Alternatives:** JSON (no standard comment syntax for the Tier 2 warning) or YAML (would add a dependency).
+- **Consequences:** No extra parsing dependency; all files are validated consistently, and Tier 2 warning comments remain alongside their translations.
