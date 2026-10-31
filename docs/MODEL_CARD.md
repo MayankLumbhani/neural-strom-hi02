@@ -40,6 +40,16 @@ At the defaults, generation produces 1,944 training and 486 validation rows.
 Duplicate complaint text is kept out of the other split. Generated CSVs are
 ignored by Git; do not commit generated datasets.
 
+### Preparing a manual-review sample
+
+After generating the training data, run `make review-sample` to select 50
+random training rows per enabled Tier 1 language using seed `20261031`. The
+script writes `ml/data/review/review_sample.csv` with columns
+`text,label,language,verdict,notes`; the last two columns are blank for the
+reviewer. The review directory is ignored by Git. Creating the sample does not
+count as completing the review: record the human review outcome in this model
+card after reviewing the rows.
+
 ## Review status and limitations
 
 - **Tier 1 (English, Hindi, Gujarati, Hinglish):** Generated phrase bank is

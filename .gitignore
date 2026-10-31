@@ -11,3 +11,4 @@ htmlcov/
 build/
 dist/
 /ml/data/processed/*.csv
+/ml/data/review/

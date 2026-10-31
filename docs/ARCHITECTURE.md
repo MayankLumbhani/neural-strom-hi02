@@ -336,11 +336,12 @@ frontend/src/
 ## 13. ML pipeline (offline)
 
 1. `ml/src/generate_dataset.py`: generate synthetic complaints from deterministic phrase banks and controlled variations for all 9 departments and registry languages (50 examples per class/language for Tier 1, 10 for Tier 2 by default). Write balanced, stratified train/validation CSVs with language tier metadata and no duplicate text across splits. Generated rows are unreviewed; complete the human review recorded in `docs/MODEL_CARD.md` before treating Tier 1 text as reviewed.
-2. `ml/data/eval_handwritten/`: about 100 to 150 messages written by hand for the Tier 1 languages, plus about 20 per Tier 2 language drafted with LLM help and marked `verified=false`. Never used for training.
-3. `ml/src/train_baseline.py`: TF-IDF plus Logistic Regression.
-4. `ml/src/train_muril.py` (run in Colab or Kaggle): fine-tune MuRIL, save the model to the Hugging Face Hub.
-5. `ml/src/evaluate.py`: accuracy, per-class precision, recall and F1, macro-F1, per-language breakdown (with the tier shown, Tier 1 and Tier 2 in separate tables) and confusion matrix for both models on the evaluation set. Writes `ml/reports/metrics.json` and images.
-6. `ml/src/export_onnx.py` (optional): export and quantize, then compare latency and accuracy against PyTorch.
+2. `ml/src/make_review_sample.py`: select 50 seeded random examples per Tier 1 language from `train.csv` for human review; write blank `verdict` and `notes` fields to an ignored review CSV.
+3. `ml/data/eval_handwritten/`: about 100 to 150 messages written by hand for the Tier 1 languages, plus about 20 per Tier 2 language drafted with LLM help and marked `verified=false`. Never used for training.
+4. `ml/src/train_baseline.py`: TF-IDF plus Logistic Regression.
+5. `ml/src/train_muril.py` (run in Colab or Kaggle): fine-tune MuRIL, save the model to the Hugging Face Hub.
+6. `ml/src/evaluate.py`: accuracy, per-class precision, recall and F1, macro-F1, per-language breakdown (with the tier shown, Tier 1 and Tier 2 in separate tables) and confusion matrix for both models on the evaluation set. Writes `ml/reports/metrics.json` and images.
+7. `ml/src/export_onnx.py` (optional): export and quantize, then compare latency and accuracy against PyTorch.
 
 All numbers in the README and model card come from these reports.
 

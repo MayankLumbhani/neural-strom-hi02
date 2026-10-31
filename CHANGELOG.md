@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - Idempotent synthetic seed data for nine multilingual departments and environment-configured demo accounts with bcrypt password hashes.
 - Registry-driven language detection for all supported scripts, typed TOML reply templates for all 11 languages, and tests for fallback behavior and template parity.
 - Deterministic synthetic complaint dataset generator with stratified train/validation splits, tier metadata, and documented review status.
+- Seeded Tier 1 training-data review sample generator with blank verdict and notes columns.
 
 ### Changed
 - Documentation: added tiered multilingual scope (Tier 1 verified: English, Hindi, Gujarati, Hinglish; Tier 2 experimental: Marathi, Bengali, Tamil, Telugu, Kannada, Malayalam, Punjabi) across the PRD, architecture, tasks, agent rules, design guide and decisions log.

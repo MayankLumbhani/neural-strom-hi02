@@ -63,3 +63,8 @@ create deterministic synthetic training and validation CSVs in
 keeps Tier 2 smaller and explicitly unverified. Generated datasets are not
 committed; review requirements and generation details are in
 [docs/MODEL_CARD.md](docs/MODEL_CARD.md).
+
+After generating the training split, run `make review-sample` to create a
+seeded sample of 50 rows per Tier 1 language at
+`ml/data/review/review_sample.csv`. Fill in the `verdict` and `notes` columns
+during human review; the sample file is ignored by Git.
