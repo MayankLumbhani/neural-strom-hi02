@@ -249,3 +249,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-10-30: repo, AGENTS.md, PRD and architecture committed.
 - 2026-10-30: completed T-01 backend scaffold, tooling and local Docker setup.
 - 2026-10-31: added tiered multilingual scope (Tier 1 verified, Tier 2 experimental) to the planning docs.
+- 2026-10-31: implemented T-02 health endpoints and CI workflow; awaiting the first GitHub Actions run.

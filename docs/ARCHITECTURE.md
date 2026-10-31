@@ -253,7 +253,7 @@ Base path `/api/v1`. Full request and response examples live in `docs/API.md`.
 | `POST /chat/messages` | Send a citizen message | `{ conversation_id?, text }` | `{ conversation_id, state, language, reply: { text, quick_replies[] }, ticket? }` |
 | `GET /tickets/{public_id}` | Public status lookup | none | `{ public_id, status, department, location, created_at, updated_at, public_events[] }` |
 | `GET /health` | Liveness | none | `{ status: "ok" }` |
-| `GET /ready` | Readiness (database and model) | none | `{ status: "ready", db: "ok", model: "loaded" }` |
+| `GET /ready` | Readiness (database and model) | none | `{ status: "ready", db: "unknown", model: "unknown" }` until those checks are implemented |
 
 ### Auth
 | Method and path | Purpose | Request | Response |
@@ -368,7 +368,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 |---|---|
 | Repo, docs, AGENTS.md | Done |
 | Backend scaffold | Done |
-| Health endpoints and CI | Planned |
+| Health endpoints and CI | In progress |
 | Database models and migrations | Planned |
 | Language registry, detection and Tier 1 templates | Planned |
 | Tier 2 languages (templates, data, evaluation) | Planned |

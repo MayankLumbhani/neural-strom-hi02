@@ -29,5 +29,8 @@ Requirements: Python 3.11 or newer; Docker Compose is optional for PostgreSQL.
 Run `make lint` and `make test` to check the backend. `make format` applies
 Ruff formatting.
 
-The API currently contains only the scaffold; health endpoints and application
-features are tracked separately in [docs/TASKS.md](docs/TASKS.md).
+The API currently provides `GET /health` for liveness and `GET /ready` for
+readiness. Database and model readiness are reported as `unknown` until those
+components are implemented. GitHub Actions runs Ruff, mypy, and pytest on pushes
+to `main` and pull requests targeting `main`; application features are tracked
+in [docs/TASKS.md](docs/TASKS.md).
