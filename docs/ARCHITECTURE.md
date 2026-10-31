@@ -309,7 +309,7 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 | `CLASSIFIER_BACKEND` | `muril`, `onnx` or `baseline` |
 | `MODEL_NAME_OR_PATH`, `HF_TOKEN` | Where to load weights from |
 | `CLASSIFIER_HIGH_THRESHOLD`, `CLASSIFIER_LOW_THRESHOLD` | Confidence policy |
-| `LLM_ENABLED`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `LLM_TIMEOUT_SECONDS` | Optional extraction helper and offline Gemini dataset generation; the model has no default |
+| `LLM_ENABLED`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `LLM_TIMEOUT_SECONDS` | Optional extraction helper and offline Gemini dataset generation; per-request timeout defaults to 60 seconds and the model has no default |
 | `DATASET_SEED`, `DATASET_TIER1_SAMPLES_PER_CLASS_LANGUAGE`, `DATASET_TIER2_SAMPLES_PER_CLASS_LANGUAGE`, `DATASET_MINIMUM_STRATUM_FRACTION` | Dataset seed, requested examples (100 Tier 1, 30 Tier 2), and minimum accepted stratum fraction (0.9) |
 | `ESCALATION_INTERVAL_SECONDS` | Scheduler cadence |
 | `RATE_LIMIT_CHAT`, `RATE_LIMIT_STATUS` | Rate limits |

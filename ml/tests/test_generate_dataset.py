@@ -5,6 +5,7 @@ import json
 from pathlib import Path
 
 import generate_dataset as dataset_generator
+import httpx
 import pytest
 from generate_dataset import (
     DEPARTMENT_CODES,
@@ -25,7 +26,7 @@ from grievance.nlp.languages import LANGUAGES as LANGUAGE_REGISTRY
 class FakeClient:
     """Return queued JSON responses without making network calls."""
 
-    def __init__(self, responses: list[str]) -> None:
+    def __init__(self, responses: list[str | Exception]) -> None:
         """Store fake responses and initialize the call count."""
         self.responses = responses
         self.calls = 0
@@ -36,6 +37,8 @@ class FakeClient:
         self.prompts.append(prompt)
         response = self.responses[self.calls]
         self.calls += 1
+        if isinstance(response, Exception):
+            raise response
         return response
 
 
@@ -238,7 +241,7 @@ def test_generation_revalidates_raw_cached_batch_without_network_call(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """Revalidate cached raw JSON with the current Hindi word validator."""
+    """Revalidate cached raw JSON without making a network call or sleeping."""
     cached_rows = [
         "पिछले चार दिन से हमारे इलाके में पानी की आपूर्ति पूरी तरह से ठप है।",
         "आज सुबह से नल में पानी बहुत धीमी धार से आ रहा है, कृपया जांच करें।",
@@ -249,6 +252,11 @@ def test_generation_revalidates_raw_cached_batch_without_network_call(
     cache_path.write_text(response, encoding="utf-8")
     monkeypatch.setattr(dataset_generator, "LANGUAGES", {"hi": LANGUAGE_REGISTRY["hi"]})
     monkeypatch.setattr(dataset_generator, "DEPARTMENT_CODES", ("WATER",))
+    monkeypatch.setattr(
+        dataset_generator.time,
+        "sleep",
+        lambda _: pytest.fail("cached batch replay must not sleep"),
+    )
     client = FakeClient([])
 
     split = generate_dataset(client, _config(), tmp_path, "test-model", batch_limit=1)
@@ -256,6 +264,84 @@ def test_generation_revalidates_raw_cached_batch_without_network_call(
     assert client.calls == 0
     assert cache_path.read_text(encoding="utf-8") == response
     assert {row["text"] for row in split.train + split.validation} == set(cached_rows)
+
+
+@pytest.mark.parametrize(
+    "error",
+    [
+        httpx.ReadTimeout("simulated read timeout"),
+        httpx.ConnectTimeout("simulated connect timeout"),
+        httpx.ConnectError("simulated connection failure"),
+    ],
+)
+def test_request_runner_retries_httpx_transport_errors_with_backoff(
+    error: httpx.TransportError,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Retry transient HTTPX transport errors with exponential backoff."""
+    client = FakeClient([error, '["response"]'])
+    sleeps: list[float] = []
+    monkeypatch.setattr(dataset_generator, "MAX_RETRIES", 1)
+    monkeypatch.setattr(dataset_generator, "REQUEST_DELAY_SECONDS", 0)
+    monkeypatch.setattr(dataset_generator.time, "sleep", sleeps.append)
+
+    response = dataset_generator._RequestRunner(client).generate("prompt")
+
+    assert response == '["response"]'
+    assert client.calls == 2
+    assert sleeps == [dataset_generator.RETRY_BASE_DELAY_SECONDS]
+
+
+def test_main_stops_cleanly_after_transport_retries_and_keeps_cache(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    """Report a resumable error without traceback after all network retries fail."""
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setattr(dataset_generator, "LANGUAGES", {"en": LANGUAGE_REGISTRY["en"]})
+    monkeypatch.setattr(dataset_generator, "DEPARTMENT_CODES", ("WATER",))
+    monkeypatch.setattr(dataset_generator, "MAX_RETRIES", 2)
+    monkeypatch.setattr(dataset_generator, "REQUEST_DELAY_SECONDS", 0)
+    monkeypatch.setattr(dataset_generator.time, "sleep", lambda _: None)
+    cache_dir = tmp_path / "ml" / "data" / "raw" / "llm_batches"
+    cached_response = json.dumps(_valid_english_complaints())
+    cache_path = dataset_generator._cache_path(cache_dir, "test-model", "en", "WATER", 0)
+    cache_path.parent.mkdir(parents=True)
+    cache_path.write_text(cached_response, encoding="utf-8")
+    client = FakeClient([httpx.ReadTimeout("simulated timeout")] * 3)
+    settings = Settings(
+        _env_file=None,
+        gemini_api_key="test-key",
+        gemini_model="test-model",
+    )
+    monkeypatch.setattr(dataset_generator, "get_settings", lambda: settings)
+    monkeypatch.setattr(dataset_generator, "configure_logging", lambda _: None)
+    monkeypatch.setattr(
+        dataset_generator,
+        "_parse_args",
+        lambda: dataset_generator.argparse.Namespace(
+            check=False,
+            limit=2,
+            output_dir=tmp_path / "processed",
+        ),
+    )
+    monkeypatch.setattr(
+        dataset_generator,
+        "GeminiComplaintClient",
+        lambda api_key, model, timeout_seconds: client,
+    )
+
+    with pytest.raises(SystemExit) as exit_error:
+        dataset_generator.main()
+
+    error_output = capsys.readouterr().err
+    assert exit_error.value.code == 1
+    assert client.calls == 3
+    assert "Any completed batches remain cached" in error_output
+    assert "run the same command again to resume" in error_output
+    assert "Traceback" not in error_output
+    assert cache_path.read_text(encoding="utf-8") == cached_response
 
 
 def test_fake_client_generation_drops_language_billing_and_place_violations(

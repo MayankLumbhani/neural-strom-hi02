@@ -16,6 +16,7 @@ from hashlib import sha256
 from pathlib import Path
 from typing import Final, Protocol, TypedDict
 
+import httpx
 from google import genai
 from google.genai import errors, types
 from pydantic import ValidationError
@@ -132,10 +133,16 @@ class _RequestRunner:
         for attempt in range(MAX_RETRIES + 1):
             try:
                 response = self.client.generate(prompt)
-            except errors.APIError as exc:
+            except (errors.APIError, httpx.TransportError) as exc:
                 self.last_request_at = time.monotonic()
-                if not _is_retryable(exc) or attempt == MAX_RETRIES:
+                if not _is_retryable(exc):
                     raise
+                if attempt == MAX_RETRIES:
+                    raise RuntimeError(
+                        f"Gemini request failed after {MAX_RETRIES + 1} attempts. "
+                        "Any completed batches remain cached; run the same command again "
+                        "to resume."
+                    ) from None
                 retry_delay = min(
                     RETRY_BASE_DELAY_SECONDS * (2**attempt),
                     RETRY_MAX_DELAY_SECONDS,
@@ -386,8 +393,12 @@ def _build_prompt(language_code: str, department_code: str, count: int) -> str:
     )
 
 
-def _is_retryable(error: errors.APIError) -> bool:
-    """Return whether an API error is a retryable rate limit or server failure."""
+def _is_retryable(error: Exception) -> bool:
+    """Return whether an API or transport error is safe to retry."""
+    if isinstance(error, httpx.TransportError):
+        return True
+    if not isinstance(error, errors.APIError):
+        return False
     status_code = getattr(error, "code", None)
     return isinstance(status_code, int) and (status_code == 429 or 500 <= status_code <= 599)
 
@@ -706,7 +717,7 @@ def main() -> None:
         )
     except (RuntimeError, ValueError, ValidationError, errors.APIError) as exc:
         sys.stderr.write(f"error: {exc}\n")
-        raise SystemExit(1) from exc
+        raise SystemExit(1) from None
 
 
 if __name__ == "__main__":

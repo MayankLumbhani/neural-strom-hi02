@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file.
 - Seeded Tier 1 training-data review sample generator with blank verdict and notes columns.
 
 ### Changed
+- Gemini dataset generation now retries transport and timeout failures with exponential backoff, exits cleanly with resume guidance when retries are exhausted, and replays cached batches without delay; the configurable per-request timeout defaults to 60 seconds.
 - Fixed Hindi combining-mark tokenization that falsely rejected adjacent words; cached raw batches are revalidated on every run, drop reasons are logged per stratum, and an environment-configured minimum stratum yield of 90% allows and reports small shortfalls.
 - Tightened Gemini dataset prompts and validation for TAX-only billing complaints, English/Hinglish purity, native-script proportions, fictional Indian-style locations, and varied openings.
 - Dataset generation now requires `GEMINI_API_KEY` and `GEMINI_MODEL`; defaults are 100 samples per Tier 1 department/language and 30 per Tier 2, with LLM provenance in CSV output.

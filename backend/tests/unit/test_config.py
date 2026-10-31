@@ -59,6 +59,11 @@ def test_settings_cover_architecture_environment_variables() -> None:
     assert {field.upper() for field in Settings.model_fields} == expected
 
 
+def test_llm_timeout_default_is_suitable_for_generation_requests() -> None:
+    """Allow enough time for a slow model response by default."""
+    assert Settings(_env_file=None).llm_timeout_seconds == 60
+
+
 def test_settings_reject_inverted_confidence_thresholds() -> None:
     """Require the low classifier threshold to remain below the high threshold."""
     with pytest.raises(ValidationError):

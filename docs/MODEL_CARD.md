@@ -47,7 +47,7 @@ fixed generic sentence is not sufficient.
 | `DATASET_TIER1_SAMPLES_PER_CLASS_LANGUAGE` | `100` | Target examples per department and Tier 1 language |
 | `DATASET_TIER2_SAMPLES_PER_CLASS_LANGUAGE` | `30` | Target examples per department and Tier 2 language |
 | `DATASET_MINIMUM_STRATUM_FRACTION` | `0.9` | Minimum target fraction accepted after the configured batch budget |
-| `LLM_TIMEOUT_SECONDS` | `10` | API request timeout |
+| `LLM_TIMEOUT_SECONDS` | `60` | Per-request timeout in seconds |
 
 Prompt and validation limits: 15 complaints per request; 25% without a
 location; 30% without a greeting/formula; 15% informal; no named opener above
@@ -88,10 +88,14 @@ Hinglish rows without one. It also rejects non-TAX billing terms, Western-style
 place-name suffixes, repeated adjacent words, phone-number-like digit runs,
 and excess repeated named openers. Normalized exact and near duplicates are
 dropped. These checks do not guarantee that all real place, person, or
-organization names are recognized. The generator retries rate-limit and server
-errors with exponential backoff and spaces API calls. Raw response batches are
-saved to the Git-ignored `ml/data/raw/llm_batches/` directory and reused on a
-rerun for the same model, language, and department.
+organization names are recognized. The generator retries rate-limit, server,
+timeout, and transport errors with exponential backoff. `LLM_TIMEOUT_SECONDS`
+configures the per-request timeout and defaults to 60 seconds. Request spacing
+applies only to actual API calls; cached raw batches replay without delay. Raw
+responses are saved to the Git-ignored `ml/data/raw/llm_batches/` directory
+and reused on a rerun for the same model, language, and department. If retries
+are exhausted, the generator exits with a short message; completed batches
+remain cached, and rerunning the same command resumes from them.
 
 The generated train and validation files remain at
 `ml/data/processed/train.csv` and `ml/data/processed/validation.csv`. Rows
