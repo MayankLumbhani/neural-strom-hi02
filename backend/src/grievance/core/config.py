@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     dataset_seed: int = 20261031
     dataset_tier1_samples_per_class_language: int = Field(default=100, ge=2)
     dataset_tier2_samples_per_class_language: int = Field(default=30, ge=2)
+    dataset_minimum_stratum_fraction: float = Field(default=0.9, gt=0, le=1)
     escalation_interval_seconds: int = Field(default=60, gt=0)
     rate_limit_chat: str = "10/minute"
     rate_limit_status: str = "30/minute"

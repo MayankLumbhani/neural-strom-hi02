@@ -310,7 +310,7 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 | `MODEL_NAME_OR_PATH`, `HF_TOKEN` | Where to load weights from |
 | `CLASSIFIER_HIGH_THRESHOLD`, `CLASSIFIER_LOW_THRESHOLD` | Confidence policy |
 | `LLM_ENABLED`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `LLM_TIMEOUT_SECONDS` | Optional extraction helper and offline Gemini dataset generation; the model has no default |
-| `DATASET_SEED`, `DATASET_TIER1_SAMPLES_PER_CLASS_LANGUAGE`, `DATASET_TIER2_SAMPLES_PER_CLASS_LANGUAGE` | Dataset split seed and requested synthetic examples per department/language (100 Tier 1, 30 Tier 2 by default) |
+| `DATASET_SEED`, `DATASET_TIER1_SAMPLES_PER_CLASS_LANGUAGE`, `DATASET_TIER2_SAMPLES_PER_CLASS_LANGUAGE`, `DATASET_MINIMUM_STRATUM_FRACTION` | Dataset seed, requested examples (100 Tier 1, 30 Tier 2), and minimum accepted stratum fraction (0.9) |
 | `ESCALATION_INTERVAL_SECONDS` | Scheduler cadence |
 | `RATE_LIMIT_CHAT`, `RATE_LIMIT_STATUS` | Rate limits |
 | `MAX_MESSAGE_LENGTH` | Input cap |
@@ -338,7 +338,7 @@ frontend/src/
 
 ## 13. ML pipeline (offline)
 
-1. `ml/src/generate_dataset.py`: use the official Google Gen AI Python SDK to draft synthetic complaints for all 9 departments and enabled languages in the registry (100 examples per department/language for Tier 1, 30 for Tier 2 by default). `GEMINI_MODEL` and `GEMINI_API_KEY` are required; the model has no hardcoded default. Strict JSON responses are validated and deduplicated, raw batches are cached under the ignored `ml/data/raw/llm_batches/`, and train/validation CSVs are stratified by language and department with no text overlap. Generated rows remain unreviewed; see `docs/MODEL_CARD.md`.
+1. `ml/src/generate_dataset.py`: use the official Google Gen AI Python SDK to draft synthetic complaints for all 9 departments and enabled languages in the registry (100 examples per department/language for Tier 1, 30 for Tier 2 by default). `GEMINI_MODEL` and `GEMINI_API_KEY` are required; the model has no hardcoded default. Strict JSON responses are validated and deduplicated, raw batches are cached under the ignored `ml/data/raw/llm_batches/` and revalidated on reuse, and train/validation CSVs are stratified by language and department with no text overlap. After the batch budget, a stratum must meet `DATASET_MINIMUM_STRATUM_FRACTION` (0.9 by default); generated rows remain unreviewed.
 2. `ml/src/make_review_sample.py`: select 50 seeded random examples per Tier 1 language from `train.csv` for human review; write blank `verdict` and `notes` fields to an ignored review CSV.
 3. `ml/data/eval_handwritten/`: about 100 to 150 messages written by hand for the Tier 1 languages, plus about 20 per Tier 2 language drafted with LLM help and marked `verified=false`. Never used for training.
 4. `ml/src/train_baseline.py`: TF-IDF plus Logistic Regression.

@@ -43,6 +43,9 @@ DEPARTMENT_CODES: Final[tuple[str, ...]] = tuple(department.code for department 
 DEPARTMENT_NAMES: Final[dict[str, str]] = {
     department.code: department.name_en for department in DEPARTMENTS
 }
+HINGLISH_MARKERS: Final[frozenset[str]] = frozenset(
+    marker.casefold() for marker in LANGUAGES["hinglish"].detection_markers
+)
 PHONE_LIKE_DIGITS: Final[re.Pattern[str]] = re.compile(r"\+?\d[\d\s().-]{5,}\d")
 WORD_TOKENS: Final[re.Pattern[str]] = re.compile(r"\w+", re.UNICODE)
 NORMALIZED_SEPARATORS: Final[re.Pattern[str]] = re.compile(r"[^\w]+", re.UNICODE)
@@ -89,11 +92,14 @@ class GenerationConfig:
     validation_fraction: float = VALIDATION_FRACTION
     tier1_samples_per_class_language: int = 100
     tier2_samples_per_class_language: int = 30
+    minimum_stratum_fraction: float = 0.9
 
     def __post_init__(self) -> None:
         """Validate dataset generation settings."""
         if not 0 < self.validation_fraction < 1:
             raise ValueError("validation_fraction must be between 0 and 1")
+        if not 0 < self.minimum_stratum_fraction <= 1:
+            raise ValueError("minimum_stratum_fraction must be greater than 0 and at most 1")
         if self.tier1_samples_per_class_language < 2:
             raise ValueError("tier1_samples_per_class_language must be at least 2")
         if self.tier2_samples_per_class_language < 2:
@@ -229,8 +235,7 @@ def _matches_language(text: str, language_code: str) -> bool:
         if matching_letters != len(letters):
             return False
         words = {word.casefold() for word in WORD_TOKENS.findall(text)}
-        hinglish_markers = {marker.casefold() for marker in LANGUAGES["hinglish"].detection_markers}
-        contains_hinglish = bool(words & hinglish_markers)
+        contains_hinglish = bool(words & HINGLISH_MARKERS)
         if language_code == "en":
             return not contains_hinglish
         if language_code == "hinglish":
@@ -241,8 +246,24 @@ def _matches_language(text: str, language_code: str) -> bool:
 
 def _has_repeated_adjacent_words(text: str) -> bool:
     """Detect repeated adjacent words regardless of case or punctuation."""
-    words = [word.casefold() for word in WORD_TOKENS.findall(text)]
+    words = [word.casefold() for word in _unicode_words(text)]
     return any(first == second for first, second in zip(words, words[1:], strict=False))
+
+
+def _unicode_words(text: str) -> list[str]:
+    """Tokenize Unicode letters while keeping combining marks with their word."""
+    words: list[str] = []
+    current: list[str] = []
+    for character in text:
+        category = unicodedata.category(character)
+        if category[0] in {"L", "N"} or (category[0] == "M" and current):
+            current.append(character)
+        elif current:
+            words.append("".join(current))
+            current = []
+    if current:
+        words.append("".join(current))
+    return words
 
 
 def _contains_phone_like_digits(text: str) -> bool:
@@ -271,6 +292,11 @@ def _limit_repeated_openers(batch: list[str]) -> tuple[list[str], int]:
                 continue
         accepted.append(text)
     return accepted, dropped
+
+
+def _format_drop_reasons(reasons: Counter[str]) -> str:
+    """Render a stable compact reason=count summary for a stratum."""
+    return ",".join(f"{reason}:{count}" for reason, count in sorted(reasons.items())) or "none"
 
 
 def _normalize_text(text: str) -> str:
@@ -394,6 +420,7 @@ def _generation_config(settings: Settings) -> GenerationConfig:
         seed=settings.dataset_seed,
         tier1_samples_per_class_language=settings.dataset_tier1_samples_per_class_language,
         tier2_samples_per_class_language=settings.dataset_tier2_samples_per_class_language,
+        minimum_stratum_fraction=settings.dataset_minimum_stratum_fraction,
     )
 
 
@@ -413,6 +440,9 @@ def generate_dataset(
     near_texts_by_language: dict[str, list[str]] = defaultdict(list)
     rows_by_stratum: dict[tuple[str, str], list[DatasetRow]] = defaultdict(list)
     dropped_by_stratum: Counter[tuple[str, str]] = Counter()
+    drop_reasons_by_stratum: dict[tuple[str, str], Counter[str]] = defaultdict(Counter)
+    attempted_strata: set[tuple[str, str]] = set()
+    shortfalls: list[str] = []
     processed_batches = 0
     reached_batch_limit = False
 
@@ -433,11 +463,31 @@ def generate_dataset(
                     reached_batch_limit = True
                     break
                 if batch_index >= max_batches:
-                    raise RuntimeError(
-                        f"Only {len(rows_by_stratum[stratum])} valid complaints were "
-                        f"produced for {language_code}/{department_code}; "
-                        f"expected {target_count} after {max_batches} batches"
-                    )
+                    kept = len(rows_by_stratum[stratum])
+                    if kept / target_count < config.minimum_stratum_fraction:
+                        reason_summary = _format_drop_reasons(drop_reasons_by_stratum[stratum])
+                        logger.info(
+                            "ml.dataset.stratum language=%s department=%s kept=%d dropped=%d "
+                            "drop_reasons=%s",
+                            language_code,
+                            department_code,
+                            kept,
+                            dropped_by_stratum[stratum],
+                            reason_summary,
+                        )
+                        logger.warning(
+                            "ml.dataset.shortfalls summary=%s/%s:%d/%d",
+                            language_code,
+                            department_code,
+                            kept,
+                            target_count,
+                        )
+                        raise RuntimeError(
+                            f"Only {kept}/{target_count} valid complaints were produced for "
+                            f"{language_code}/{department_code}, below the configured "
+                            f"{config.minimum_stratum_fraction:.0%} minimum"
+                        )
+                    break
                 cache_path = _cache_path(
                     cache_dir, model, language_code, department_code, batch_index
                 )
@@ -445,8 +495,11 @@ def generate_dataset(
                 batch, was_cached = _read_or_generate_batch(runner, prompt, cache_path)
                 processed_batches += 1
                 batch_index += 1
+                attempted_strata.add(stratum)
                 batch, repeated_opener_drops = _limit_repeated_openers(batch)
                 dropped_by_stratum[stratum] += repeated_opener_drops
+                if repeated_opener_drops:
+                    drop_reasons_by_stratum[stratum]["repeated_opener"] += repeated_opener_drops
 
                 for text in batch:
                     complaint, rejection_reason = validate_complaint(
@@ -456,15 +509,18 @@ def generate_dataset(
                     )
                     if rejection_reason is not None:
                         dropped_by_stratum[stratum] += 1
+                        drop_reasons_by_stratum[stratum][rejection_reason] += 1
                         continue
                     if complaint is None:
                         raise RuntimeError("Complaint validation returned an invalid state")
                     normalized = _normalize_text(complaint)
                     if normalized in exact_texts:
                         dropped_by_stratum[stratum] += 1
+                        drop_reasons_by_stratum[stratum]["exact_duplicate"] += 1
                         continue
                     if _is_near_duplicate(normalized, near_texts_by_language[language_code]):
                         dropped_by_stratum[stratum] += 1
+                        drop_reasons_by_stratum[stratum]["near_duplicate"] += 1
                         continue
 
                     exact_texts.add(normalized)
@@ -501,13 +557,37 @@ def generate_dataset(
             continue
         for department_code in DEPARTMENT_CODES:
             stratum = (language_code, department_code)
+            kept = len(rows_by_stratum[stratum])
+            target_count = (
+                config.tier1_samples_per_class_language
+                if language.tier == 1
+                else config.tier2_samples_per_class_language
+            )
+            if stratum in attempted_strata and kept < target_count:
+                shortfall = f"{language_code}/{department_code}:{kept}/{target_count}"
+                shortfalls.append(shortfall)
+                if kept / target_count >= config.minimum_stratum_fraction:
+                    logger.warning(
+                        "ml.dataset.stratum.shortfall language=%s department=%s "
+                        "kept=%d target=%d minimum_fraction=%.2f",
+                        language_code,
+                        department_code,
+                        kept,
+                        target_count,
+                        config.minimum_stratum_fraction,
+                    )
+            drop_reason_summary = _format_drop_reasons(drop_reasons_by_stratum[stratum])
             logger.info(
-                "ml.dataset.stratum language=%s department=%s kept=%d dropped=%d",
+                "ml.dataset.stratum language=%s department=%s kept=%d dropped=%d drop_reasons=%s",
                 language_code,
                 department_code,
-                len(rows_by_stratum[stratum]),
+                kept,
                 dropped_by_stratum[stratum],
+                drop_reason_summary,
             )
+
+    if shortfalls:
+        logger.warning("ml.dataset.shortfalls summary=%s", ";".join(shortfalls))
 
     all_rows = [row for rows in rows_by_stratum.values() for row in rows]
     return _stratified_split(all_rows, config)

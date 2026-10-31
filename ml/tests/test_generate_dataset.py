@@ -4,6 +4,7 @@ import csv
 import json
 from pathlib import Path
 
+import generate_dataset as dataset_generator
 import pytest
 from generate_dataset import (
     DEPARTMENT_CODES,
@@ -18,6 +19,7 @@ from generate_dataset import (
 )
 
 from grievance.core.config import Settings
+from grievance.nlp.languages import LANGUAGES as LANGUAGE_REGISTRY
 
 
 class FakeClient:
@@ -37,12 +39,13 @@ class FakeClient:
         return response
 
 
-def _config(count: int = 2) -> GenerationConfig:
+def _config(count: int = 2, minimum_fraction: float = 0.9) -> GenerationConfig:
     """Use tiny dataset strata for fast offline tests."""
     return GenerationConfig(
         seed=17,
         tier1_samples_per_class_language=count,
         tier2_samples_per_class_language=count,
+        minimum_stratum_fraction=minimum_fraction,
     )
 
 
@@ -65,6 +68,36 @@ def _valid_english_complaints() -> list[str]:
         "The invented sewer has backed up for two nights in a row",
         "Please review the fictional service issue reported last weekend",
     ]
+
+
+def _valid_water_complaints(count: int) -> list[str]:
+    """Return distinct synthetic English water complaints for shortfall tests."""
+    templates = (
+        "Water pipe stopped flowing near fictional Ward {ward} since Monday morning",
+        "A broken pump has reduced supply in fictional Ward {ward} since yesterday",
+        "Residents near fictional Ward {ward} found muddy water in their taps today",
+        "The public tap in fictional Ward {ward} has leaked continuously since dawn",
+        "Water pressure dropped across fictional Ward {ward} during the afternoon",
+        "A supply valve near fictional Ward {ward} is spraying water onto the road",
+        "The reservoir feeding fictional Ward {ward} has supplied no water since Tuesday",
+        "Several homes in fictional Ward {ward} received discolored water this morning",
+        "A damaged pipeline near fictional Ward {ward} is flooding the footpath",
+        "The pump serving fictional Ward {ward} makes a loud noise and stops",
+    )
+    return [templates[index].format(ward=index + 1) for index in range(count)]
+
+
+def _capture_generator_logs(monkeypatch: pytest.MonkeyPatch) -> list[str]:
+    """Capture formatted generator log records independently of global handlers."""
+    messages: list[str] = []
+
+    def record(message: str, *args: object) -> None:
+        """Store a formatted log message."""
+        messages.append(message % args if args else message)
+
+    monkeypatch.setattr(dataset_generator.logger, "info", record)
+    monkeypatch.setattr(dataset_generator.logger, "warning", record)
+    return messages
 
 
 @pytest.mark.parametrize(
@@ -96,6 +129,12 @@ def test_batch_parser_accepts_only_a_json_list_of_strings() -> None:
         (
             "The The water is not flowing near a fictional ward",
             "en",
+            "WATER",
+            "repeated_words",
+        ),
+        (
+            "पानी पानी नहीं आ रहा है और समस्या कई दिनों से जारी है",
+            "hi",
             "WATER",
             "repeated_words",
         ),
@@ -183,10 +222,48 @@ def test_validation_accepts_hinglish_and_limited_english_loanwords() -> None:
     assert hindi_rejection is None
 
 
+def test_hindi_combining_marks_do_not_create_false_repeated_words() -> None:
+    """Keep combining vowel signs attached so normal Hindi words pass validation."""
+    complaint, rejection = validate_complaint(
+        "पिछले चार दिन से हमारे इलाके में पानी की आपूर्ति पूरी तरह से ठप है।",
+        "hi",
+        "WATER",
+    )
+
+    assert complaint is not None
+    assert rejection is None
+
+
+def test_generation_revalidates_raw_cached_batch_without_network_call(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Revalidate cached raw JSON with the current Hindi word validator."""
+    cached_rows = [
+        "पिछले चार दिन से हमारे इलाके में पानी की आपूर्ति पूरी तरह से ठप है।",
+        "आज सुबह से नल में पानी बहुत धीमी धार से आ रहा है, कृपया जांच करें।",
+    ]
+    response = json.dumps(cached_rows, ensure_ascii=False)
+    cache_path = dataset_generator._cache_path(tmp_path, "test-model", "hi", "WATER", 0)
+    cache_path.parent.mkdir(parents=True, exist_ok=True)
+    cache_path.write_text(response, encoding="utf-8")
+    monkeypatch.setattr(dataset_generator, "LANGUAGES", {"hi": LANGUAGE_REGISTRY["hi"]})
+    monkeypatch.setattr(dataset_generator, "DEPARTMENT_CODES", ("WATER",))
+    client = FakeClient([])
+
+    split = generate_dataset(client, _config(), tmp_path, "test-model", batch_limit=1)
+
+    assert client.calls == 0
+    assert cache_path.read_text(encoding="utf-8") == response
+    assert {row["text"] for row in split.train + split.validation} == set(cached_rows)
+
+
 def test_fake_client_generation_drops_language_billing_and_place_violations(
+    monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
     """Apply new content filters to untrusted fake-client batch output."""
+    log_messages = _capture_generator_logs(monkeypatch)
     valid = [
         "Water pipe leaking near fictional Ward 8 since Monday morning",
         "Fictional Ward 9 has low water pressure since yesterday afternoon",
@@ -210,6 +287,10 @@ def test_fake_client_generation_drops_language_billing_and_place_violations(
 
     assert {row["text"] for row in generated} == set(valid)
     assert client.calls == 1
+    assert any(
+        "drop_reasons=billing_scope:1,language:1,western_place_name:1" in message
+        for message in log_messages
+    )
 
 
 def test_tax_is_the_only_department_allowed_to_keep_billing_complaints() -> None:
@@ -241,6 +322,53 @@ def test_batch_limiter_drops_repeated_named_openers() -> None:
     assert sum(text.startswith("Hey") for text in accepted) == 1
     assert sum(text.startswith("Excuse me") for text in accepted) == 1
     assert sum(text.startswith("Urgent:") for text in accepted) == 1
+
+
+def test_generation_accepts_and_reports_ninety_percent_stratum_shortfall(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Keep a 90% stratum and emit per-stratum warning and final summary."""
+    log_messages = _capture_generator_logs(monkeypatch)
+    monkeypatch.setattr(dataset_generator, "LANGUAGES", {"en": LANGUAGE_REGISTRY["en"]})
+    monkeypatch.setattr(dataset_generator, "DEPARTMENT_CODES", ("WATER",))
+    client = FakeClient(
+        [
+            json.dumps(_valid_water_complaints(9)),
+            json.dumps([]),
+        ]
+    )
+
+    split = generate_dataset(client, _config(10), tmp_path, "test-model")
+
+    assert len(split.train) + len(split.validation) == 9
+    assert any("ml.dataset.stratum.shortfall" in message for message in log_messages)
+    assert any("ml.dataset.shortfalls summary=en/WATER:9/10" in message for message in log_messages)
+
+
+def test_generation_aborts_below_configured_shortfall_threshold(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Fail clearly when a fully attempted stratum is below 90% of its target."""
+    monkeypatch.setattr(dataset_generator, "LANGUAGES", {"en": LANGUAGE_REGISTRY["en"]})
+    monkeypatch.setattr(dataset_generator, "DEPARTMENT_CODES", ("WATER",))
+    client = FakeClient(
+        [
+            json.dumps(_valid_water_complaints(8)),
+            json.dumps([]),
+        ]
+    )
+
+    with pytest.raises(RuntimeError, match="8/10.*below the configured 90% minimum"):
+        generate_dataset(client, _config(10), tmp_path, "test-model")
+
+
+def test_generation_config_rejects_invalid_minimum_fraction() -> None:
+    """Require the configured minimum shortfall fraction to be within (0, 1]."""
+    for fraction in (0, 1.01):
+        with pytest.raises(ValueError, match="minimum_stratum_fraction"):
+            _config(minimum_fraction=fraction)
 
 
 def test_generation_deduplicates_exact_and_near_duplicate_text(tmp_path: Path) -> None:

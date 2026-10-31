@@ -46,12 +46,33 @@ fixed generic sentence is not sufficient.
 | `DATASET_SEED` | `20261031` | Seed for reproducible stratified splits |
 | `DATASET_TIER1_SAMPLES_PER_CLASS_LANGUAGE` | `100` | Target examples per department and Tier 1 language |
 | `DATASET_TIER2_SAMPLES_PER_CLASS_LANGUAGE` | `30` | Target examples per department and Tier 2 language |
+| `DATASET_MINIMUM_STRATUM_FRACTION` | `0.9` | Minimum target fraction accepted after the configured batch budget |
 | `LLM_TIMEOUT_SECONDS` | `10` | API request timeout |
 
 Prompt and validation limits: 15 complaints per request; 25% without a
 location; 30% without a greeting/formula; 15% informal; no named opener above
 10% of a batch; and at least 80% native-script letters for non-Latin
-languages.
+languages. The native-script percentage is computed over alphabetic
+characters only; digits, spaces, and punctuation do not affect the share.
+Non-Latin rows may include Latin loanwords only while at least 80% of their
+letters remain in the registry script. English rows must not contain registry
+Hinglish marker words, while Hinglish rows must contain at least one.
+
+Repeated-word validation tokenizes Unicode letters and numbers while keeping
+combining marks attached to their word. Cached `hi/WATER` responses showed that
+the prior `\w+` tokenization split Devanagari vowel marks and falsely flagged
+ordinary words as repeated; the Unicode-aware tokenizer fixes that without
+weakening genuine adjacent-word rejection. Native-script validation still
+requires at least 80% of alphabetic characters to match the registry script;
+digits, punctuation, and combining marks are excluded from that letter-share
+calculation.
+
+`DATASET_MINIMUM_STRATUM_FRACTION` defaults to `0.9`. A stratum with at least
+90% of its target is retained with a warning and included in a final shortfall
+summary; a stratum below the configured fraction fails the run. Drop reasons
+are included in each language/department stratum log entry. Cached files store
+raw JSON responses and are validated again on every run, so updated validation
+rules take effect without another model request.
 
 Set the required Gemini settings in `.env`, then run
 `python -m ml.src.generate_dataset --check` to make one small request without

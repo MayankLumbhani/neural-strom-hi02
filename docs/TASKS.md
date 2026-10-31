@@ -68,6 +68,7 @@ Language tiers used in this file:
   - Commit: `feat(ml): add synthetic dataset generator and splits`
   - Notes: Generator implementation and offline fake-client tests are in place, but no real generation was run and no dataset was created. T-07 remains unchecked until generated examples are manually reviewed.
   - Follow-up: Trial review identified department drift into water-bill complaints, English/Hinglish mixing, Western-style place names, and repeated formulaic openers. Prompts and offline validation now address these; no new generation was run, and T-07 remains unchecked.
+  - Follow-up: Cached Hindi WATER batches exposed a Unicode tokenization false-positive for repeated adjacent words; tokenizer now preserves combining marks. A stratum shortfall threshold is configurable at 90%, and raw cached batches are revalidated on reuse; T-07 remains unchecked.
   - Follow-up: Configure `GEMINI_API_KEY` and `GEMINI_MODEL`, run `python -m ml.src.generate_dataset --check`, then generate data and run `make review-sample` to prepare 50 training rows per Tier 1 language. Have a human review them and record the outcome in `docs/MODEL_CARD.md`; this task remains incomplete until that review is done.
 
 - [ ] **T-08** Hand-written evaluation set **(human, with AI help for formatting)**

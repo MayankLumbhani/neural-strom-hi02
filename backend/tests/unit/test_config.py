@@ -44,6 +44,7 @@ def test_settings_cover_architecture_environment_variables() -> None:
         "DATASET_SEED",
         "DATASET_TIER1_SAMPLES_PER_CLASS_LANGUAGE",
         "DATASET_TIER2_SAMPLES_PER_CLASS_LANGUAGE",
+        "DATASET_MINIMUM_STRATUM_FRACTION",
         "ESCALATION_INTERVAL_SECONDS",
         "RATE_LIMIT_CHAT",
         "RATE_LIMIT_STATUS",
@@ -66,6 +67,12 @@ def test_settings_reject_inverted_confidence_thresholds() -> None:
             classifier_low_threshold=0.8,
             classifier_high_threshold=0.7,
         )
+
+
+def test_settings_reject_invalid_dataset_minimum_stratum_fraction() -> None:
+    """Keep the dataset stratum acceptance threshold in the interval (0, 1]."""
+    with pytest.raises(ValidationError):
+        Settings(_env_file=None, dataset_minimum_stratum_fraction=0)
 
 
 def test_database_engine_requires_configured_url() -> None:
