@@ -4,8 +4,8 @@
 
 `ml/src/generate_dataset.py` drafts multilingual municipal complaints with the
 official Google Gen AI Python SDK. All examples are LLM-drafted and synthetic;
-no citizen records or other real personal data are used. No generation run has
-been performed for this change, and no dataset/model metrics are reported here.
+no citizen records or other real personal data are used. No real generation run
+was performed for this change, and no dataset/model metrics are reported here.
 
 ### Generation prompt
 
@@ -15,11 +15,23 @@ and one language. The language code, tier, and script are read from
 romanized Hindi in Latin letters, and Tier 2 languages use their native
 scripts. Prompts ask for varied polite, angry, brief, and detailed tones; varied
 length and spoken style; occasional realistic typos; fictional concrete details
-and duration; and about 25% of examples without a location. Locations may only
-be fictional ward numbers, areas, invented streets, or invented landmarks.
-Prompts forbid real people, real places, phone numbers, full street addresses,
+and duration; and about 25% of examples without a location. About 30% should
+start directly with the issue, without a greeting or formula; no one named
+opener such as “Hey”, “Excuse me”, or “Urgent:” should exceed 10% of a batch.
+About 15% should be informal (lowercase, missing punctuation, spelling errors,
+or short fragments), and some should be multi-sentence stories.
+
+Locations must be fictional and Indian-style: invented names ending in nagar,
+society, chowk, colony, vas, or road; fictional ward numbers; or places near a
+mandir, school, bus stop, or market. Prompts forbid Western-style street names,
+real city, person, or organization names, phone numbers, full street addresses,
 unrelated code-mixing, and repeated or closely paraphrased phrasings within a
 batch.
+
+Every non-TAX prompt confines complaints to that department's physical or
+service issue and explicitly prohibits billing, payment, overcharge, and
+meter-reading-bill complaints. Those issues, including water and electricity
+bills, belong only to TAX. TAX prompts cover property-tax and billing issues.
 
 For `OTHER`, prompts require varied vague or ambiguous complaints, general
 municipal questions, and issues that fit none of the other departments; one
@@ -36,6 +48,11 @@ fixed generic sentence is not sufficient.
 | `DATASET_TIER2_SAMPLES_PER_CLASS_LANGUAGE` | `30` | Target examples per department and Tier 2 language |
 | `LLM_TIMEOUT_SECONDS` | `10` | API request timeout |
 
+Prompt and validation limits: 15 complaints per request; 25% without a
+location; 30% without a greeting/formula; 15% informal; no named opener above
+10% of a batch; and at least 80% native-script letters for non-Latin
+languages.
+
 Set the required Gemini settings in `.env`, then run
 `python -m ml.src.generate_dataset --check` to make one small request without
 writing data. Use `make generate-dataset` for a full run, or
@@ -44,9 +61,13 @@ Each run logs the configured model name and kept/dropped counts by language
 and department. The API key is not logged.
 
 API responses must be JSON arrays of strings. The generator strips whitespace,
-enforces a 12-to-500 character length, checks that letters match the registry
-script, rejects repeated adjacent words and phone-number-like digit runs, and
-drops normalized exact and near duplicates. It retries rate-limit and server
+enforces a 12-to-500 character length, checks registry-script proportions,
+rejects English rows containing registry Hinglish markers, and rejects
+Hinglish rows without one. It also rejects non-TAX billing terms, Western-style
+place-name suffixes, repeated adjacent words, phone-number-like digit runs,
+and excess repeated named openers. Normalized exact and near duplicates are
+dropped. These checks do not guarantee that all real place, person, or
+organization names are recognized. The generator retries rate-limit and server
 errors with exponential backoff and spaces API calls. Raw response batches are
 saved to the Git-ignored `ml/data/raw/llm_batches/` directory and reused on a
 rerun for the same model, language, and department.

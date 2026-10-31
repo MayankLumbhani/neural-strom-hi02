@@ -67,6 +67,7 @@ Language tiers used in this file:
   - Done when: datasets are roughly balanced and you have manually reviewed at least 50 rows per Tier 1 language. For each Tier 2 language, MODEL_CARD.md states whether a native speaker reviewed a sample or not.
   - Commit: `feat(ml): add synthetic dataset generator and splits`
   - Notes: Generator implementation and offline fake-client tests are in place, but no real generation was run and no dataset was created. T-07 remains unchecked until generated examples are manually reviewed.
+  - Follow-up: Trial review identified department drift into water-bill complaints, English/Hinglish mixing, Western-style place names, and repeated formulaic openers. Prompts and offline validation now address these; no new generation was run, and T-07 remains unchecked.
   - Follow-up: Configure `GEMINI_API_KEY` and `GEMINI_MODEL`, run `python -m ml.src.generate_dataset --check`, then generate data and run `make review-sample` to prepare 50 training rows per Tier 1 language. Have a human review them and record the outcome in `docs/MODEL_CARD.md`; this task remains incomplete until that review is done.
 
 - [ ] **T-08** Hand-written evaluation set **(human, with AI help for formatting)**

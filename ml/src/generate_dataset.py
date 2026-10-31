@@ -29,6 +29,11 @@ BATCH_SIZE: Final[int] = 15
 MIN_COMPLAINT_LENGTH: Final[int] = 12
 MAX_COMPLAINT_LENGTH: Final[int] = 500
 NEAR_DUPLICATE_THRESHOLD: Final[float] = 0.9
+MIN_NATIVE_SCRIPT_RATIO: Final[float] = 0.8
+NO_LOCATION_PERCENT: Final[int] = 25
+NO_GREETING_PERCENT: Final[int] = 30
+INFORMAL_PERCENT: Final[int] = 15
+MAX_OPENER_PERCENT: Final[int] = 10
 REQUEST_DELAY_SECONDS: Final[float] = 1.0
 RETRY_BASE_DELAY_SECONDS: Final[float] = 1.0
 RETRY_MAX_DELAY_SECONDS: Final[float] = 30.0
@@ -41,6 +46,20 @@ DEPARTMENT_NAMES: Final[dict[str, str]] = {
 PHONE_LIKE_DIGITS: Final[re.Pattern[str]] = re.compile(r"\+?\d[\d\s().-]{5,}\d")
 WORD_TOKENS: Final[re.Pattern[str]] = re.compile(r"\w+", re.UNICODE)
 NORMALIZED_SEPARATORS: Final[re.Pattern[str]] = re.compile(r"[^\w]+", re.UNICODE)
+BILLING_TERMS: Final[re.Pattern[str]] = re.compile(
+    r"\b(?:bill(?:s|ing)?|payment(?:s)?|paid|overcharg(?:e|ed|ing)|"
+    r"invoices?|tariffs?|charges?|meter[\s-]+readings?)\b",
+    re.IGNORECASE,
+)
+WESTERN_PLACE_NAME: Final[re.Pattern[str]] = re.compile(
+    r"\b[A-Z][a-z]+(?:[-'][A-Z]?[a-z]+)?(?:\s+[A-Z][a-z]+(?:[-'][A-Z]?[a-z]+)?){0,2}"
+    r"\s+(?:Lane|Boulevard|Avenue|Drive|Crescent|Heights|Pines|Creek|Cove|Parkway)\b"
+)
+REPEATED_OPENERS: Final[dict[str, re.Pattern[str]]] = {
+    "hey": re.compile(r"^\s*hey\b", re.IGNORECASE),
+    "excuse_me": re.compile(r"^\s*excuse\s+me\b", re.IGNORECASE),
+    "urgent": re.compile(r"^\s*urgent\s*:", re.IGNORECASE),
+}
 
 
 class ComplaintClient(Protocol):
@@ -171,13 +190,22 @@ def parse_batch_response(response: str) -> list[str]:
     return [item.strip() for item in parsed]
 
 
-def validate_complaint(text: str, script: str) -> tuple[str | None, str | None]:
+def validate_complaint(
+    text: str,
+    language_code: str,
+    department_code: str,
+) -> tuple[str | None, str | None]:
     """Clean a complaint or return the reason it is rejected."""
     cleaned = text.strip()
     if not MIN_COMPLAINT_LENGTH <= len(cleaned) <= MAX_COMPLAINT_LENGTH:
         return None, "length"
-    if not _matches_script(cleaned, script):
-        return None, "script"
+    language = LANGUAGES.get(language_code)
+    if language is None or not _matches_language(cleaned, language_code):
+        return None, "language"
+    if department_code != "TAX" and BILLING_TERMS.search(cleaned):
+        return None, "billing_scope"
+    if WESTERN_PLACE_NAME.search(cleaned):
+        return None, "western_place_name"
     if _has_repeated_adjacent_words(cleaned):
         return None, "repeated_words"
     if _contains_phone_like_digits(cleaned):
@@ -185,15 +213,30 @@ def validate_complaint(text: str, script: str) -> tuple[str | None, str | None]:
     return cleaned, None
 
 
-def _matches_script(text: str, script: str) -> bool:
-    """Check that all letters in a complaint belong to the registry script."""
-    ranges = SCRIPT_RANGES.get(script)
+def _matches_language(text: str, language_code: str) -> bool:
+    """Check registry-script proportions and English/Hinglish marker rules."""
+    language = LANGUAGES.get(language_code)
+    if language is None:
+        return False
+    ranges = SCRIPT_RANGES.get(language.script)
     letters = [character for character in text if character.isalpha()]
     if ranges is None or not letters:
         return False
-    return all(
+    matching_letters = sum(
         any(start <= ord(character) <= end for start, end in ranges) for character in letters
     )
+    if language.script == "Latin":
+        if matching_letters != len(letters):
+            return False
+        words = {word.casefold() for word in WORD_TOKENS.findall(text)}
+        hinglish_markers = {marker.casefold() for marker in LANGUAGES["hinglish"].detection_markers}
+        contains_hinglish = bool(words & hinglish_markers)
+        if language_code == "en":
+            return not contains_hinglish
+        if language_code == "hinglish":
+            return contains_hinglish
+        return True
+    return matching_letters / len(letters) >= MIN_NATIVE_SCRIPT_RATIO
 
 
 def _has_repeated_adjacent_words(text: str) -> bool:
@@ -208,6 +251,26 @@ def _contains_phone_like_digits(text: str) -> bool:
         if sum(character.isdigit() for character in match.group()) >= 7:
             return True
     return False
+
+
+def _limit_repeated_openers(batch: list[str]) -> tuple[list[str], int]:
+    """Drop excess repeated Hey, Excuse me, or Urgent openers from one batch."""
+    opener_limit = max(1, math.floor(len(batch) * MAX_OPENER_PERCENT / 100))
+    counts: Counter[str] = Counter()
+    accepted: list[str] = []
+    dropped = 0
+    for text in batch:
+        opener = next(
+            (name for name, pattern in REPEATED_OPENERS.items() if pattern.search(text)),
+            None,
+        )
+        if opener is not None:
+            counts[opener] += 1
+            if counts[opener] > opener_limit:
+                dropped += 1
+                continue
+        accepted.append(text)
+    return accepted, dropped
 
 
 def _normalize_text(text: str) -> str:
@@ -227,33 +290,73 @@ def _is_near_duplicate(candidate: str, accepted: list[str]) -> bool:
 def _build_prompt(language_code: str, department_code: str, count: int) -> str:
     """Build the language- and department-specific synthetic data prompt."""
     language = LANGUAGES[language_code]
-    language_instruction = (
-        "Use natural Hindi written only with Latin letters (romanized Hindi), not Devanagari."
-        if language_code == "hinglish"
-        else f"Write naturally in {language.name_en} using its {language.script} script."
-    )
-    other_instruction = (
-        "For OTHER, distribute examples across three genuinely different types: "
-        "vague or ambiguous complaints with no clear department, general municipal "
-        "questions, and issues that fit none of the other departments. Include "
-        "multiple distinct examples of each type; do not reuse one generic sentence."
-        if department_code == "OTHER"
-        else f"Every complaint must clearly concern {DEPARTMENT_NAMES[department_code]}."
-    )
+    if language_code == "en":
+        language_instruction = (
+            "Use plain English only. Do not use Hindi or Gujarati words, including "
+            "romanized Hindi words."
+        )
+    elif language_code == "hinglish":
+        language_instruction = (
+            "Use natural Hinglish: romanized Hindi in Latin letters mixed naturally "
+            "with English. Never use Devanagari."
+        )
+    else:
+        language_instruction = (
+            f"Write naturally in {language.name_en} using its native {language.script} "
+            f"script. At least {MIN_NATIVE_SCRIPT_RATIO:.0%} of letters must use that "
+            "script; a few English loanwords are acceptable."
+        )
+
+    if department_code == "TAX":
+        department_instruction = (
+            "Only create Property Tax and Billing complaints: property tax, billing, "
+            "payments, overcharges, invoices, or meter-reading disputes. This class "
+            "also exclusively owns water and electricity bill, payment, overcharge, "
+            "and meter-reading-bill complaints."
+        )
+    elif department_code == "OTHER":
+        department_instruction = (
+            "Make examples genuinely varied: vague or ambiguous complaints with no "
+            "clear department, general municipal questions, and issues that fit none "
+            "of the other departments. Include multiple distinct examples of each "
+            "type; do not reuse one generic sentence. Never include billing, "
+            "payment, overcharge, or meter-reading-bill complaint; all such issues, "
+            "including water and electricity bills, belong only to TAX."
+        )
+    else:
+        department_instruction = (
+            f"Every complaint must describe only a physical or service problem "
+            f"belonging to {DEPARTMENT_NAMES[department_code]}; do not drift into "
+            "another department. Never include billing, payment, overcharge, or "
+            "meter-reading-bill complaints. This prohibition includes water and "
+            "electricity bills, which belong only to TAX (Property Tax and Billing)."
+        )
     return (
         f"Create exactly {count} distinct, fictional municipal complaint messages "
         f"for the {DEPARTMENT_NAMES[department_code]} department. "
         f"Language: {language.name_en} ({language.code}); script: {language.script}. "
-        f"{language_instruction} {other_instruction}\n"
+        f"{language_instruction} {department_instruction}\n"
         "Return only a valid JSON array of strings, with no markdown or surrounding text. "
         "Do not repeat or closely paraphrase any phrasing within this batch. "
-        "Vary tone (polite, angry, brief, detailed), length, spoken style, occasional "
-        "realistic typos, concrete fictional details, and how long the issue has lasted. "
-        "About 25% of messages must contain no location; vary the rest using only "
-        "fictional ward numbers, fictional areas, invented street names, and invented "
-        "landmarks. Never name real people or real places, and never include a phone "
-        "number or a full street address. Avoid unrelated code-mixing; use another "
-        "language only when naturally required by the specified Hinglish style."
+        "Vary tone (polite, angry, brief, detailed), length, spoken style, concrete "
+        "fictional details, and duration. About "
+        f"{NO_GREETING_PERCENT}% ({math.floor(BATCH_SIZE * NO_GREETING_PERCENT / 100)}-"
+        f"{math.ceil(BATCH_SIZE * NO_GREETING_PERCENT / 100)} of {BATCH_SIZE}) must start directly "
+        "with the issue and have no greeting or formula. Vary the other openings; "
+        f"do not start more than {MAX_OPENER_PERCENT}% of the batch with any one opener "
+        "such as 'Hey', "
+        "'Excuse me', or 'Urgent:'. Make about "
+        f"{INFORMAL_PERCENT}% ({math.floor(BATCH_SIZE * INFORMAL_PERCENT / 100)}-"
+        f"{math.ceil(BATCH_SIZE * INFORMAL_PERCENT / 100)} of {BATCH_SIZE}) informal using "
+        "lowercase, missing punctuation, spelling mistakes, or short fragments; "
+        "include some multi-sentence stories. About "
+        f"{NO_LOCATION_PERCENT}% must contain no location. Any locations must be "
+        "fictional and Indian-style: invented names ending in nagar, society, chowk, "
+        "colony, vas, road, or fictional ward numbers; landmarks may be described "
+        "only as near a mandir, school, bus stop, or market. Do not use Western-style "
+        "street names such as Oakwood Lane or real city, person, or organization "
+        "names. Never include a phone number or full street address. Avoid unrelated "
+        "code-mixing except the natural Hindi-English mix required for Hinglish."
     )
 
 
@@ -342,9 +445,15 @@ def generate_dataset(
                 batch, was_cached = _read_or_generate_batch(runner, prompt, cache_path)
                 processed_batches += 1
                 batch_index += 1
+                batch, repeated_opener_drops = _limit_repeated_openers(batch)
+                dropped_by_stratum[stratum] += repeated_opener_drops
 
                 for text in batch:
-                    complaint, rejection_reason = validate_complaint(text, language.script)
+                    complaint, rejection_reason = validate_complaint(
+                        text,
+                        language_code,
+                        department_code,
+                    )
                     if rejection_reason is not None:
                         dropped_by_stratum[stratum] += 1
                         continue

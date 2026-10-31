@@ -6,8 +6,10 @@ from pathlib import Path
 
 import pytest
 from generate_dataset import (
+    DEPARTMENT_CODES,
     GenerationConfig,
     _build_prompt,
+    _limit_repeated_openers,
     generate_dataset,
     parse_batch_response,
     require_gemini_model,
@@ -89,21 +91,62 @@ def test_batch_parser_accepts_only_a_json_list_of_strings() -> None:
 
 
 @pytest.mark.parametrize(
-    ("text", "script", "reason"),
+    ("text", "language_code", "department_code", "reason"),
     [
-        ("The The water is not flowing near a fictional ward", "Latin", "repeated_words"),
-        ("There is water trouble in fictional Ward 8; call 123 456 7890", "Latin", "phone_number"),
-        ("पानी नहीं आ रहा है और समस्या कई दिनों से जारी है", "Latin", "script"),
-        ("Water supply has failed across fictional Ward 8", "Devanagari", "script"),
+        (
+            "The The water is not flowing near a fictional ward",
+            "en",
+            "WATER",
+            "repeated_words",
+        ),
+        (
+            "There is water trouble in fictional Ward 8; call 123 456 7890",
+            "en",
+            "WATER",
+            "phone_number",
+        ),
+        ("पानी नहीं आ रहा है और समस्या कई दिनों से जारी है", "en", "WATER", "language"),
+        ("Water supply has failed across fictional Ward 8", "hi", "WATER", "language"),
+        (
+            "Paani nahi aa raha near fictional Ward 8 since yesterday",
+            "en",
+            "WATER",
+            "language",
+        ),
+        (
+            "Water supply is absent near fictional Ward 8 since yesterday",
+            "hinglish",
+            "WATER",
+            "language",
+        ),
+        (
+            "जल आपूर्ति बंद है water supply issue reported near fictional ward",
+            "hi",
+            "WATER",
+            "language",
+        ),
+        (
+            "My water bill shows a large overcharge this month in fictional Ward 8",
+            "en",
+            "WATER",
+            "billing_scope",
+        ),
+        (
+            "Water pressure failed near Oakwood Lane since yesterday",
+            "en",
+            "WATER",
+            "western_place_name",
+        ),
     ],
 )
 def test_validation_drops_invalid_script_repeats_and_phone_numbers(
     text: str,
-    script: str,
+    language_code: str,
+    department_code: str,
     reason: str,
 ) -> None:
-    """Drop complaints with wrong scripts, repeated adjacent words, or phone-like digits."""
-    complaint, rejection = validate_complaint(text, script)
+    """Drop text that violates language, department, location, or safety rules."""
+    complaint, rejection = validate_complaint(text, language_code, department_code)
 
     assert complaint is None
     assert rejection == reason
@@ -113,11 +156,91 @@ def test_validation_strips_and_keeps_a_valid_complaint() -> None:
     """Retain a length-valid complaint written in the configured script."""
     complaint, rejection = validate_complaint(
         "  Water is unavailable near fictional Ward 8 since yesterday  ",
-        "Latin",
+        "en",
+        "WATER",
     )
 
     assert complaint == "Water is unavailable near fictional Ward 8 since yesterday"
     assert rejection is None
+
+
+def test_validation_accepts_hinglish_and_limited_english_loanwords() -> None:
+    """Require a Hinglish marker and permit a few English words in native script."""
+    hinglish, hinglish_rejection = validate_complaint(
+        "Paani supply nahi aa rahi near fictional Ward 8 since yesterday",
+        "hinglish",
+        "WATER",
+    )
+    hindi, hindi_rejection = validate_complaint(
+        "जल आपूर्ति बंद है और pump कई घंटों से काम नहीं कर रहा",
+        "hi",
+        "WATER",
+    )
+
+    assert hinglish is not None
+    assert hinglish_rejection is None
+    assert hindi is not None
+    assert hindi_rejection is None
+
+
+def test_fake_client_generation_drops_language_billing_and_place_violations(
+    tmp_path: Path,
+) -> None:
+    """Apply new content filters to untrusted fake-client batch output."""
+    valid = [
+        "Water pipe leaking near fictional Ward 8 since Monday morning",
+        "Fictional Ward 9 has low water pressure since yesterday afternoon",
+        "A broken pump stopped supply near fictional Ward 10 this morning",
+    ]
+    client = FakeClient(
+        [
+            json.dumps(
+                [
+                    "Paani nahi aa raha near fictional Ward 7 since yesterday",
+                    "My water bill has a meter reading overcharge in fictional Ward 6",
+                    "Water is leaking beside Oakwood Lane since yesterday morning",
+                    *valid,
+                ]
+            )
+        ]
+    )
+
+    split = generate_dataset(client, _config(3), tmp_path, "test-model", batch_limit=1)
+    generated = split.train + split.validation
+
+    assert {row["text"] for row in generated} == set(valid)
+    assert client.calls == 1
+
+
+def test_tax_is_the_only_department_allowed_to_keep_billing_complaints() -> None:
+    """Allow bills and meter-reading disputes only under the TAX department."""
+    complaint = "My water bill has a meter reading overcharge in fictional Ward 8"
+
+    assert validate_complaint(complaint, "en", "TAX") == (complaint, None)
+
+
+def test_batch_limiter_drops_repeated_named_openers() -> None:
+    """Keep each named opener within ten percent of a fifteen-row batch."""
+    batch = [
+        "Hey, water is unavailable near fictional Ward 8",
+        "Hey, a pipe has leaked in fictional Ward 9 since yesterday",
+        "Excuse me, pressure dropped in fictional Ward 10 since Monday",
+        "Excuse me, a tap is leaking near fictional Ward 11 since Monday",
+        "Urgent: a pipe burst in fictional Ward 12 this morning",
+        "Urgent: water is flowing onto the road near fictional Ward 13",
+        *[
+            f"Water supply failed in fictional Ward {ward} since yesterday morning"
+            for ward in range(14, 23)
+        ],
+    ]
+
+    accepted, dropped = _limit_repeated_openers(batch)
+
+    assert dropped == 3
+    assert len(accepted) == 12
+    assert sum(text.startswith("Hey") for text in accepted) == 1
+    assert sum(text.startswith("Excuse me") for text in accepted) == 1
+    assert sum(text.startswith("Urgent:") for text in accepted) == 1
 
 
 def test_generation_deduplicates_exact_and_near_duplicate_text(tmp_path: Path) -> None:
@@ -186,6 +309,19 @@ def test_other_prompt_requires_varied_ambiguous_municipal_complaints() -> None:
     assert "About 25%" in prompt
 
 
+def test_department_prompts_reserve_all_billing_issues_for_tax() -> None:
+    """Explicitly prohibit financial and bill complaints in every non-TAX prompt."""
+    for department_code in DEPARTMENT_CODES:
+        prompt = _build_prompt("en", department_code, 15)
+        if department_code == "TAX":
+            assert "Only create Property Tax and Billing complaints" in prompt
+            assert "water and electricity bill" in prompt
+        else:
+            assert "Never include billing, payment, overcharge, or" in prompt
+            assert "water and electricity bills" in prompt
+            assert "belong only to TAX" in prompt
+
+
 def test_prompt_uses_registry_scripts_and_romanized_hinglish() -> None:
     """Use registry scripts for native-script languages and Latin for Hinglish."""
     hindi_prompt = _build_prompt("hi", "WATER", 15)
@@ -197,6 +333,12 @@ def test_prompt_uses_registry_scripts_and_romanized_hinglish() -> None:
     assert "Gujarati script" in gujarati_prompt
     assert "Bengali script" in bengali_prompt
     assert "romanized Hindi" in hinglish_prompt
+    assert "plain English only" in _build_prompt("en", "WATER", 15)
+    assert "no greeting or formula" in hinglish_prompt
+    assert "lowercase, missing punctuation" in hinglish_prompt
+    assert "multi-sentence stories" in hinglish_prompt
+    assert "nagar, society, chowk" in hinglish_prompt
+    assert "Oakwood Lane" in hinglish_prompt
 
 
 def test_write_dataset_preserves_columns_and_adds_llm_source(tmp_path: Path) -> None:

@@ -20,5 +20,6 @@ All notable changes to this project will be documented in this file.
 - Seeded Tier 1 training-data review sample generator with blank verdict and notes columns.
 
 ### Changed
+- Tightened Gemini dataset prompts and validation for TAX-only billing complaints, English/Hinglish purity, native-script proportions, fictional Indian-style locations, and varied openings.
 - Dataset generation now requires `GEMINI_API_KEY` and `GEMINI_MODEL`; defaults are 100 samples per Tier 1 department/language and 30 per Tier 2, with LLM provenance in CSV output.
 - Documentation: added tiered multilingual scope (Tier 1 verified: English, Hindi, Gujarati, Hinglish; Tier 2 experimental: Marathi, Bengali, Tamil, Telugu, Kannada, Malayalam, Punjabi) across the PRD, architecture, tasks, agent rules, design guide and decisions log.
