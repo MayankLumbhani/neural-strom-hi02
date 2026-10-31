@@ -31,7 +31,11 @@ class Settings(BaseSettings):
     classifier_low_threshold: float = Field(default=0.45, gt=0, le=1)
     llm_enabled: bool = False
     gemini_api_key: SecretStr | None = None
+    gemini_model: str | None = None
     llm_timeout_seconds: float = Field(default=10, gt=0)
+    dataset_seed: int = 20261031
+    dataset_tier1_samples_per_class_language: int = Field(default=100, ge=2)
+    dataset_tier2_samples_per_class_language: int = Field(default=30, ge=2)
     escalation_interval_seconds: int = Field(default=60, gt=0)
     rate_limit_chat: str = "10/minute"
     rate_limit_status: str = "30/minute"

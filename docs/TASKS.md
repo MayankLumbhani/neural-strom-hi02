@@ -63,10 +63,11 @@ Language tiers used in this file:
 ## Phase 2: ML pipeline (target: Oct 31 to Nov 1)
 
 - [ ] **T-07** Synthetic dataset generator
-  - `ml/src/generate_dataset.py`: generate complaints for 9 departments across all registry languages with variations (typos, slang, code-mixing, missing location, ambiguity): full size for Tier 1, smaller balanced sets for Tier 2. Save to `ml/data/processed/` with a train/validation split and a `tier` column. Document the generation prompt and settings in `docs/MODEL_CARD.md`.
+  - `ml/src/generate_dataset.py`: draft complaints through Gemini for 9 departments and enabled registry languages, varying tone, length, spoken style, typos, fictional details, duration, and missing locations. Validate strict JSON and script, remove repeats/phone-like data, cache raw batches, and save stratified train/validation CSVs with tier, source, variation, and verification metadata.
   - Done when: datasets are roughly balanced and you have manually reviewed at least 50 rows per Tier 1 language. For each Tier 2 language, MODEL_CARD.md states whether a native speaker reviewed a sample or not.
   - Commit: `feat(ml): add synthetic dataset generator and splits`
-  - Follow-up: Run `make review-sample` to prepare 50 training rows per Tier 1 language, then have a human review them and record the outcome in `docs/MODEL_CARD.md`; this task remains incomplete until that review is done.
+  - Notes: Generator implementation and offline fake-client tests are in place, but no real generation was run and no dataset was created. T-07 remains unchecked until generated examples are manually reviewed.
+  - Follow-up: Configure `GEMINI_API_KEY` and `GEMINI_MODEL`, run `python -m ml.src.generate_dataset --check`, then generate data and run `make review-sample` to prepare 50 training rows per Tier 1 language. Have a human review them and record the outcome in `docs/MODEL_CARD.md`; this task remains incomplete until that review is done.
 
 - [ ] **T-08** Hand-written evaluation set **(human, with AI help for formatting)**
   - Write about 100 to 150 messages yourself (or with a friend) in the four Tier 1 languages, including ambiguous and messy ones. For each Tier 2 language, add about 20 messages drafted with LLM help. Save to `ml/data/eval_handwritten/eval.csv` with columns `text,label,language,verified`. Tier 1 rows are `verified=true`, Tier 2 rows are `verified=false` unless a native speaker checked them. Never train on it.

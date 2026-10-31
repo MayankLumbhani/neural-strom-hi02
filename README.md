@@ -57,14 +57,26 @@ are machine-translated and have not been verified by native speakers.
 
 ## Synthetic training data
 
-After installing the project dependencies, run `make generate-dataset` to
-create deterministic synthetic training and validation CSVs in
-`ml/data/processed/`. The generator is configurable with a fixed seed and
-keeps Tier 2 smaller and explicitly unverified. Generated datasets are not
-committed; review requirements and generation details are in
+After installing the project dependencies, set `GEMINI_API_KEY` and
+`GEMINI_MODEL` in `.env` (replace the example placeholders), then run
+`python -m ml.src.generate_dataset --check` to verify access. Run
+`make generate-dataset` for a full generation or add `--limit N` to the Python
+command for a small trial. The generator uses the official Google Gen AI
+Python SDK; its model name is required and has no hardcoded default. Defaults
+are 100 examples per department/language for Tier 1 and 30 for Tier 2, with
+the seed and sizes configurable through the dataset settings in `.env`.
+Generated CSVs and raw response batches are not committed; review requirements
+and generation details are in
 [docs/MODEL_CARD.md](docs/MODEL_CARD.md).
 
 After generating the training split, run `make review-sample` to create a
 seeded sample of 50 rows per Tier 1 language at
 `ml/data/review/review_sample.csv`. Fill in the `verdict` and `notes` columns
 during human review; the sample file is ignored by Git.
+
+## AI tools
+
+- GitHub Copilot was used for AI-assisted development.
+- The optional offline training-data generator uses the Google Gemini API
+  through the official Google Gen AI Python SDK. Generated examples are
+  synthetic and require human review.

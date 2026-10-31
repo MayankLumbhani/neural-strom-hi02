@@ -66,23 +66,30 @@ Short log of technology and design choices. Newest at the bottom. Format: contex
 - **Alternatives:** a language-ID library from the start.
 - **Consequences:** No extra dependency. Unsupported or ambiguous scripts return English and Hindi fallback reply languages. Detection affects only reply language, not department classification; results must be measured on the evaluation set before making quality claims.
 
-## D-09 Demo account hashing and seed data
+## D-09 Gemini SDK for synthetic dataset drafting
+
+- **Context:** The phrase-bank generator produces repetitive, uneven multilingual training examples, while generated data must remain synthetic and reproducible enough to resume interrupted runs.
+- **Decision:** Use the official Google Gen AI Python SDK for offline dataset drafting. Read the API key and required model name from pydantic-settings; do not provide a model default. Cache raw responses by model, language, department, and batch so interrupted runs can resume.
+- **Alternatives:** Continue maintaining hand-authored phrase banks or use another model provider.
+- **Consequences:** Generation requires configured Gemini credentials and incurs API usage. LLM output is untrusted, so strict JSON, script, length, repetition, phone-number, and duplicate checks run before output; generated text is synthetic and unreviewed until human review.
+
+## D-10 Demo account hashing and seed data
 
 - **Context:** The database needs repeatable synthetic departments and demo officer/admin accounts for local development.
 - **Decision:** Seed the nine departments with initial synthetic SLA hours, require demo usernames and passwords from environment variables, and hash passwords with bcrypt (12 rounds; 12 to 72 UTF-8 bytes). Re-running the seed updates seeded department/account fields while retaining hashes when passwords are unchanged.
 - **Alternatives:** Store passwords directly, choose default demo passwords, or use Argon2.
 - **Consequences:** Demo credentials must be configured before seeding, and bcrypt is an explicit backend dependency. The seeded SLA values are illustrative and are not legal or service guarantees.
 
-## D-10 Localized template format
+## D-11 Localized template format
 
 - **Context:** All supported languages need the same fixed-message keys, with Tier 2 files visibly labelled as machine-translated.
 - **Decision:** Store template data in TOML files, load it with Python 3.11's built-in `tomllib`, and validate it with a typed Pydantic schema.
 - **Alternatives:** JSON (no standard comment syntax for the Tier 2 warning) or YAML (would add a dependency).
 - **Consequences:** No extra parsing dependency; all files are validated consistently, and Tier 2 warning comments remain alongside their translations.
 
-## D-11 Synthetic training corpus generation
+## D-12 Synthetic training corpus generation
 
 - **Context:** The baseline and MuRIL pipelines need multilingual, labelled training examples, but no real citizen data may be used.
-- **Decision:** Generate repeatable synthetic examples from hand-authored department/language phrases and deterministic typo, slang, code-mixing, missing-location, and ambiguity variations. Split by language and department with a fixed seed; keep generated CSVs out of Git.
-- **Alternatives:** External or LLM-generated corpora, which would add data provenance and repeatability concerns.
-- **Consequences:** The corpus is synthetic, unreviewed, and not a quality claim. Human review of at least 50 Tier 1 examples per language remains required; Tier 2 remains unverified.
+- **Decision:** Draft examples with Gemini according to department and registry-language metadata. Use a configured seed for stratified train/validation splits, record `source=llm`, and keep generated CSVs and raw response caches out of Git.
+- **Alternatives:** External citizen data or deterministic phrase banks.
+- **Consequences:** The corpus is LLM-drafted, synthetic, unreviewed, and not a quality claim. Human review of at least 50 Tier 1 examples per language remains required; Tier 2 remains unverified.
