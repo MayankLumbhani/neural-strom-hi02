@@ -35,7 +35,7 @@ Language tiers used in this file:
   - Done when: `make lint` and `make test` pass, and the app starts.
   - Commit: `chore(backend): scaffold backend structure and tooling`
 
-- [ ] **T-02** Health endpoints and CI
+- [x] **T-02** Health endpoints and CI
   - `GET /health` and `GET /ready` (ready can report db and model as "unknown" until they exist), one test, GitHub Actions workflow running ruff, mypy and pytest.
   - Done when: CI is green on GitHub.
   - Commit: `ci: add health endpoints and GitHub Actions workflow`
@@ -249,4 +249,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-10-30: repo, AGENTS.md, PRD and architecture committed.
 - 2026-10-30: completed T-01 backend scaffold, tooling and local Docker setup.
 - 2026-10-31: added tiered multilingual scope (Tier 1 verified, Tier 2 experimental) to the planning docs.
-- 2026-10-31: implemented T-02 health endpoints and CI workflow; awaiting the first GitHub Actions run.
+- 2026-10-31: completed T-02 health endpoints and CI workflow; GitHub Actions passed.
