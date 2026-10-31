@@ -335,7 +335,7 @@ frontend/src/
 
 ## 13. ML pipeline (offline)
 
-1. `ml/src/generate_dataset.py`: build a synthetic complaints dataset with an LLM, covering the 9 departments across all registry languages (full size for Tier 1, smaller for Tier 2), with variations (typos, slang, code-mixing, missing location, ambiguity). Manually review a sample.
+1. `ml/src/generate_dataset.py`: generate synthetic complaints from deterministic phrase banks and controlled variations for all 9 departments and registry languages (50 examples per class/language for Tier 1, 10 for Tier 2 by default). Write balanced, stratified train/validation CSVs with language tier metadata and no duplicate text across splits. Generated rows are unreviewed; complete the human review recorded in `docs/MODEL_CARD.md` before treating Tier 1 text as reviewed.
 2. `ml/data/eval_handwritten/`: about 100 to 150 messages written by hand for the Tier 1 languages, plus about 20 per Tier 2 language drafted with LLM help and marked `verified=false`. Never used for training.
 3. `ml/src/train_baseline.py`: TF-IDF plus Logistic Regression.
 4. `ml/src/train_muril.py` (run in Colab or Kaggle): fine-tune MuRIL, save the model to the Hugging Face Hub.
@@ -387,6 +387,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Database models and migrations | Done |
 | Seed data | Done |
 | Language registry, script detection and templates | Done (Tier 2 templates are experimental and machine-translated) |
+| Synthetic dataset generator | Implemented; Tier 1 manual review pending |
 | Tier 2 datasets and evaluation | Planned |
 | Dataset and baseline classifier | Planned |
 | MuRIL fine-tune and evaluation | Planned |

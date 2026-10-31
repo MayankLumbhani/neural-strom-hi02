@@ -54,3 +54,12 @@ The backend registry detects English, Hindi, Gujarati, and romanized Hindi
 Malayalam, and Punjabi. Unsupported or ambiguous scripts use English and Hindi
 fallback reply languages. Tier 1 templates are hand-written; Tier 2 templates
 are machine-translated and have not been verified by native speakers.
+
+## Synthetic training data
+
+After installing the project dependencies, run `make generate-dataset` to
+create deterministic synthetic training and validation CSVs in
+`ml/data/processed/`. The generator is configurable with a fixed seed and
+keeps Tier 2 smaller and explicitly unverified. Generated datasets are not
+committed; review requirements and generation details are in
+[docs/MODEL_CARD.md](docs/MODEL_CARD.md).

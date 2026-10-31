@@ -34,8 +34,8 @@ where = ["backend/src"]
 "grievance.nlp.templates" = ["*.toml"]
 
 [tool.pytest.ini_options]
-testpaths = ["backend/tests"]
-pythonpath = ["backend/src"]
+testpaths = ["backend/tests", "ml/tests"]
+pythonpath = ["backend/src", "ml/src"]
 
 [tool.ruff]
 line-length = 100
@@ -47,5 +47,5 @@ select = ["E", "F", "I", "UP", "B"]
 
 [tool.mypy]
 python_version = "3.11"
-files = ["backend/src"]
+files = ["backend/src", "ml/src"]
 strict = true

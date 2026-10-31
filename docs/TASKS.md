@@ -66,6 +66,7 @@ Language tiers used in this file:
   - `ml/src/generate_dataset.py`: generate complaints for 9 departments across all registry languages with variations (typos, slang, code-mixing, missing location, ambiguity): full size for Tier 1, smaller balanced sets for Tier 2. Save to `ml/data/processed/` with a train/validation split and a `tier` column. Document the generation prompt and settings in `docs/MODEL_CARD.md`.
   - Done when: datasets are roughly balanced and you have manually reviewed at least 50 rows per Tier 1 language. For each Tier 2 language, MODEL_CARD.md states whether a native speaker reviewed a sample or not.
   - Commit: `feat(ml): add synthetic dataset generator and splits`
+  - Follow-up: The generator and balanced outputs are implemented, but a human must review at least 50 Tier 1 rows per language before this task is complete.
 
 - [ ] **T-08** Hand-written evaluation set **(human, with AI help for formatting)**
   - Write about 100 to 150 messages yourself (or with a friend) in the four Tier 1 languages, including ambiguous and messy ones. For each Tier 2 language, add about 20 messages drafted with LLM help. Save to `ml/data/eval_handwritten/eval.csv` with columns `text,label,language,verified`. Tier 1 rows are `verified=true`, Tier 2 rows are `verified=false` unless a native speaker checked them. Never train on it.
@@ -254,3 +255,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-10-31: completed T-04 SQLModel tables, initial Alembic migration, database session dependency and department repository test.
 - 2026-10-31: completed T-05 idempotent synthetic department and demo-account seeding with bcrypt password hashes.
 - 2026-10-31: completed T-06 registry-driven language detection, fixed-message templates and parity tests; Tier 2 templates remain experimental and machine-translated.
+- 2026-10-31: implemented the deterministic synthetic dataset generator and documented its settings; Tier 1 manual review remains pending.

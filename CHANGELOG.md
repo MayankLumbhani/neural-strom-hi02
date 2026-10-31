@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - SQLModel tables, initial Alembic migration, and request-scoped database sessions.
 - Idempotent synthetic seed data for nine multilingual departments and environment-configured demo accounts with bcrypt password hashes.
 - Registry-driven language detection for all supported scripts, typed TOML reply templates for all 11 languages, and tests for fallback behavior and template parity.
+- Deterministic synthetic complaint dataset generator with stratified train/validation splits, tier metadata, and documented review status.
 
 ### Changed
 - Documentation: added tiered multilingual scope (Tier 1 verified: English, Hindi, Gujarati, Hinglish; Tier 2 experimental: Marathi, Bengali, Tamil, Telugu, Kannada, Malayalam, Punjabi) across the PRD, architecture, tasks, agent rules, design guide and decisions log.

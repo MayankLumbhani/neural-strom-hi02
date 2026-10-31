@@ -79,3 +79,10 @@ Short log of technology and design choices. Newest at the bottom. Format: contex
 - **Decision:** Store template data in TOML files, load it with Python 3.11's built-in `tomllib`, and validate it with a typed Pydantic schema.
 - **Alternatives:** JSON (no standard comment syntax for the Tier 2 warning) or YAML (would add a dependency).
 - **Consequences:** No extra parsing dependency; all files are validated consistently, and Tier 2 warning comments remain alongside their translations.
+
+## D-11 Synthetic training corpus generation
+
+- **Context:** The baseline and MuRIL pipelines need multilingual, labelled training examples, but no real citizen data may be used.
+- **Decision:** Generate repeatable synthetic examples from hand-authored department/language phrases and deterministic typo, slang, code-mixing, missing-location, and ambiguity variations. Split by language and department with a fixed seed; keep generated CSVs out of Git.
+- **Alternatives:** External or LLM-generated corpora, which would add data provenance and repeatability concerns.
+- **Consequences:** The corpus is synthetic, unreviewed, and not a quality claim. Human review of at least 50 Tier 1 examples per language remains required; Tier 2 remains unverified.
