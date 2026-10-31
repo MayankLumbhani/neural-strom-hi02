@@ -45,7 +45,7 @@ Language tiers used in this file:
   - Done when: tests cover error format and request ID header.
   - Commit: `feat(core): add settings, structured logging and error handling`
 
-- [ ] **T-04** Database models and migrations
+- [x] **T-04** Database models and migrations
   - SQLModel tables from ARCHITECTURE section 8 (departments, officers, conversations, messages, tickets, ticket_events), indexes, first Alembic migration, DB session dependency.
   - Done when: `alembic upgrade head` works on the docker-compose Postgres and a repository test passes.
   - Commit: `feat(db): add models, indexes and initial migration`
@@ -251,3 +251,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-10-31: added tiered multilingual scope (Tier 1 verified, Tier 2 experimental) to the planning docs.
 - 2026-10-31: completed T-02 health endpoints and CI workflow; GitHub Actions passed.
 - 2026-10-31: completed T-03 validated settings, request logging and standard error responses.
+- 2026-10-31: completed T-04 SQLModel tables, initial Alembic migration, database session dependency and department repository test.

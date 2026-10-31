@@ -36,7 +36,7 @@ flowchart LR
 | Backend and model | Hugging Face Spaces (Docker, CPU) | Enough RAM for the model. Sleeps when idle, so wake it before judging |
 | Database | Neon PostgreSQL | Persistent, free tier |
 | Model weights | Hugging Face Hub | Not committed to Git, loaded by name from config |
-| Local dev | docker-compose (api and postgres) | `make dev` |
+| Local dev | docker-compose (api and postgres) | `make dev`; Postgres host port is `POSTGRES_PORT` (default 5432) |
 
 CORS allows only the configured frontend origin.
 
@@ -67,6 +67,7 @@ Rules (also in `AGENTS.md`):
 | Package | Responsibility |
 |---|---|
 | `core/config.py` | validated pydantic-settings for all configured environment variables |
+| `core/database.py` | configured SQLModel engine and request-scoped database session dependency |
 | `core/logging.py` | structured JSON request logs without request bodies |
 | `core/middleware.py` | validated request IDs, response header and request metadata logging |
 | `core/security.py` | password hashing, JWT creation and verification |
@@ -236,7 +237,13 @@ erDiagram
 | `tickets` | `id`, `public_id` (unique, for example `FMC-261030-7K3F`), `conversation_id`, `department_id`, `complaint_text`, `language`, `location_text`, `contact_phone` (nullable), `status`, `status_changed_at`, `escalation_level`, `predicted_confidence`, `created_at`, `resolved_at` |
 | `ticket_events` | `id`, `ticket_id`, `from_status`, `to_status`, `actor_type` (`system`, `officer`, `citizen`), `officer_id` (nullable), `note`, `is_public`, `created_at` |
 
-Indexes: `tickets(public_id)`, `tickets(department_id, status)`, `tickets(status, status_changed_at)` for the escalation query, `messages(conversation_id, created_at)`.
+Indexes: unique `departments(code)`, `officers(username)` and `tickets(public_id)`; `tickets(department_id, status)`, `tickets(status, status_changed_at)` for the escalation query, and `messages(conversation_id, created_at)`.
+
+The SQLModel definitions live in `backend/src/grievance/models/`. The initial
+Alembic revision is in `backend/migrations/versions/`; use `make migrate` to
+apply it to the database configured by `DATABASE_URL`. API handlers obtain
+request-scoped sessions through `core/database.py`, and repositories contain
+the database queries.
 
 Notes:
 - `public_id` format: `FMC-<yymmdd>-<4 random chars>`, generated with a retry on collision. It is hard to guess but short enough to type.
@@ -358,6 +365,7 @@ Full detail in `docs/SCALING.md`. In short:
 |---|---|
 | Unit | Language detection, template key parity across languages, confidence policy, status transition rules, ticket ID generation, escalation selection logic |
 | Integration | Chat flow end to end (happy path, missing location, ambiguous, status lookup) with a stub classifier, auth and role restrictions, escalation job against a test database |
+| Repository | Department lookup against an isolated SQLModel test database |
 | ML | Evaluation script runs on the hand-written set and writes reports |
 | Load | k6 or Locust script against `/chat/messages` and `/tickets/{id}` |
 | CI | ruff, mypy, pytest on every push |
@@ -372,7 +380,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Backend scaffold | Done |
 | Health endpoints and CI | Done |
 | Core configuration, logging and errors | Done |
-| Database models and migrations | Planned |
+| Database models and migrations | Done |
 | Language registry, detection and Tier 1 templates | Planned |
 | Tier 2 languages (templates, data, evaluation) | Planned |
 | Dataset and baseline classifier | Planned |

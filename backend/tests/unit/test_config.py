@@ -6,6 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from grievance.core.config import Settings
+from grievance.core.database import get_engine
 from grievance.core.logging import JsonFormatter
 
 
@@ -56,6 +57,12 @@ def test_settings_reject_inverted_confidence_thresholds() -> None:
             classifier_low_threshold=0.8,
             classifier_high_threshold=0.7,
         )
+
+
+def test_database_engine_requires_configured_url() -> None:
+    """Fail explicitly when a session is requested without DATABASE_URL."""
+    with pytest.raises(RuntimeError, match="DATABASE_URL must be configured"):
+        get_engine(Settings(_env_file=None))
 
 
 def test_json_formatter_omits_unapproved_record_fields() -> None:

@@ -25,6 +25,9 @@ Requirements: Python 3.11 or newer; Docker Compose is optional for PostgreSQL.
    before starting Docker Compose.
 4. Start the API and PostgreSQL with `docker compose up --build`, or start the
    API locally with `make dev` after PostgreSQL is available.
+5. Apply database migrations with `make migrate`. Compose PostgreSQL is exposed
+   on `POSTGRES_PORT` (5432 by default); the example `DATABASE_URL` credentials
+   match the example PostgreSQL user and password.
 
 Run `make lint` and `make test` to check the backend. `make format` applies
 Ruff formatting.
