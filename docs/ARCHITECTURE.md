@@ -50,7 +50,7 @@ Request
   -> models (SQLModel)       table definitions
 
 services also use:
-  -> nlp/                    language detection, Classifier, extraction, templates
+  -> nlp/                    language registry and detection, Classifier, extraction, templates
   -> core/                   config, logging, security, exceptions
 ```
 
@@ -60,6 +60,7 @@ Rules (also in `AGENTS.md`):
 3. Only repositories touch the database.
 4. The classifier is accessed only through the `Classifier` interface.
 5. No in-process state that matters across requests.
+6. Languages are defined only in the language registry (`nlp/languages.py`).
 
 ### Module map
 
@@ -78,10 +79,11 @@ Rules (also in `AGENTS.md`):
 | `services/ticket_service.py` | create ticket, validate transitions, record events |
 | `services/escalation_service.py` | find and escalate overdue tickets |
 | `services/analytics_service.py` | aggregate counts and resolution times |
-| `nlp/language.py` | script detection and Hinglish heuristic |
+| `nlp/languages.py` | language registry: every supported language, its tier, script, font and template file |
+| `nlp/language.py` | script detection, Hindi vs Marathi disambiguation and Hinglish heuristic, driven by the registry |
 | `nlp/classifier.py` | `Classifier` protocol and implementations |
 | `nlp/extraction.py` | location extraction (LLM with rule-based fallback) |
-| `nlp/templates/` | per-language message templates (`en`, `hi`, `gu`, `hinglish`) |
+| `nlp/templates/` | one message template file per registry language (Tier 1 written by hand, Tier 2 machine-translated and flagged) |
 | `jobs/scheduler.py` | registers the escalation job |
 
 ## 5. Conversation design
@@ -127,10 +129,35 @@ Thresholds are environment config. The values above are starting points, not res
 
 ## 6. NLP pipeline
 
-### 6.1 Language and script detection
-- Count characters in the Gujarati block (U+0A80 to U+0AFF) and Devanagari block (U+0900 to U+097F). The dominant script decides Gujarati or Hindi.
-- For Latin script, a heuristic checks for common romanized Hindi words (for example "nahi", "paani", "mere", "hai", "raha") and decides Hinglish vs English.
-- The detected language is used to choose the reply templates. It is not required for classification, because the classifier handles all four directly.
+### 6.1 Language registry and detection
+
+All supported languages live in one registry, `nlp/languages.py`. Each entry holds: code, English name, native name, script, tier (1 or 2), font family, template file and a `verified` flag. Adding a language means a registry entry, a template file, tests and docs, with no changes to business logic. A Tier 2 language can be switched off by disabling it in the registry.
+
+| Tier | Languages |
+|---|---|
+| 1, verified | English (en), Hindi (hi), Gujarati (gu), Hinglish (hinglish) |
+| 2, experimental | Marathi (mr), Bengali (bn), Tamil (ta), Telugu (te), Kannada (kn), Malayalam (ml), Punjabi (pa) |
+
+Detection steps:
+1. Count characters per Unicode block and pick the dominant script:
+
+| Script | Unicode block | Language |
+|---|---|---|
+| Devanagari | U+0900 to U+097F | Hindi or Marathi (step 2) |
+| Bengali | U+0980 to U+09FF | bn |
+| Gurmukhi | U+0A00 to U+0A7F | pa |
+| Gujarati | U+0A80 to U+0AFF | gu |
+| Tamil | U+0B80 to U+0BFF | ta |
+| Telugu | U+0C00 to U+0C7F | te |
+| Kannada | U+0C80 to U+0CFF | kn |
+| Malayalam | U+0D00 to U+0D7F | ml |
+| Latin | basic Latin letters | en or hinglish (step 3) |
+
+2. Devanagari is shared by Hindi and Marathi. Count marker words for each language (the exact method is recorded in `docs/DECISIONS.md`). If the counts tie or there is no signal, use Hindi.
+3. For Latin script, a heuristic checks for common romanized Hindi words (for example "nahi", "paani", "mere", "hai", "raha") and decides Hinglish vs English.
+4. If the script is unknown or unsupported (for example Arabic script), the reply is in English and Hindi.
+
+Detection chooses the reply language only. Classification does not depend on it, because the classifier reads the text directly. Before a Tier 2 language is enabled, check that the base model covers it (see the MuRIL model card) and that its templates exist.
 
 ### 6.2 Classifier
 
@@ -154,11 +181,11 @@ The active implementation is chosen by `CLASSIFIER_BACKEND`. The model is loaded
 ### 6.3 Extraction
 - Goal: pull a free-text location (area, landmark, ward, street) from the complaint.
 - Primary: LLM call with a strict JSON schema, short timeout and low token limit.
-- Fallback: rule-based patterns (words such as "near", "ward", "society", "road", "nagar", and their Hindi and Gujarati equivalents). If the fallback also fails, ask the citizen.
+- Fallback: rule-based patterns (words such as "near", "ward", "society", "road", "nagar", and their Hindi and Gujarati equivalents). Tier 2 languages have no rule-based patterns, so they rely on the LLM path or ask the citizen for the location. If the fallback also fails, ask the citizen.
 - The LLM never writes user-facing replies and never decides the department. The classifier does.
 
 ### 6.4 Templates
-Each language file has the same keys, for example `ticket_created`, `ask_location`, `ask_department`, `status_reply`, `status_labels.*`, `not_found`, `help`, `error_generic`. A test asserts that all four language files have identical keys.
+Each language file has the same keys, for example `ticket_created`, `ask_location`, `ask_department`, `status_reply`, `status_labels.*`, `not_found`, `help`, `error_generic`. There is one template file per registry language. A test asserts that every language file has identical keys. Tier 2 files are machine-translated and carry a header comment saying so.
 
 ## 7. Ticket lifecycle
 
@@ -212,6 +239,7 @@ Indexes: `tickets(public_id)`, `tickets(department_id, status)`, `tickets(status
 
 Notes:
 - `public_id` format: `FMC-<yymmdd>-<4 random chars>`, generated with a retry on collision. It is hard to guess but short enough to type.
+- Every `language` column stores a language registry code (for example `gu`, `hinglish`, `ta`).
 - Complaint text is stored in the database (needed to work the ticket) but is never written to application logs.
 - All data is synthetic in this project.
 
@@ -289,17 +317,17 @@ frontend/src/
 ```
 
 - Typed API client generated from or aligned to the OpenAPI schema.
-- UI strings go through i18n (English, Hindi, Gujarati).
+- UI strings go through i18n (English, Hindi, Gujarati). The chat itself works in every registry language, and users of Tier 2 languages see the English UI.
 - Chat shows a "waking up the server" message if the first request is slow.
-- Gujarati and Devanagari fonts (for example Noto Sans) are loaded explicitly so text renders everywhere.
+- Noto Sans fonts for every registry script (Gujarati, Devanagari, Bengali, Gurmukhi, Tamil, Telugu, Kannada, Malayalam) are loaded explicitly, and the Tier 2 fonts are loaded on demand so the first page stays light.
 
 ## 13. ML pipeline (offline)
 
-1. `ml/src/generate_dataset.py`: build a synthetic complaints dataset with an LLM, covering the 9 departments across the 4 languages, with variations (typos, slang, code-mixing, missing location, ambiguity). Manually review a sample.
-2. `ml/data/eval_handwritten/`: about 100 to 150 messages written by hand, never used for training.
+1. `ml/src/generate_dataset.py`: build a synthetic complaints dataset with an LLM, covering the 9 departments across all registry languages (full size for Tier 1, smaller for Tier 2), with variations (typos, slang, code-mixing, missing location, ambiguity). Manually review a sample.
+2. `ml/data/eval_handwritten/`: about 100 to 150 messages written by hand for the Tier 1 languages, plus about 20 per Tier 2 language drafted with LLM help and marked `verified=false`. Never used for training.
 3. `ml/src/train_baseline.py`: TF-IDF plus Logistic Regression.
 4. `ml/src/train_muril.py` (run in Colab or Kaggle): fine-tune MuRIL, save the model to the Hugging Face Hub.
-5. `ml/src/evaluate.py`: accuracy, per-class precision, recall and F1, macro-F1, per-language breakdown and confusion matrix for both models on the hand-written set. Writes `ml/reports/metrics.json` and images.
+5. `ml/src/evaluate.py`: accuracy, per-class precision, recall and F1, macro-F1, per-language breakdown (with the tier shown, Tier 1 and Tier 2 in separate tables) and confusion matrix for both models on the evaluation set. Writes `ml/reports/metrics.json` and images.
 6. `ml/src/export_onnx.py` (optional): export and quantize, then compare latency and accuracy against PyTorch.
 
 All numbers in the README and model card come from these reports.
@@ -342,7 +370,8 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Backend scaffold | Done |
 | Health endpoints and CI | Planned |
 | Database models and migrations | Planned |
-| Language detection and templates | Planned |
+| Language registry, detection and Tier 1 templates | Planned |
+| Tier 2 languages (templates, data, evaluation) | Planned |
 | Dataset and baseline classifier | Planned |
 | MuRIL fine-tune and evaluation | Planned |
 | Chat service and clarification flow | Planned |
@@ -369,3 +398,4 @@ Detailed entries go in `docs/DECISIONS.md`. Initial ones:
 | Conversation state | In the database | In memory | Keeps the API stateless and horizontally scalable |
 | Hosting the model | Hugging Face Spaces | Render free tier | More RAM for the model |
 | Orchestration framework | Plain services | Rasa, LangChain | Simpler, easier for AI IDEs to keep clean, easier to test |
+| Language support | Two tiers behind one registry | Only 3 or 4 languages, or all languages claimed as equal | Wider reach for the core problem without overclaiming what cannot be verified |

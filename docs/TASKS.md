@@ -20,6 +20,10 @@ Rules:
 - Tasks marked **(human)** are done by you outside the IDE (Colab, deployment, recording). Tick them yourself.
 - The agent updates this file as part of every task.
 
+Language tiers used in this file:
+- Tier 1 (verified): English, Hindi, Gujarati, Hinglish.
+- Tier 2 (experimental): Marathi, Bengali, Tamil, Telugu, Kannada, Malayalam, Punjabi.
+
 ## Phase 0: Repository setup
 
 - [x] **T-00** Repo initialized, `AGENTS.md`, `docs/PRD.md`, `docs/ARCHITECTURE.md` committed. City renamed to Furfuri Nagar (FMC).
@@ -51,21 +55,21 @@ Rules:
   - Done when: `make seed` is idempotent (safe to run twice).
   - Commit: `feat(db): add idempotent seed script for departments and demo users`
 
-- [ ] **T-06** Language detection and templates
-  - `nlp/language.py` (script detection, Hinglish heuristic), `nlp/templates/` for en, hi, gu, hinglish with all keys from ARCHITECTURE 6.4.
-  - Done when: unit tests cover all four languages and a test asserts identical template keys across languages.
-  - Commit: `feat(nlp): add language detection and multilingual message templates`
+- [ ] **T-06** Language registry, detection and templates
+  - `nlp/languages.py` registry (code, names, script, tier, font, template file, verified flag), `nlp/language.py` (script detection for all registry scripts, Hindi vs Marathi disambiguation, Hinglish heuristic, unknown script falls back to a reply in English plus Hindi), `nlp/templates/` with Tier 1 templates (en, hi, gu, hinglish) and Tier 2 templates (mr, bn, ta, te, kn, ml, pa) flagged as machine-translated in a header comment, all with the keys from ARCHITECTURE 6.4.
+  - Done when: unit tests cover every registry language and the unknown-script fallback, and a test asserts identical template keys across all language files.
+  - Commit: `feat(nlp): add language registry, detection and multilingual message templates`
 
 ## Phase 2: ML pipeline (target: Oct 31 to Nov 1)
 
 - [ ] **T-07** Synthetic dataset generator
-  - `ml/src/generate_dataset.py`: generate complaints for 9 departments across 4 languages with variations (typos, slang, code-mixing, missing location, ambiguity), saved to `ml/data/processed/` with a train/validation split. Document the generation prompt and settings in `docs/MODEL_CARD.md`.
-  - Done when: dataset is roughly balanced and you have manually reviewed a sample of at least 50 rows per language.
+  - `ml/src/generate_dataset.py`: generate complaints for 9 departments across all registry languages with variations (typos, slang, code-mixing, missing location, ambiguity): full size for Tier 1, smaller balanced sets for Tier 2. Save to `ml/data/processed/` with a train/validation split and a `tier` column. Document the generation prompt and settings in `docs/MODEL_CARD.md`.
+  - Done when: datasets are roughly balanced and you have manually reviewed at least 50 rows per Tier 1 language. For each Tier 2 language, MODEL_CARD.md states whether a native speaker reviewed a sample or not.
   - Commit: `feat(ml): add synthetic dataset generator and splits`
 
 - [ ] **T-08** Hand-written evaluation set **(human, with AI help for formatting)**
-  - Write about 100 to 150 messages yourself (or with a friend) in all four languages, including ambiguous and messy ones. Save to `ml/data/eval_handwritten/eval.csv` with columns `text,label,language`. Never train on it.
-  - Done when: file exists with at least 100 rows and all 9 labels represented.
+  - Write about 100 to 150 messages yourself (or with a friend) in the four Tier 1 languages, including ambiguous and messy ones. For each Tier 2 language, add about 20 messages drafted with LLM help. Save to `ml/data/eval_handwritten/eval.csv` with columns `text,label,language,verified`. Tier 1 rows are `verified=true`, Tier 2 rows are `verified=false` unless a native speaker checked them. Never train on it.
+  - Done when: file exists with at least 100 Tier 1 rows, all 9 labels represented, and the `verified` column filled in.
   - Commit: `feat(ml): add hand-written evaluation set`
 
 - [ ] **T-09** Baseline classifier and evaluation script
@@ -79,7 +83,7 @@ Rules:
   - Commit: `feat(ml): add MuRIL fine-tuning script and Colab notebook`
 
 - [ ] **T-11** MuRIL evaluation report
-  - Run `evaluate.py` for the MuRIL model on the hand-written set, write `ml/reports/muril_metrics.json` and the confusion matrix, and fill in `docs/MODEL_CARD.md` with the real numbers next to the baseline.
+  - Run `evaluate.py` for the MuRIL model on the evaluation set, write `ml/reports/muril_metrics.json` and the confusion matrix, and fill in `docs/MODEL_CARD.md` with the real numbers next to the baseline. Show a per-language table with the tier, Tier 1 and Tier 2 in separate tables, and label Tier 2 as unverified.
   - Done when: report files and model card are committed with real values only.
   - Commit: `docs(ml): add MuRIL evaluation results and model card`
 
@@ -96,7 +100,7 @@ Rules:
   - Commit: `feat(tickets): add ticket service with validated transitions and events`
 
 - [ ] **T-14** Location extraction
-  - `nlp/extraction.py`: LLM extraction with strict JSON schema and timeout, plus rule-based fallback in en, hi and gu, controlled by `LLM_ENABLED`.
+  - `nlp/extraction.py`: LLM extraction with strict JSON schema and timeout, plus rule-based fallback in en, hi and gu (Tier 2 languages use the LLM path or ask the citizen), controlled by `LLM_ENABLED`.
   - Done when: tests cover the fallback without any network call.
   - Commit: `feat(nlp): add location extraction with rule-based fallback`
 
@@ -133,11 +137,11 @@ Rules:
 ## Phase 4: Frontend (target: Nov 2 to 3)
 
 - [ ] **T-21** Frontend scaffold
-  - Vite, React, TypeScript, Tailwind, shadcn/ui, ESLint, routing, typed API client, `.env.example`, Noto Sans fonts for Gujarati and Devanagari. CI also runs frontend lint and build.
+  - Vite, React, TypeScript, Tailwind, shadcn/ui, ESLint, routing, typed API client, `.env.example`, Noto Sans fonts for every registry script (Tier 2 fonts loaded on demand). CI also runs frontend lint and build.
   - Done when: `npm run lint` and `npm run build` pass.
   - Commit: `chore(frontend): scaffold React app with tooling`
 
-  - [ ] **T-21b** Design tokens and base components
+- [ ] **T-21b** Design tokens and base components
   - Create `tokens.css` from DESIGN.md section 3, map it into Tailwind and remap the shadcn variables, load the fonts, build the base components from section 4 (Button, Input, Card, StatusBadge, ChatBubble, QuickReply, TicketCard, Table, Drawer, EmptyState, ErrorState, Skeleton), add a dev-only `/design` preview page showing every component with English, Hindi and Gujarati text, and add `check-design-tokens.sh` to CI.
   - Done when: the preview page renders correctly in all three scripts and the token check passes in CI.
   - Commit: `feat(frontend): add design tokens and base component library`
@@ -163,7 +167,7 @@ Rules:
   - Commit: `feat(frontend): add admin analytics view`
 
 - [ ] **T-26** UI translations
-  - i18n for UI strings in English, Hindi and Gujarati with a language switcher.
+  - i18n for UI strings (buttons, labels, headings) in the Tier 1 languages English, Hindi and Gujarati with a language switcher. The chat itself already works in every registry language, and Tier 2 users see the English UI.
   - Done when: all visible UI text is translatable and the switcher works.
   - Commit: `feat(frontend): add UI internationalization`
 
@@ -204,7 +208,7 @@ Rules:
   - Commit: `docs: complete API reference and runbook`
 
 - [ ] **T-34** README
-  - All items required by the hackathon: title and problem statement number HI-02, team (solo) and name, problem and approach, tech stack, setup and local run steps, screenshots or demo GIF, real metrics from the reports, AI tools used (Qoder, Cursor, Antigravity, Claude), live links, note that development started Oct 30 with organiser permission, CI badge.
+  - All items required by the hackathon: title and problem statement number HI-02, team (solo) and name, problem and approach, tech stack, setup and local run steps, screenshots or demo GIF, real metrics from the reports (Tier 1 and Tier 2 in separate tables, Tier 2 labelled experimental), AI tools used (Qoder, Cursor, Antigravity, GitHub Copilot, Claude), live links, note that development started Oct 30 with organiser permission, CI badge.
   - Commit: `docs: write project README`
 
 - [ ] **T-35** Screenshots and GIF **(human)**
@@ -234,6 +238,7 @@ Rules:
 3. T-26 (UI translations): keep English only plus the chat in all languages
 4. T-25 (analytics charts): keep a simple summary table
 5. T-20 (rate limiting): keep input limits only
+6. Tier 2 languages: disable them in the registry and keep Tier 1 only
 
 Never cut: T-09 to T-11 (real metrics), T-15 (clarification flow), T-18 (escalation), T-28 and T-29 (live demo), T-34 (README), T-36 (video).
 
@@ -243,3 +248,4 @@ Add one line per day: what was finished, what is blocked.
 
 - 2026-10-30: repo, AGENTS.md, PRD and architecture committed.
 - 2026-10-30: completed T-01 backend scaffold, tooling and local Docker setup.
+- 2026-10-31: added tiered multilingual scope (Tier 1 verified, Tier 2 experimental) to the planning docs.

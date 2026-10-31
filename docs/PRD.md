@@ -9,7 +9,7 @@
 
 ## 1. Overview
 
-A chatbot that lets a citizen file a civic complaint by typing in their own language (Gujarati, Hindi, Hinglish or English). The system detects the language, understands the complaint, routes it to the correct municipal department, creates a ticket, and keeps the citizen informed until resolution. Department officers get a dashboard to work tickets, and overdue tickets escalate automatically.
+A chatbot that lets a citizen file a civic complaint by typing in their own language. English, Hindi, Gujarati and Hinglish are fully tested (Tier 1), and seven more major Indian languages are supported experimentally (Tier 2). The system detects the language, understands the complaint, routes it to the correct municipal department, creates a ticket, and keeps the citizen informed until resolution. Department officers get a dashboard to work tickets, and overdue tickets escalate automatically.
 
 **One-line pitch:** File a complaint in your own language, get it routed to the right department automatically, and track it until it is resolved.
 
@@ -33,7 +33,7 @@ Citizens who want to report a broken streetlight, a water outage or uncollected 
 
 ### Non-goals (this version)
 - Integration with any real government system or real citizen data.
-- Languages beyond Gujarati, Hindi, Hinglish and English.
+- Languages outside the registry in section 5 (for example Urdu, Odia, Assamese) and romanized text in any language other than Hindi.
 - Mobile apps, SMS or WhatsApp delivery.
 - Payments, document uploads, photo-based complaints.
 - Legal guarantees about resolution times. SLAs are configurable demo values.
@@ -48,7 +48,25 @@ Citizens who want to report a broken streetlight, a water outage or uncollected 
 
 ## 5. Scope
 
-**Languages:** Gujarati, Hindi, Hinglish (romanized Hindi), English.
+**Languages** are defined in one language registry. Support is split into two tiers so that every claim matches what has actually been verified.
+
+| Language | Code | Tier | Status |
+|---|---|---|---|
+| English | `en` | 1 | Verified: full dataset, hand-written test set, real metrics |
+| Hindi | `hi` | 1 | Verified |
+| Gujarati | `gu` | 1 | Verified |
+| Hinglish (romanized Hindi) | `hinglish` | 1 | Verified |
+| Marathi | `mr` | 2 | Experimental |
+| Bengali | `bn` | 2 | Experimental |
+| Tamil | `ta` | 2 | Experimental |
+| Telugu | `te` | 2 | Experimental |
+| Kannada | `kn` | 2 | Experimental |
+| Malayalam | `ml` | 2 | Experimental |
+| Punjabi | `pa` | 2 | Experimental |
+
+Tier 2 means: reply templates are machine-translated, datasets are smaller and LLM-drafted, and the test sets are small and not checked by native speakers. Tier 2 results are always reported separately and labelled unverified.
+
+**Not supported now:** Urdu and other right-to-left scripts, Odia, Assamese, and romanized text in any language other than Hindi.
 
 **Departments (9):**
 
@@ -73,8 +91,8 @@ Priority: **P0** = must have for the MVP, **P1** = should have, **P2** = stretch
 ### Citizen
 | ID | Story | Priority |
 |---|---|---|
-| US-01 | As a citizen, I can type my complaint in Gujarati, Hindi, Hinglish or English and the bot understands it. | P0 |
-| US-02 | As a citizen, I get a reply in the same language I wrote in. | P0 |
+| US-01 | As a citizen, I can type my complaint in any supported language (section 5) and the bot understands it. | P0 |
+| US-02 | As a citizen, I get a reply in the same language I wrote in. If my language is not supported, I get a reply in English and Hindi. | P0 |
 | US-03 | As a citizen, when the bot is unsure of the department it asks me a short question or offers choices, instead of guessing. | P0 |
 | US-04 | As a citizen, if I did not say where the problem is, the bot asks for the location. | P0 |
 | US-05 | As a citizen, I receive a ticket ID, the assigned department and a confirmation of what was filed. | P0 |
@@ -106,8 +124,8 @@ Priority: **P0** = must have for the MVP, **P1** = should have, **P2** = stretch
 
 **Chat and language**
 - FR-01. The chat endpoint accepts free text up to a configured maximum length.
-- FR-02. The system detects the script (Gujarati, Devanagari, Latin) and decides the reply language. Latin-script text is classified as English or Hinglish by a heuristic.
-- FR-03. All fixed system replies (confirmations, status labels, errors, prompts) come from per-language templates, not from an LLM.
+- FR-02. The system detects the script and language using the language registry. Devanagari text is disambiguated between Hindi and Marathi. Latin-script text is classified as English or Hinglish by a heuristic. If the language is unknown or unsupported, the reply is in English and Hindi.
+- FR-03. All fixed system replies (confirmations, status labels, errors, prompts) come from per-language templates, not from an LLM. Tier 2 templates are machine-translated and are flagged as such in the template files and the documentation.
 
 **Understanding**
 - FR-10. The system classifies each complaint into one of the 9 departments and returns a confidence score.
@@ -146,7 +164,7 @@ Values below are **targets to design for and verify**, not results. Actual measu
 
 | Area | Requirement | Target |
 |---|---|---|
-| Accuracy | Macro-F1 of the MuRIL classifier on the hand-written evaluation set | At least 0.85, and above the TF-IDF baseline |
+| Accuracy | Macro-F1 of the MuRIL classifier on the hand-written evaluation set (Tier 1 languages) | At least 0.85, and above the TF-IDF baseline |
 | Latency | p95 latency of the chat endpoint on one CPU instance | Under 1 second, measured by load test |
 | Throughput | Sustained requests per second on one CPU instance | Measured and reported, not assumed |
 | Scalability | API is stateless so replicas scale horizontally | Verified by running two replicas in the load test if time permits |
@@ -182,7 +200,8 @@ Values below are **targets to design for and verify**, not results. Actual measu
 
 | Metric | How it is measured | Where reported |
 |---|---|---|
-| Routing accuracy and macro-F1, MuRIL vs baseline | Evaluation script on the hand-written set (about 100 to 150 messages across all four languages, including ambiguous ones) | `ml/reports/`, README, MODEL_CARD |
+| Routing accuracy and macro-F1, MuRIL vs baseline (Tier 1) | Evaluation script on the hand-written set (about 100 to 150 messages across the four Tier 1 languages, including ambiguous ones) | `ml/reports/`, README, MODEL_CARD |
+| Per-language metrics for Tier 2 | Evaluation on about 20 LLM-assisted messages per language, labelled unverified and reported in a separate table | `ml/reports/`, MODEL_CARD |
 | Clarification behavior | Share of low-confidence evaluation messages that trigger a question rather than a wrong auto-route | `ml/reports/` |
 | Latency and throughput | k6 or Locust load test against one instance | `loadtests/`, README |
 | Escalation | Demonstrated live in the demo video with the short demo SLA | Demo video |
@@ -193,7 +212,7 @@ No impact statistic (for example "reduces resolution time by X%") is claimed unl
 ## 11. Demo plan (for the video)
 
 1. Problem in 20 seconds: a Gujarati speaker facing an English form.
-2. Live chat: file a Gujarati complaint, a Hinglish complaint and an ambiguous one (clarification).
+2. Live chat: file a Gujarati complaint, a Hinglish complaint and an ambiguous one (clarification), then one in a Tier 2 language such as Tamil or Marathi, clearly shown as experimental.
 3. Show the ticket ID and the department assigned.
 4. Status check in chat.
 5. Officer dashboard: update the ticket to In Progress, citizen sees the change.
@@ -217,6 +236,7 @@ No impact statistic (for example "reduces resolution time by X%") is claimed unl
 |---|---|
 | Synthetic training data inflates accuracy | Separate hand-written evaluation set that is never trained on; report both results honestly |
 | Hinglish and code-mixed text confuse the classifier | Include Hinglish heavily in training data; per-language metrics reveal weak spots |
+| Tier 2 language quality cannot be verified without native speakers | Label Tier 2 as experimental, sample-check with native speakers where possible, report Tier 2 results separately from Tier 1 |
 | Free LLM API rate limits or outage | LLM is optional for extraction; fall back to asking the citizen directly |
 | Free hosting sleeps or has limited RAM | Host the model on Hugging Face Spaces; wake the app before judging; show a waking-up message in the UI |
 | Too much scope for 5 days solo | Strict P0 first; stretch goals only after the core works; skip monitoring stack |
@@ -226,3 +246,4 @@ No impact statistic (for example "reduces resolution time by X%") is claimed unl
 
 - Final set of demo SLA values (proposal: Filed to Escalated after 3 minutes in demo mode, 48 hours in normal mode).
 - Whether to include the voice input stretch goal. Decide after the core flow is deployed.
+- Which Tier 2 languages can be sample-checked by native speakers (friends, classmates) before submission. Any language that cannot be checked stays labelled experimental.

@@ -13,7 +13,7 @@ The product should feel like a **calm, trustworthy public service**, not a tech 
 Principles:
 1. **Clarity over decoration.** One obvious next action on every screen.
 2. **Warm and civic, not corporate.** Warm neutrals, a deep green-teal, and a saffron accent used sparingly.
-3. **Script-first.** Gujarati and Devanagari text must look as good as English. Layout never depends on English text length.
+3. **Script-first.** Text in every supported script (Gujarati, Devanagari, Bengali, Gurmukhi, Tamil, Telugu, Kannada, Malayalam) must look as good as English. Layout never depends on English text length.
 4. **The ticket is the hero.** The ticket confirmation looks like a printed receipt stub. It is the signature element of the product and the thing people remember.
 5. **Consistent by construction.** Every visual value comes from tokens (section 3). No one-off styling.
 
@@ -76,13 +76,14 @@ Status is never shown by color alone. Every badge has a text label and a small i
 
 | Token | Value |
 |---|---|
-| `--font-sans` | `"Hanken Grotesk", "Noto Sans Gujarati", "Noto Sans Devanagari", system-ui, sans-serif` |
+| `--font-sans` | `"Hanken Grotesk", "Noto Sans Gujarati", "Noto Sans Devanagari", "Noto Sans Bengali", "Noto Sans Gurmukhi", "Noto Sans Tamil", "Noto Sans Telugu", "Noto Sans Kannada", "Noto Sans Malayalam", system-ui, sans-serif` |
 | `--font-mono` | `"JetBrains Mono", ui-monospace, monospace` (ticket IDs only) |
 
-- The stack lets the browser fall back per character, so Latin text uses Hanken Grotesk and Gujarati or Devanagari text uses the matching Noto face.
+- Tier 2 script fonts are loaded on demand when that language is detected or selected, not all upfront. Gujarati and Devanagari load by default.
+- The stack lets the browser fall back per character, so Latin text uses Hanken Grotesk and every other script uses the matching Noto face.
 - Load fonts with `font-display: swap`. Self-host or use a single Google Fonts request. Subset to the needed scripts.
-- **Indic scripts need more line height.** Body line height `1.65`, headings `1.3`. Never reduce it for Gujarati or Hindi text.
-- Mark text with the right `lang` attribute (`en`, `hi`, `gu`) so fonts and screen readers behave correctly.
+- **Indic scripts need more line height.** Body line height `1.65`, headings `1.3`. Never reduce it for any Indic script.
+- Mark text with the right `lang` attribute (the language registry code, for example `en`, `hi`, `gu`, `ta`) so fonts and screen readers behave correctly.
 
 | Token | Size | Weight | Use |
 |---|---|---|---|
@@ -127,7 +128,8 @@ Icons: one set only (Lucide), consistent 1.75px stroke, sized from tokens. **No 
 
 ### 5.1 Citizen chat (`/`)
 - Single centered column, max width about 720px, warm `bg` background.
-- Header: text wordmark "Furfuri Nagar Municipal Corporation" with a small mark, a language switcher (English, हिन्दी, ગુજરાતી), and a link to the status page. No logo images that imply a real government.
+- Header: text wordmark "Furfuri Nagar Municipal Corporation" with a small mark, a UI language switcher (English, हिन्दी, ગુજરાતી), and a link to the status page. No logo images that imply a real government.
+- The chat accepts any language in the language registry. The UI language switcher only changes the interface text (Tier 1 languages). When the detected language of a complaint is Tier 2, show a small neutral note under the reply, for example "Support for this language is experimental" (the note itself goes through i18n).
 - First view: a short welcome, one line of instruction, and 3 tappable example complaints in different languages so people see what to do.
 - Input bar fixed at the bottom with a large send button. It supports multi-line text and Enter to send.
 - Typing indicator while the bot is replying (three dots with reduced-motion fallback).
@@ -156,7 +158,7 @@ Icons: one set only (Lucide), consistent 1.75px stroke, sized from tokens. **No 
 
 - Design **mobile first**. The citizen chat is primarily used on phones.
 - Breakpoints: small (up to 640px), medium (up to 1024px), large (above).
-- No fixed widths for text containers. Translated strings can be 30 to 50 percent longer, and Gujarati and Hindi need more vertical space.
+- No fixed widths for text containers. Translated strings can be 30 to 50 percent longer, and Indic scripts need more vertical space.
 - Touch targets at least 44px. Keep the input bar above the on-screen keyboard.
 
 ## 7. States and microcopy
@@ -192,7 +194,7 @@ Tone: short sentences, respectful, no jargon, no blame. All UI strings go throug
 - No raw hex colors, arbitrary Tailwind values or default palette classes in components.
 - No lorem ipsum or fake statistics in the UI.
 - No decorative animation that does not help understanding.
-- No fixed-width layouts that break with longer Gujarati or Hindi text.
+- No fixed-width layouts that break with longer text in any Indic script.
 
 ## 10. Reference images
 
@@ -203,7 +205,7 @@ Save 3 to 5 screenshots of UIs you like in `docs/design-refs/` with a one-line n
 | Item | Status |
 |---|---|
 | `tokens.css` and Tailwind mapping | Planned (T-21b) |
-| Fonts loaded and verified for en, hi, gu | Planned (T-21b) |
+| Fonts loaded and verified for en, hi, gu (Tier 2 fonts load on demand) | Planned (T-21b) |
 | Base components (Button, Input, Card, StatusBadge, ChatBubble, QuickReply, TicketCard, Table, Drawer, states) | Planned (T-21b) |
 | `/design` dev preview page | Planned (T-21b) |
 | Token check script in CI | Planned (T-21b) |
