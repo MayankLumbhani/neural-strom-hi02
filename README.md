@@ -28,6 +28,10 @@ Requirements: Python 3.11 or newer; Docker Compose is optional for PostgreSQL.
 5. Apply database migrations with `make migrate`. Compose PostgreSQL is exposed
    on `POSTGRES_PORT` (5432 by default); the example `DATABASE_URL` credentials
    match the example PostgreSQL user and password.
+6. Set `DEMO_OFFICER_USERNAME`, `DEMO_OFFICER_PASSWORD`, `DEMO_ADMIN_USERNAME`,
+   and `DEMO_ADMIN_PASSWORD` in `.env`. Use passwords between 12 and 72 UTF-8
+   bytes, then run `make seed` to create the synthetic departments and demo
+   accounts. Running the seed command again is safe.
 
 Run `make lint` and `make test` to check the backend. `make format` applies
 Ruff formatting.

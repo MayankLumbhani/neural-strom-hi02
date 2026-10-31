@@ -65,3 +65,10 @@ Short log of technology and design choices. Newest at the bottom. Format: contex
 - **Decision:** Start with marker-word counts for each language (for example words that are common in one and rare in the other), falling back to Hindi on a tie or no signal. A detector library is added only if the marker words prove too weak, and then it needs its own entry here.
 - **Alternatives:** a language-ID library from the start.
 - **Consequences:** No extra dependency at first. Accuracy of this step is measured on the evaluation set and reported. It affects only the reply language, not the department classification.
+
+## D-09 Demo account hashing and seed data
+
+- **Context:** The database needs repeatable synthetic departments and demo officer/admin accounts for local development.
+- **Decision:** Seed the nine departments with initial synthetic SLA hours, require demo usernames and passwords from environment variables, and hash passwords with bcrypt (12 rounds; 12 to 72 UTF-8 bytes). Re-running the seed updates seeded department/account fields while retaining hashes when passwords are unchanged.
+- **Alternatives:** Store passwords directly, choose default demo passwords, or use Argon2.
+- **Consequences:** Demo credentials must be configured before seeding, and bcrypt is an explicit backend dependency. The seeded SLA values are illustrative and are not legal or service guarantees.

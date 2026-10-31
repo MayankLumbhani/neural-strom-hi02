@@ -70,7 +70,7 @@ Rules (also in `AGENTS.md`):
 | `core/database.py` | configured SQLModel engine and request-scoped database session dependency |
 | `core/logging.py` | structured JSON request logs without request bodies |
 | `core/middleware.py` | validated request IDs, response header and request metadata logging |
-| `core/security.py` | password hashing, JWT creation and verification |
+| `core/security.py` | bcrypt password hashing and verification; JWT support is planned |
 | `core/exceptions.py` | domain, HTTP and validation errors mapped to the standard JSON response |
 | `api/v1/chat.py` | `POST /chat/messages` |
 | `api/v1/tickets.py` | public status lookup |
@@ -87,6 +87,7 @@ Rules (also in `AGENTS.md`):
 | `nlp/extraction.py` | location extraction (LLM with rule-based fallback) |
 | `nlp/templates/` | one message template file per registry language (Tier 1 written by hand, Tier 2 machine-translated and flagged) |
 | `jobs/scheduler.py` | registers the escalation job |
+| `seed.py` | idempotent initial departments and demo-account seed command |
 
 ## 5. Conversation design
 
@@ -285,7 +286,7 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 
 ## 10. Security and privacy
 
-- Passwords hashed with bcrypt or argon2. JWTs signed with `JWT_SECRET`, short expiry.
+- Passwords hashed with bcrypt (12 rounds); seeded passwords must be 12 to 72 UTF-8 bytes. JWTs are planned to use `JWT_SECRET` with a short expiry.
 - Role check dependency on every `/admin` route. Officers are filtered by `department_id` in the repository layer, not only in the router.
 - Rate limiting on `/chat/messages` and `/tickets/{id}` per IP (for example with `slowapi`).
 - Input length limits, Pydantic validation everywhere.
@@ -309,6 +310,8 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 | `ESCALATION_INTERVAL_SECONDS` | Scheduler cadence |
 | `RATE_LIMIT_CHAT`, `RATE_LIMIT_STATUS` | Rate limits |
 | `MAX_MESSAGE_LENGTH` | Input cap |
+| `DEMO_OFFICER_USERNAME`, `DEMO_OFFICER_PASSWORD`, `DEMO_OFFICER_DEPARTMENT_CODE` | Seeded synthetic department-officer account |
+| `DEMO_ADMIN_USERNAME`, `DEMO_ADMIN_PASSWORD` | Seeded synthetic administrator account |
 
 ## 12. Frontend structure
 
@@ -381,6 +384,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Health endpoints and CI | Done |
 | Core configuration, logging and errors | Done |
 | Database models and migrations | Done |
+| Seed data | Done |
 | Language registry, detection and Tier 1 templates | Planned |
 | Tier 2 languages (templates, data, evaluation) | Planned |
 | Dataset and baseline classifier | Planned |

@@ -50,7 +50,7 @@ Language tiers used in this file:
   - Done when: `alembic upgrade head` works on the docker-compose Postgres and a repository test passes.
   - Commit: `feat(db): add models, indexes and initial migration`
 
-- [ ] **T-05** Seed data
+- [x] **T-05** Seed data
   - Script to seed the 9 departments (names in en, hi, gu and SLA hours) and demo officer and admin accounts (passwords from env, hashed). All synthetic.
   - Done when: `make seed` is idempotent (safe to run twice).
   - Commit: `feat(db): add idempotent seed script for departments and demo users`
@@ -252,3 +252,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-10-31: completed T-02 health endpoints and CI workflow; GitHub Actions passed.
 - 2026-10-31: completed T-03 validated settings, request logging and standard error responses.
 - 2026-10-31: completed T-04 SQLModel tables, initial Alembic migration, database session dependency and department repository test.
+- 2026-10-31: completed T-05 idempotent synthetic department and demo-account seeding with bcrypt password hashes.

@@ -1,4 +1,4 @@
-.PHONY: dev test lint format migrate
+.PHONY: dev test lint format migrate seed
 
 dev:
 	python -m uvicorn grievance.main:app --app-dir backend/src --reload
@@ -16,3 +16,6 @@ format:
 
 migrate:
 	python -m alembic -c backend/alembic.ini upgrade head
+
+seed:
+	python -m grievance.seed

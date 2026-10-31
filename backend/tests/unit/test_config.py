@@ -44,6 +44,11 @@ def test_settings_cover_architecture_environment_variables() -> None:
         "RATE_LIMIT_CHAT",
         "RATE_LIMIT_STATUS",
         "MAX_MESSAGE_LENGTH",
+        "DEMO_OFFICER_USERNAME",
+        "DEMO_OFFICER_PASSWORD",
+        "DEMO_OFFICER_DEPARTMENT_CODE",
+        "DEMO_ADMIN_USERNAME",
+        "DEMO_ADMIN_PASSWORD",
     }
 
     assert {field.upper() for field in Settings.model_fields} == expected

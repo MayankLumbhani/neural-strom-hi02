@@ -36,6 +36,11 @@ class Settings(BaseSettings):
     rate_limit_chat: str = "10/minute"
     rate_limit_status: str = "30/minute"
     max_message_length: int = Field(default=2000, gt=0)
+    demo_officer_username: str | None = Field(default=None, max_length=100)
+    demo_officer_password: SecretStr | None = None
+    demo_officer_department_code: str = Field(default="WATER", max_length=50)
+    demo_admin_username: str | None = Field(default=None, max_length=100)
+    demo_admin_password: SecretStr | None = None
 
     @model_validator(mode="after")
     def validate_confidence_thresholds(self) -> "Settings":
