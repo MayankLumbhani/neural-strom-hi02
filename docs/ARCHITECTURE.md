@@ -66,10 +66,11 @@ Rules (also in `AGENTS.md`):
 
 | Package | Responsibility |
 |---|---|
-| `core/config.py` | pydantic-settings, all env variables |
-| `core/logging.py` | structured JSON logs with request ID, no complaint text |
+| `core/config.py` | validated pydantic-settings for all configured environment variables |
+| `core/logging.py` | structured JSON request logs without request bodies |
+| `core/middleware.py` | validated request IDs, response header and request metadata logging |
 | `core/security.py` | password hashing, JWT creation and verification |
-| `core/exceptions.py` | domain errors mapped to HTTP errors |
+| `core/exceptions.py` | domain, HTTP and validation errors mapped to the standard JSON response |
 | `api/v1/chat.py` | `POST /chat/messages` |
 | `api/v1/tickets.py` | public status lookup |
 | `api/v1/auth.py` | login |
@@ -348,6 +349,7 @@ Full detail in `docs/SCALING.md`. In short:
 
 - Structured JSON logs with request ID, route, status code, latency and, for chat, classifier label and confidence (no text).
 - `/health` and `/ready` for orchestrators.
+- Every response includes an `X-Request-ID`; structured request logs include method, path, status and latency, never request bodies or query values.
 - Metrics endpoint and dashboards are a documented future step, not part of the hackathon build.
 
 ## 16. Testing strategy
@@ -369,6 +371,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Repo, docs, AGENTS.md | Done |
 | Backend scaffold | Done |
 | Health endpoints and CI | Done |
+| Core configuration, logging and errors | Done |
 | Database models and migrations | Planned |
 | Language registry, detection and Tier 1 templates | Planned |
 | Tier 2 languages (templates, data, evaluation) | Planned |

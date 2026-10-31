@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 - Dockerfile and Docker Compose services for the API and PostgreSQL.
 - Backend local setup instructions.
 - Liveness and readiness endpoints, plus GitHub Actions backend CI.
+- Validated environment settings, request-ID middleware, JSON request logs, and
+  consistent API error responses.
 
 ### Changed
 - Documentation: added tiered multilingual scope (Tier 1 verified: English, Hindi, Gujarati, Hinglish; Tier 2 experimental: Marathi, Bengali, Tamil, Telugu, Kannada, Malayalam, Punjabi) across the PRD, architecture, tasks, agent rules, design guide and decisions log.

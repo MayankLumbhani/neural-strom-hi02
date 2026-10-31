@@ -40,7 +40,7 @@ Language tiers used in this file:
   - Done when: CI is green on GitHub.
   - Commit: `ci: add health endpoints and GitHub Actions workflow`
 
-- [ ] **T-03** Core: config, logging, errors
+- [x] **T-03** Core: config, logging, errors
   - pydantic-settings config with every variable from ARCHITECTURE section 11, structured JSON logging with request ID middleware (no complaint text), domain exceptions mapped to the standard error JSON format.
   - Done when: tests cover error format and request ID header.
   - Commit: `feat(core): add settings, structured logging and error handling`
@@ -250,3 +250,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-10-30: completed T-01 backend scaffold, tooling and local Docker setup.
 - 2026-10-31: added tiered multilingual scope (Tier 1 verified, Tier 2 experimental) to the planning docs.
 - 2026-10-31: completed T-02 health endpoints and CI workflow; GitHub Actions passed.
+- 2026-10-31: completed T-03 validated settings, request logging and standard error responses.

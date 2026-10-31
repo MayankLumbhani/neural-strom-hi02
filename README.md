@@ -29,6 +29,11 @@ Requirements: Python 3.11 or newer; Docker Compose is optional for PostgreSQL.
 Run `make lint` and `make test` to check the backend. `make format` applies
 Ruff formatting.
 
+Application settings are loaded from `.env` through `pydantic-settings`; the
+supported variables and local examples are listed in `.env.example`. API
+responses include an `X-Request-ID` for correlation. Request logs are JSON and
+include request metadata only, never request bodies.
+
 The API currently provides `GET /health` for liveness and `GET /ready` for
 readiness. Database and model readiness are reported as `unknown` until those
 components are implemented. GitHub Actions runs Ruff, mypy, and pytest on pushes
