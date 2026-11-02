@@ -28,6 +28,10 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: Check design tokens
+        working-directory: frontend
+        run: bash scripts/check-design-tokens.sh
+
       - name: Run ESLint
         working-directory: frontend
         run: npm run lint

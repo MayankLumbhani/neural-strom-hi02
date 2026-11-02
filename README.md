@@ -82,7 +82,9 @@ npm run dev
 Set `VITE_API_BASE_URL` in `frontend/.env` to the backend origin. The
 development scaffold provides client-side routing and a typed API client;
 citizen and staff screens are tracked in [docs/TASKS.md](docs/TASKS.md).
-`npm run lint` and `npm run build` validate the frontend.
+While the Vite dev server is running, visit `/design` to preview the shared
+base components in English, Hindi, and Gujarati. `npm run check:design-tokens`,
+`npm run lint`, and `npm run build` validate the frontend.
 
 ## Language support
 

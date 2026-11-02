@@ -165,10 +165,11 @@ Language tiers used in this file:
   - Commit: `chore(frontend): scaffold React app with tooling`
   - Notes: Strict-TypeScript Vite scaffold, routed placeholder shell, typed chat/status API client, locale-aware English/Hindi/Gujarati shell messages, Tier 1 initial fonts and on-demand Tier 2 font loader are in place; CI runs frontend lint and build.
 
-- [ ] **T-21b** Design tokens and base components
+- [x] **T-21b** Design tokens and base components
   - Create `tokens.css` from DESIGN.md section 3, map it into Tailwind and remap the shadcn variables, load the fonts, build the base components from section 4 (Button, Input, Card, StatusBadge, ChatBubble, QuickReply, TicketCard, Table, Drawer, EmptyState, ErrorState, Skeleton), add a dev-only `/design` preview page showing every component with English, Hindi and Gujarati text, and add `check-design-tokens.sh` to CI.
   - Done when: the preview page renders correctly in all three scripts and the token check passes in CI.
   - Commit: `feat(frontend): add design tokens and base component library`
+  - Notes: Added semantic design tokens/Tailwind mappings, accessible base components, an English/Hindi/Gujarati dev preview, and CI enforcement against raw colors, default palette classes, and arbitrary utilities. Border tokens were darkened to meet the documented 3:1 UI-boundary contrast target.
 
 - [ ] **T-22** Chat UI
   - Chat window, message list, quick-reply buttons, ticket confirmation card, language-aware rendering, "waking up the server" state, error handling.
@@ -280,3 +281,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-10-31: completed T-06 registry-driven language detection, fixed-message templates and parity tests; Tier 2 templates remain experimental and machine-translated.
 - 2026-10-31: implemented the deterministic synthetic dataset generator and documented its settings; Tier 1 manual review remains pending.
 - 2026-11-03: completed T-21 frontend tooling, routing, typed API client, script-font loading and CI checks.
+- 2026-11-03: completed T-21b design tokens, base components, multilingual preview and CI token check.

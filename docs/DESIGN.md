@@ -46,8 +46,8 @@ Values below are the starting design. Verify every text and background pair with
 | `--color-bg` | `#F7F4EE` | Page background (warm off-white) |
 | `--color-surface` | `#FFFFFF` | Cards, chat bubbles (bot), inputs |
 | `--color-surface-muted` | `#EFEAE0` | Subtle panels, table header, hover rows |
-| `--color-border` | `#E2DCCF` | Dividers and card borders |
-| `--color-border-strong` | `#B9B09C` | Input borders, focus-adjacent edges |
+| `--color-border` | `#817968` | Dividers and card borders (at least 3:1 against muted surfaces) |
+| `--color-border-strong` | `#756B59` | Input borders, focus-adjacent edges |
 | `--color-ink` | `#1B2430` | Primary text |
 | `--color-ink-muted` | `#5B6573` | Secondary text, captions |
 | `--color-primary` | `#0E6B5C` | Main actions, citizen chat bubbles, links |
@@ -58,7 +58,9 @@ Values below are the starting design. Verify every text and background pair with
 | `--color-focus` | `#0E6B5C` | Focus ring (2px with 2px offset) |
 | `--color-danger` | `#B83A3A` | Errors, destructive actions |
 
-Primary on white measures roughly 6.4:1, which passes for text. Check every other pair yourself.
+Primary on white measures 6.41:1. The updated border colors measure at least 3:1
+against the white and muted surfaces they touch. Status text/background pairs
+also meet 4.5:1. Keep checking contrast when changing any token.
 
 ### 3.2 Ticket status colors (badge background, badge text)
 
@@ -204,9 +206,9 @@ Save 3 to 5 screenshots of UIs you like in `docs/design-refs/` with a one-line n
 
 | Item | Status |
 |---|---|
-| `tokens.css` and Tailwind mapping | Planned (T-21b) |
-| Font loading scaffold (Tier 1 initial; Tier 2 on demand) | Implemented (T-21); visual verification pending |
-| Base components (Button, Input, Card, StatusBadge, ChatBubble, QuickReply, TicketCard, Table, Drawer, states) | Planned (T-21b) |
-| `/design` dev preview page | Planned (T-21b) |
-| Token check script in CI | Planned (T-21b) |
+| `tokens.css` and Tailwind/shadcn mapping | Implemented (T-21b) |
+| Font loading scaffold (Tier 1 initial; Tier 2 on demand) | Implemented (T-21/T-21b) |
+| Base components (Button, Input, Card, StatusBadge, ChatBubble, QuickReply, TicketCard, Table, Drawer, states) | Implemented (T-21b) |
+| `/design` dev preview page | Implemented with English, Hindi, and Gujarati previews (T-21b) |
+| Token check script in CI | Implemented (T-21b) |
 | Chat, status, dashboard, analytics, login screens | Planned (T-22 to T-25) |

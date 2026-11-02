@@ -336,17 +336,25 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 frontend/
   src/
     App.tsx        React Router shell
-    components/ui/ shadcn/ui component destination
+    components/ui/ token-backed accessible base components
     features/      chat, tickets, dashboard, and auth (future tasks)
     lib/           typed API client, config, i18n, font loader
-    pages/         routes: /, /status, /login, /dashboard (future tasks)
-    styles/        design tokens (T-21b)
+    pages/         development-only /design preview and future app pages
+    styles/        design tokens and shadcn variable mappings
+    index.css      Tailwind base and token import
   .env.example
   components.json
   package.json
   vite.config.ts
 ```
 
+- Shared UI primitives live in `src/components/ui/`; all palette, typography,
+  spacing, radii, focus, motion, and shadow values are defined in
+  `src/styles/tokens.css` and mapped as semantic Tailwind utilities.
+- The development-only `/design` page previews every base component in
+  English, Hindi, and Gujarati. `npm run check:design-tokens` rejects raw
+  colors, default palette utilities, and arbitrary Tailwind values in source;
+  CI runs it with frontend lint and build.
 - The Vite/React/TypeScript/Tailwind scaffold is in `frontend/`; install with
   `npm ci`, copy `frontend/.env.example` to `frontend/.env`, then run
   `npm run dev` from that directory. `VITE_API_BASE_URL` configures the typed
@@ -427,6 +435,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Analytics endpoint | Implemented with role-scoped grouped counts, average resolution time, and seeded-data integration tests |
 | Escalation job | Implemented with APScheduler, atomic idempotent updates, transactional system events, demo-mode minute SLAs, and offline integration tests |
 | Frontend scaffold | Implemented (T-21); routes and feature screens remain planned |
+| Design tokens and base component library | Implemented (T-21b); CI token check and multilingual preview in place |
 | Frontend chat | Planned |
 | Frontend dashboard and analytics | Planned |
 | Deployment (HF Spaces, Vercel, Neon) | Planned |

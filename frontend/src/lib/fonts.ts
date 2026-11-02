@@ -19,14 +19,6 @@ const eagerlyLoadedScripts = new Set<RegistryScript>([
 ]);
 const pendingFonts = new Map<RegistryScript, Promise<void>>();
 
-export function loadLatinFont(): void {
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href =
-    "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap";
-  document.head.append(link);
-}
-
 export function loadScriptFont(script: RegistryScript): Promise<void> {
   if (eagerlyLoadedScripts.has(script)) {
     return Promise.resolve();
