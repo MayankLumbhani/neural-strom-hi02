@@ -76,8 +76,11 @@ during human review; the sample file is ignored by Git.
 
 The Tier 1 evaluation set contains 100 short, parallel rows written by Claude
 (an AI), not humans; accuracy measured on it is an optimistic estimate. Tier 2
-evaluation rows are pending. See
-[docs/MODEL_CARD.md](docs/MODEL_CARD.md) for its limitations.
+evaluation set: 70 rows (10 per language for mr, bn, ta, te, kn, ml, pa),
+written by Claude (an AI), NOT verified by native speakers, verified=false.
+This is below the ~20 per language target in the task plan. Tier 2 metrics are
+experimental and must always be reported separately from Tier 1. See
+[docs/MODEL_CARD.md](docs/MODEL_CARD.md) for limitations.
 
 ## AI tools
 

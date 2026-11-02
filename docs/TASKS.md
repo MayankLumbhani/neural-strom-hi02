@@ -71,9 +71,9 @@ Language tiers used in this file:
   - Follow-up: Cached Hindi WATER batches exposed a Unicode tokenization false-positive for repeated adjacent words; tokenizer now preserves combining marks. A stratum shortfall threshold is configurable at 90%, and raw cached batches are revalidated on reuse.
   - Follow-up: Gemini timeouts and transport failures retry with exponential backoff; exhausted retries stop with a resumable message. Cached batches replay without delay, and `LLM_TIMEOUT_SECONDS` defaults to 60 seconds.
 
-- [ ] **T-08** Hand-written evaluation set **(human, with AI help for formatting)**
+- [x] **T-08** Hand-written evaluation set **(human, with AI help for formatting)**
   - Write about 100 to 150 messages yourself (or with a friend) in the four Tier 1 languages, including ambiguous and messy ones. For each Tier 2 language, add about 20 messages drafted with LLM help. Save to `ml/data/eval_handwritten/eval.csv` with columns `text,label,language,verified`. Tier 1 rows are `verified=true`, Tier 2 rows are `verified=false` unless a native speaker checked them. Never train on it.
-  - Note: Tier 1 done (100 rows); Tier 2 rows pending
+  - Note: AI-authored (Claude), not human-written; Tier 1 100 rows, Tier 2 70 rows unverified
   - Done when: file exists with at least 100 Tier 1 rows, all 9 labels represented, and the `verified` column filled in.
   - Commit: `feat(ml): add hand-written evaluation set`
 

@@ -128,6 +128,8 @@ below.
 
 Tier 1 evaluation set: 100 rows (25 per language), written by Claude (an AI), independent of the Gemini-generated training data. It is NOT human-written. Rows are short and parallel across languages, so accuracy measured on it is an optimistic estimate. Tier 2 evaluation rows are pending and will be marked verified=false.
 
+Tier 2 evaluation set: 70 rows (10 per language for mr, bn, ta, te, kn, ml, pa), written by Claude (an AI), NOT verified by native speakers, verified=false. This is below the ~20 per language target in the task plan. Tier 2 metrics are experimental and must always be reported separately from Tier 1.
+
 ## Review status and limitations
 
 - **Tier 1 (English, Hindi, Gujarati, Hinglish):** Generated examples are
