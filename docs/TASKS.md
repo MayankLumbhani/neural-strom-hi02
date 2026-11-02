@@ -109,10 +109,11 @@ Language tiers used in this file:
 
 ## Phase 3: Core features (target: Nov 1 to 2)
 
-- [ ] **T-13** Ticket service
+- [x] **T-13** Ticket service
   - Repositories and `TicketService`: create ticket, public ID generator using `TICKET_ID_PREFIX` from config (default `FMC`) with collision retry, validated status transitions, ticket events.
   - Done when: unit tests cover every valid and invalid transition and ID format.
   - Commit: `feat(tickets): add ticket service with validated transitions and events`
+  - Notes: Implemented collision-retried public IDs, initial/status events, and all lifecycle transitions; offline tests cover the complete transition matrix.
 
 - [ ] **T-14** Location extraction
   - `nlp/extraction.py`: LLM extraction with strict JSON schema and timeout, plus rule-based fallback in en, hi and gu (Tier 2 languages use the LLM path or ask the citizen), controlled by `LLM_ENABLED`.

@@ -78,7 +78,8 @@ Rules (also in `AGENTS.md`):
 | `api/v1/admin.py` | officer and admin ticket operations and analytics |
 | `api/v1/health.py` | `/health`, `/ready` |
 | `services/chat_service.py` | conversation state machine and orchestration |
-| `services/ticket_service.py` | create ticket, validate transitions, record events |
+| `services/ticket_service.py` | ticket creation, collision-safe public IDs and validated status transitions |
+| `repositories/ticket_repository.py` | ticket and ticket-event persistence |
 | `services/escalation_service.py` | find and escalate overdue tickets |
 | `services/analytics_service.py` | aggregate counts and resolution times |
 | `nlp/languages.py` | language registry: every supported language, its tier, script, font and template file |
@@ -213,7 +214,9 @@ stateDiagram-v2
 - A ticket is created in `FILED` and sits in its department's queue.
 - `ESCALATED` is set only by the system. It is a visible flag for admins.
 - Every transition creates a `ticket_events` row.
+- Allowed transitions are `FILED -> ASSIGNED|ESCALATED`, `ASSIGNED -> IN_PROGRESS|ESCALATED`, `IN_PROGRESS -> RESOLVED|ESCALATED`, and `ESCALATED -> IN_PROGRESS|RESOLVED`. `RESOLVED` is terminal.
 - Invalid transitions raise a domain error that maps to HTTP 409.
+- Ticket creation records the initial `FILED` event; the caller owns the database transaction.
 
 ### Escalation
 - APScheduler runs `EscalationService.run()` every `ESCALATION_INTERVAL_SECONDS`.
@@ -251,7 +254,7 @@ request-scoped sessions through `core/database.py`, and repositories contain
 the database queries.
 
 Notes:
-- `public_id` format: `FMC-<yymmdd>-<4 random chars>`, generated with a retry on collision. It is hard to guess but short enough to type.
+- `public_id` format: `<TICKET_ID_PREFIX>-<yymmdd>-<4 random uppercase letters or digits>`. The prefix defaults to `FMC`; generation retries collisions. The ID is hard to guess but short enough to type.
 - Every `language` column stores a language registry code (for example `gu`, `hinglish`, `ta`).
 - Complaint text is stored in the database (needed to work the ticket) but is never written to application logs.
 - All data is synthetic in this project.
@@ -310,6 +313,7 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 | `CLASSIFIER_BACKEND` | Runtime backend: `baseline` (default) or `muril`; `fake` is test-only |
 | `MODEL_NAME_OR_PATH`, `HF_TOKEN` | Published classifier model path and optional Hugging Face Hub access token |
 | `CLASSIFIER_HIGH_THRESHOLD`, `CLASSIFIER_LOW_THRESHOLD` | Confidence policy |
+| `TICKET_ID_PREFIX` | Public ticket ID prefix (default `FMC`) |
 | `LLM_ENABLED`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `LLM_TIMEOUT_SECONDS` | Optional extraction helper and offline Gemini dataset generation; per-request timeout defaults to 60 seconds and the model has no default |
 | `DATASET_SEED`, `DATASET_TIER1_SAMPLES_PER_CLASS_LANGUAGE`, `DATASET_TIER2_SAMPLES_PER_CLASS_LANGUAGE`, `DATASET_MINIMUM_STRATUM_FRACTION` | Dataset seed, requested examples (100 Tier 1, 30 Tier 2), and minimum accepted stratum fraction (0.9) |
 | `ESCALATION_INTERVAL_SECONDS` | Scheduler cadence |
@@ -398,7 +402,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Dataset and baseline classifier | Baseline evaluator and published MuRIL classifier implemented |
 | MuRIL fine-tune and evaluation | Fine-tuned model published; evaluation report, confusion matrix, tiered metrics and limitations recorded |
 | Chat service and clarification flow | Planned |
-| Ticket service and status API | Planned |
+| Ticket service | Implemented; public status API is planned |
 | Auth and officer endpoints | Planned |
 | Escalation job | Planned |
 | Frontend chat | Planned |

@@ -29,6 +29,9 @@ class Settings(BaseSettings):
     hf_token: SecretStr | None = None
     classifier_high_threshold: float = Field(default=0.75, gt=0, le=1)
     classifier_low_threshold: float = Field(default=0.45, gt=0, le=1)
+    ticket_id_prefix: str = Field(
+        default="FMC", min_length=1, max_length=12, pattern=r"^[A-Z0-9]+$"
+    )
     llm_enabled: bool = False
     gemini_api_key: SecretStr | None = None
     gemini_model: str | None = None

@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added the ticket repository and service with configurable collision-retried public IDs, ticket events, and validated lifecycle transitions; completed T-13.
 - Added the classifier protocol, validated prediction model, TF-IDF and MuRIL backends, deterministic fake, startup factory, and classifier-aware readiness reporting.
 - Published the existing MuRIL evaluation metrics and overall confusion matrix under `ml/reports/`, documented tiered/per-language results, and completed T-11.
 - Recorded D-14: use the TF-IDF baseline as the default classifier backend and keep the published MuRIL model optional.

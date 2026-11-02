@@ -37,6 +37,7 @@ def test_settings_cover_architecture_environment_variables() -> None:
         "HF_TOKEN",
         "CLASSIFIER_HIGH_THRESHOLD",
         "CLASSIFIER_LOW_THRESHOLD",
+        "TICKET_ID_PREFIX",
         "LLM_ENABLED",
         "GEMINI_API_KEY",
         "GEMINI_MODEL",
@@ -62,6 +63,12 @@ def test_settings_cover_architecture_environment_variables() -> None:
 def test_llm_timeout_default_is_suitable_for_generation_requests() -> None:
     """Allow enough time for a slow model response by default."""
     assert Settings(_env_file=None).llm_timeout_seconds == 60
+
+
+def test_ticket_id_prefix_defaults_to_fmc_and_accepts_custom_value() -> None:
+    """Use FMC for public ticket IDs unless an uppercase prefix is configured."""
+    assert Settings(_env_file=None).ticket_id_prefix == "FMC"
+    assert Settings(_env_file=None, ticket_id_prefix="CITY").ticket_id_prefix == "CITY"
 
 
 def test_classifier_backend_defaults_to_baseline_and_accepts_fake_for_tests() -> None:
