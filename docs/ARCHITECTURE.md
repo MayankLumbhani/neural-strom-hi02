@@ -85,7 +85,7 @@ Rules (also in `AGENTS.md`):
 | `nlp/languages.py` | language registry: every supported language, its tier, script, font and template file |
 | `nlp/language.py` | script detection, registry-marker-based Hindi vs Marathi disambiguation, Hinglish heuristic and unknown-script fallback |
 | `nlp/classifier.py` | `Classifier` protocol and implementations |
-| `nlp/extraction.py` | location extraction (LLM with rule-based fallback) |
+| `nlp/extraction.py` | strict Gemini location extraction with timeout and registry-aware English, Hindi and Gujarati fallback |
 | `nlp/templates/` | one TOML message template per registry language (Tier 1 written by hand, Tier 2 machine-translated and flagged) |
 | `nlp/template_loader.py` | loads and validates the shared template schema |
 | `jobs/scheduler.py` | registers the escalation job |
@@ -187,9 +187,8 @@ Implementations:
 The active runtime implementation is chosen by `CLASSIFIER_BACKEND`, which defaults to `baseline` and accepts `baseline` or `muril`; `fake` is available only in tests. The classifier is loaded once during application startup and reused. `/ready` reports `model=ready` after initialization or returns HTTP 503 with `model=unavailable` and a safe initialization error.
 
 ### 6.3 Extraction
-- Goal: pull a free-text location (area, landmark, ward, street) from the complaint.
-- Primary: LLM call with a strict JSON schema, short timeout and low token limit.
-- Fallback: rule-based patterns (words such as "near", "ward", "society", "road", "nagar", and their Hindi and Gujarati equivalents). Tier 2 languages have no rule-based patterns, so they rely on the LLM path or ask the citizen for the location. If the fallback also fails, ask the citizen.
+- `nlp/extraction.py` returns an explicitly stated location or `None`. When `LLM_ENABLED=true`, it uses the configured Gemini model and API key with a request timeout and strict JSON schema. API and response-validation failures are logged without complaint text, then fall back to local rules.
+- With the LLM disabled or no location returned, conservative registry-aware rules support English, Hindi and Gujarati. Other registry languages have no local rules and return `None` for the citizen to clarify.
 - The LLM never writes user-facing replies and never decides the department. The classifier does.
 
 ### 6.4 Templates
@@ -401,6 +400,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Tier 2 datasets and evaluation | Synthetic data and 70-row evaluation set; unverified |
 | Dataset and baseline classifier | Baseline evaluator and published MuRIL classifier implemented |
 | MuRIL fine-tune and evaluation | Fine-tuned model published; evaluation report, confusion matrix, tiered metrics and limitations recorded |
+| Location extraction | Gemini JSON extraction with timeout and offline English, Hindi and Gujarati fallbacks implemented |
 | Chat service and clarification flow | Planned |
 | Ticket service | Implemented; public status API is planned |
 | Auth and officer endpoints | Planned |

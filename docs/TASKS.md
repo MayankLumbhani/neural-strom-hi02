@@ -115,10 +115,11 @@ Language tiers used in this file:
   - Commit: `feat(tickets): add ticket service with validated transitions and events`
   - Notes: Implemented collision-retried public IDs, initial/status events, and all lifecycle transitions; offline tests cover the complete transition matrix.
 
-- [ ] **T-14** Location extraction
+- [x] **T-14** Location extraction
   - `nlp/extraction.py`: LLM extraction with strict JSON schema and timeout, plus rule-based fallback in en, hi and gu (Tier 2 languages use the LLM path or ask the citizen), controlled by `LLM_ENABLED`.
   - Done when: tests cover the fallback without any network call.
   - Commit: `feat(nlp): add location extraction with rule-based fallback`
+  - Notes: Uses the official Google Gen AI SDK when enabled; offline tests exercise fake-client JSON handling and local fallback rules.
 
 - [ ] **T-15** Chat service
   - Conversation state machine from ARCHITECTURE section 5: complaint, ask department (quick replies), ask location, create ticket, status lookup, greeting and help. Uses templates and the confidence policy from config.
