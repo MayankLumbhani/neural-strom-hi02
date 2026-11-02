@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added a 100-row Tier 1 evaluation set, with its AI-written provenance and optimistic-estimate limitations documented; Tier 2 evaluation rows remain pending.
 - Gemini-backed synthetic complaint generation with strict output validation, cached batches, seeded stratified splits, and offline fake-client tests.
 - Backend package layout, FastAPI application factory, and initial app test.
 - Python project tooling, Make targets, pre-commit hooks, and environment example.

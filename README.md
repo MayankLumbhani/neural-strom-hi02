@@ -74,6 +74,11 @@ seeded sample of 50 rows per Tier 1 language at
 `ml/data/review/review_sample.csv`. Fill in the `verdict` and `notes` columns
 during human review; the sample file is ignored by Git.
 
+The Tier 1 evaluation set contains 100 short, parallel rows written by Claude
+(an AI), not humans; accuracy measured on it is an optimistic estimate. Tier 2
+evaluation rows are pending. See
+[docs/MODEL_CARD.md](docs/MODEL_CARD.md) for its limitations.
+
 ## AI tools
 
 - GitHub Copilot was used for AI-assisted development.

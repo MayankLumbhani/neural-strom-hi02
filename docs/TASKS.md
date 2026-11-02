@@ -73,6 +73,7 @@ Language tiers used in this file:
 
 - [ ] **T-08** Hand-written evaluation set **(human, with AI help for formatting)**
   - Write about 100 to 150 messages yourself (or with a friend) in the four Tier 1 languages, including ambiguous and messy ones. For each Tier 2 language, add about 20 messages drafted with LLM help. Save to `ml/data/eval_handwritten/eval.csv` with columns `text,label,language,verified`. Tier 1 rows are `verified=true`, Tier 2 rows are `verified=false` unless a native speaker checked them. Never train on it.
+  - Note: Tier 1 done (100 rows); Tier 2 rows pending
   - Done when: file exists with at least 100 Tier 1 rows, all 9 labels represented, and the `verified` column filled in.
   - Commit: `feat(ml): add hand-written evaluation set`
 

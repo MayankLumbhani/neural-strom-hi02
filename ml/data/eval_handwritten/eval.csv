@@ -1,0 +1,101 @@
+text,label,language,verified
+No water in our taps since yesterday morning in Sector 5.,WATER,en,true
+"water coming very dirty and smells bad, please check the pipeline",WATER,en,true
+"Low pressure, water does not reach the second floor at all",WATER,en,true
+"Big pothole on the main road near Shiv Mandir, two bikes already fell.",ROADS,en,true
+road is broken after the digging work and nobody has repaired it,ROADS,en,true
+The speed breaker near the school gate has completely worn off.,ROADS,en,true
+Garbage has not been collected from our lane for four days.,SANITATION,en,true
+dustbin near the market is overflowing and stray dogs are spreading the waste,SANITATION,en,true
+The sweeper never comes to clean our street anymore.,SANITATION,en,true
+"Power cut every evening for the last week in Ward 7, it lasts almost three hours.",ELECTRICITY,en,true
+transformer near the park is making loud sparking sounds,ELECTRICITY,en,true
+voltage is so low that the fridge and fan won't run properly,ELECTRICITY,en,true
+The street light in front of my house has not worked for ten days.,STREETLIGHT,en,true
+"whole lane is dark at night, all lights are off",STREETLIGHT,en,true
+Street lamp pole near the bus stop is bent and the light keeps flickering.,STREETLIGHT,en,true
+Drain is choked and dirty water is flowing onto the road near Gandhi Chowk.,DRAINAGE,en,true
+sewage overflowing from the manhole outside our society gate,DRAINAGE,en,true
+"Rainwater is not draining from our street, the nala needs cleaning.",DRAINAGE,en,true
+"Mosquitoes breeding in stagnant water near the community ground, fogging needed",HEALTH,en,true
+"Biomedical waste from the clinic is being dumped in the open next to our lane, it is a health risk",HEALTH,en,true
+"My property tax bill shows the wrong area, please correct it.",TAX,en,true
+I paid my house tax online but the receipt is not generated and it still shows pending,TAX,en,true
+water bill is three times higher than usual this month,TAX,en,true
+Where can I apply for a new birth certificate?,OTHER,en,true
+What are the working hours of the ward office?,OTHER,en,true
+हमारे मोहल्ले में दो दिन से नल में पानी नहीं आ रहा है।,WATER,hi,true
+पानी बहुत गंदा आ रहा है और उसमें बदबू भी है,WATER,hi,true
+"पानी का प्रेशर बहुत कम है, ऊपर की मंजिल तक नहीं चढ़ता।",WATER,hi,true
+"मुख्य सड़क पर बड़ा गड्ढा हो गया है, रोज़ दुर्घटना होती है।",ROADS,hi,true
+"खुदाई के बाद सड़क ठीक नहीं की गई, चलना मुश्किल है",ROADS,hi,true
+स्कूल के सामने वाला स्पीड ब्रेकर टूट गया है।,ROADS,hi,true
+हमारी गली में चार दिन से कचरा नहीं उठाया गया है।,SANITATION,hi,true
+बाज़ार के पास कूड़ेदान भरकर बाहर बह रहा है,SANITATION,hi,true
+सफाई कर्मचारी अब हमारी गली में झाड़ू लगाने नहीं आता।,SANITATION,hi,true
+पिछले एक हफ्ते से रोज़ शाम को तीन घंटे बिजली चली जाती है।,ELECTRICITY,hi,true
+पार्क के पास वाले ट्रांसफार्मर से चिंगारियां निकल रही हैं,ELECTRICITY,hi,true
+"वोल्टेज बहुत कम है, पंखा और फ्रिज ठीक से नहीं चल रहे।",ELECTRICITY,hi,true
+मेरे घर के सामने की स्ट्रीट लाइट दस दिन से बंद है।,STREETLIGHT,hi,true
+"पूरी गली में रात को अंधेरा रहता है, सारी लाइटें बंद हैं",STREETLIGHT,hi,true
+बस स्टैंड के पास वाला लाइट का खंभा टेढ़ा हो गया है और बत्ती टिमटिमा रही है।,STREETLIGHT,hi,true
+नाली जाम है और गंदा पानी सड़क पर बह रहा है।,DRAINAGE,hi,true
+सोसाइटी के गेट के बाहर सीवर उफन रहा है,DRAINAGE,hi,true
+"बारिश का पानी गली से निकल नहीं रहा, नाले की सफाई करवाइए।",DRAINAGE,hi,true
+"मैदान के पास रुके हुए पानी में मच्छर पनप रहे हैं, फॉगिंग करवाएं।",HEALTH,hi,true
+"क्लिनिक का मेडिकल कचरा हमारी गली के पास खुले में फेंका जा रहा है, बीमारी फैलने का खतरा है",HEALTH,hi,true
+"मेरे मकान के टैक्स बिल में क्षेत्रफल गलत लिखा है, कृपया सुधारें।",TAX,hi,true
+मैंने प्रॉपर्टी टैक्स ऑनलाइन भर दिया पर रसीद नहीं मिली और स्टेटस पेंडिंग दिख रहा है,TAX,hi,true
+इस महीने पानी का बिल सामान्य से तीन गुना आया है।,TAX,hi,true
+नया जन्म प्रमाणपत्र बनवाने के लिए कहाँ आवेदन करना होगा?,OTHER,hi,true
+वार्ड ऑफिस कितने बजे खुलता है?,OTHER,hi,true
+અમારા વિસ્તારમાં બે દિવસથી નળમાં પાણી આવતું નથી.,WATER,gu,true
+પાણી ખૂબ ગંદું અને દુર્ગંધવાળું આવે છે,WATER,gu,true
+"પાણીનું પ્રેશર ઓછું છે, ઉપરના માળે પાણી ચડતું નથી.",WATER,gu,true
+"મુખ્ય રસ્તા પર મોટો ખાડો પડ્યો છે, રોજ અકસ્માત થાય છે.",ROADS,gu,true
+"ખોદકામ પછી રસ્તો રીપેર કર્યો નથી, ચાલવું મુશ્કેલ છે",ROADS,gu,true
+શાળાના દરવાજા પાસેનો સ્પીડ બ્રેકર તૂટી ગયો છે.,ROADS,gu,true
+અમારી શેરીમાં ચાર દિવસથી કચરો ઉપાડવામાં આવ્યો નથી.,SANITATION,gu,true
+બજાર પાસેની કચરાપેટી ભરાઈને છલકાય છે અને કૂતરાં કચરો ફેલાવે છે,SANITATION,gu,true
+સફાઈ કર્મચારી હવે અમારી ગલીમાં સફાઈ કરવા આવતા નથી.,SANITATION,gu,true
+છેલ્લા અઠવાડિયાથી રોજ સાંજે ત્રણ કલાક વીજળી જતી રહે છે.,ELECTRICITY,gu,true
+બગીચા પાસેના ટ્રાન્સફોર્મરમાંથી તણખા ઝરે છે,ELECTRICITY,gu,true
+"વોલ્ટેજ ખૂબ ઓછો છે, પંખો અને ફ્રિજ બરાબર ચાલતા નથી.",ELECTRICITY,gu,true
+મારા ઘર સામેની સ્ટ્રીટ લાઈટ દસ દિવસથી બંધ છે.,STREETLIGHT,gu,true
+"આખી ગલીમાં રાત્રે અંધારું રહે છે, બધી લાઈટો બંધ છે",STREETLIGHT,gu,true
+બસ સ્ટેન્ડ પાસેનો લાઈટનો થાંભલો વાંકો થઈ ગયો છે અને બત્તી ઝબકે છે.,STREETLIGHT,gu,true
+ગટર ભરાઈ ગઈ છે અને ગંદું પાણી રસ્તા પર વહે છે.,DRAINAGE,gu,true
+સોસાયટીના ગેટ બહાર ગટર ઉભરાઈ રહી છે,DRAINAGE,gu,true
+"વરસાદનું પાણી શેરીમાંથી નીકળતું નથી, નાળાની સફાઈ કરાવો.",DRAINAGE,gu,true
+"મેદાન પાસે ભરાયેલા પાણીમાં મચ્છરો થાય છે, ફોગિંગ કરાવો.",HEALTH,gu,true
+"ક્લિનિકનો મેડિકલ કચરો અમારી શેરી પાસે ખુલ્લામાં ફેંકવામાં આવે છે, રોગ ફેલાવાનો ભય છે",HEALTH,gu,true
+"મારા મકાનના ટેક્સ બિલમાં વિસ્તાર ખોટો લખ્યો છે, કૃપા કરીને સુધારો.",TAX,gu,true
+મેં પ્રોપર્ટી ટેક્સ ઓનલાઈન ભર્યો પણ રસીદ મળી નથી અને સ્ટેટસ પેન્ડિંગ બતાવે છે,TAX,gu,true
+આ મહિને પાણીનું બિલ સામાન્ય કરતાં ત્રણ ગણું આવ્યું છે.,TAX,gu,true
+નવું જન્મ પ્રમાણપત્ર કઢાવવા માટે ક્યાં અરજી કરવી?,OTHER,gu,true
+વોર્ડ ઓફિસ કેટલા વાગ્યે ખુલે છે?,OTHER,gu,true
+"bhai 2 din se nal mein paani nahi aa raha, Sector 5 mein",WATER,hinglish,true
+"paani bahut gandha aa raha hai aur smell bhi hai, pipeline check karo",WATER,hinglish,true
+pressure itna kam hai ki upar wali manzil tak paani nahi chadhta,WATER,hinglish,true
+"main road pe bada gaddha ho gaya hai, roz accident hota hai",ROADS,hinglish,true
+"khudai ke baad road theek nahi kiya, chalna mushkil hai",ROADS,hinglish,true
+school ke gate ke paas wala speed breaker toot gaya hai,ROADS,hinglish,true
+4 din se hamari gali mein kachra uthaya nahi gaya,SANITATION,hinglish,true
+market ke paas dustbin overflow ho raha hai aur kutte kachra faila rahe hain,SANITATION,hinglish,true
+safai wala ab hamari gali mein jhadu lagane nahi aata,SANITATION,hinglish,true
+pichle hafte se roz shaam ko 3 ghante light chali jati hai,ELECTRICITY,hinglish,true
+park ke paas transformer se spark nikal rahe hain,ELECTRICITY,hinglish,true
+"voltage bahut low hai, pankha aur fridge theek se nahi chal rahe",ELECTRICITY,hinglish,true
+mere ghar ke saamne ki street light 10 din se band hai,STREETLIGHT,hinglish,true
+"poori gali mein raat ko andhera rehta hai, saari lights off hain",STREETLIGHT,hinglish,true
+bus stand ke paas light ka pole tedha ho gaya hai aur bulb jhilmila raha hai,STREETLIGHT,hinglish,true
+naali jam hai aur ganda paani road pe beh raha hai,DRAINAGE,hinglish,true
+society gate ke bahar sewer overflow ho raha hai,DRAINAGE,hinglish,true
+"baarish ka paani gali se nikal nahi raha, naale ki safai karwao",DRAINAGE,hinglish,true
+"maidan ke paas ruke hue paani mein machhar ho gaye hain, fogging karwao",HEALTH,hinglish,true
+"clinic ka medical waste hamari gali ke paas khule mein phenka ja raha hai, bimari failne ka darr hai",HEALTH,hinglish,true
+"mere ghar ke tax bill mein area galat likha hai, please sudharo",TAX,hinglish,true
+"maine property tax online bhar diya par receipt nahi mili, status pending dikha raha hai",TAX,hinglish,true
+is mahine paani ka bill normal se teen guna aaya hai,TAX,hinglish,true
+naya birth certificate banwane ke liye kahan apply karna hai?,OTHER,hinglish,true
+ward office kitne baje khulta hai?,OTHER,hinglish,true

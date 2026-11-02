@@ -124,6 +124,10 @@ below.
 - Bad rows were removed from the training data. The remaining rows of the dataset are unreviewed.
 - Tier 2 data remains unverified by native speakers.
 
+## Evaluation set
+
+Tier 1 evaluation set: 100 rows (25 per language), written by Claude (an AI), independent of the Gemini-generated training data. It is NOT human-written. Rows are short and parallel across languages, so accuracy measured on it is an optimistic estimate. Tier 2 evaluation rows are pending and will be marked verified=false.
+
 ## Review status and limitations
 
 - **Tier 1 (English, Hindi, Gujarati, Hinglish):** Generated examples are
@@ -133,7 +137,7 @@ below.
 - **Tier 2 (Marathi, Bengali, Tamil, Telugu, Kannada, Malayalam, Punjabi):**
   Experimental, LLM-drafted, synthetic, and unverified by native speakers.
 - The `verified` column is `false` for every generated row. It is not a
-  substitute for the independent, hand-written evaluation set, which must
+  substitute for the independent evaluation set described above, which must
   remain separate and must never be used for training.
 - Prompt constraints and automated validation reduce common defects but do
   not establish factuality, native-speaker quality, or label correctness.
