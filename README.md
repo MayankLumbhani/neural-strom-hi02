@@ -67,6 +67,23 @@ Public chat and status endpoints are limited by `RATE_LIMIT_CHAT` and
 `RATE_LIMIT_STATUS`. Limits are process-local; quotas are not shared across
 workers or replicas. Public responses include browser security headers.
 
+## Frontend scaffold
+
+The React/Vite frontend lives in `frontend/`. With Node.js and npm installed,
+run these commands from PowerShell:
+
+```powershell
+Set-Location frontend
+npm ci
+Copy-Item .env.example .env
+npm run dev
+```
+
+Set `VITE_API_BASE_URL` in `frontend/.env` to the backend origin. The
+development scaffold provides client-side routing and a typed API client;
+citizen and staff screens are tracked in [docs/TASKS.md](docs/TASKS.md).
+`npm run lint` and `npm run build` validate the frontend.
+
 ## Language support
 
 The backend registry detects English, Hindi, Gujarati, and romanized Hindi

@@ -15,3 +15,5 @@ dist/
 /ml/data/review/
 /ml/data/raw/llm_batches/
 /ml/artifacts/muril_model/
+frontend/node_modules/
+frontend/dist/

@@ -333,17 +333,27 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 ## 12. Frontend structure
 
 ```
-frontend/src/
-  features/
-    chat/          chat window, message list, quick replies, language-aware input
-    tickets/       public status page
-    dashboard/     officer ticket table, ticket detail drawer, admin analytics
-    auth/          login form, token handling
-  components/ui/   shadcn components
-  lib/             typed API client, i18n (UI strings), config
-  pages/           routes: /, /status, /login, /dashboard
+frontend/
+  src/
+    App.tsx        React Router shell
+    components/ui/ shadcn/ui component destination
+    features/      chat, tickets, dashboard, and auth (future tasks)
+    lib/           typed API client, config, i18n, font loader
+    pages/         routes: /, /status, /login, /dashboard (future tasks)
+    styles/        design tokens (T-21b)
+  .env.example
+  components.json
+  package.json
+  vite.config.ts
 ```
 
+- The Vite/React/TypeScript/Tailwind scaffold is in `frontend/`; install with
+  `npm ci`, copy `frontend/.env.example` to `frontend/.env`, then run
+  `npm run dev` from that directory. `VITE_API_BASE_URL` configures the typed
+  REST client and has no production URL default.
+- ESLint and the production TypeScript/Vite build run in CI. Tier 1 Latin,
+  Devanagari, and Gujarati fonts load initially; `loadScriptFont` loads the
+  other Noto Sans registry scripts on demand.
 - Typed API client generated from or aligned to the OpenAPI schema.
 - UI strings go through i18n (English, Hindi, Gujarati). The chat itself works in every registry language, and users of Tier 2 languages see the English UI.
 - Chat shows a "waking up the server" message if the first request is slow.
@@ -416,6 +426,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Auth and officer endpoints | Implemented with HS256 bearer tokens, active-account checks, department-scoped list/detail/update operations, and offline API tests |
 | Analytics endpoint | Implemented with role-scoped grouped counts, average resolution time, and seeded-data integration tests |
 | Escalation job | Implemented with APScheduler, atomic idempotent updates, transactional system events, demo-mode minute SLAs, and offline integration tests |
+| Frontend scaffold | Implemented (T-21); routes and feature screens remain planned |
 | Frontend chat | Planned |
 | Frontend dashboard and analytics | Planned |
 | Deployment (HF Spaces, Vercel, Neon) | Planned |

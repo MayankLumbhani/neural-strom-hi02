@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added the React/Vite/TypeScript/Tailwind frontend scaffold, routing, typed API client, script-aware font loading, ESLint, and frontend CI checks; completed T-21.
 - Added configurable per-IP sliding-window limits for public chat/status routes, standard 429 responses, and browser security headers; documented the process-local quota scope in D-15 and completed T-20.
 - Added authenticated `/api/v1/admin/analytics/summary` with department-, status-, and language-based counts and scoped average resolution time; completed T-19.
 - Added an APScheduler SLA escalation job with demo-mode minute windows, atomic idempotent ticket updates, transactional system events, and lifecycle-managed startup/shutdown; completed T-18.

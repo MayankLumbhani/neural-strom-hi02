@@ -159,10 +159,11 @@ Language tiers used in this file:
 
 ## Phase 4: Frontend (target: Nov 2 to 3)
 
-- [ ] **T-21** Frontend scaffold
+- [x] **T-21** Frontend scaffold
   - Vite, React, TypeScript, Tailwind, shadcn/ui, ESLint, routing, typed API client, `.env.example`, Noto Sans fonts for every registry script (Tier 2 fonts loaded on demand). CI also runs frontend lint and build.
   - Done when: `npm run lint` and `npm run build` pass.
   - Commit: `chore(frontend): scaffold React app with tooling`
+  - Notes: Strict-TypeScript Vite scaffold, routed placeholder shell, typed chat/status API client, locale-aware English/Hindi/Gujarati shell messages, Tier 1 initial fonts and on-demand Tier 2 font loader are in place; CI runs frontend lint and build.
 
 - [ ] **T-21b** Design tokens and base components
   - Create `tokens.css` from DESIGN.md section 3, map it into Tailwind and remap the shadcn variables, load the fonts, build the base components from section 4 (Button, Input, Card, StatusBadge, ChatBubble, QuickReply, TicketCard, Table, Drawer, EmptyState, ErrorState, Skeleton), add a dev-only `/design` preview page showing every component with English, Hindi and Gujarati text, and add `check-design-tokens.sh` to CI.
@@ -278,3 +279,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-10-31: completed T-05 idempotent synthetic department and demo-account seeding with bcrypt password hashes.
 - 2026-10-31: completed T-06 registry-driven language detection, fixed-message templates and parity tests; Tier 2 templates remain experimental and machine-translated.
 - 2026-10-31: implemented the deterministic synthetic dataset generator and documented its settings; Tier 1 manual review remains pending.
+- 2026-11-03: completed T-21 frontend tooling, routing, typed API client, script-font loading and CI checks.

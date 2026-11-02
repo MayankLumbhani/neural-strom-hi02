@@ -1,7 +1,7 @@
 # Design System and UX Guide
 
 **Project:** neural-storm-hi02, Furfuri Nagar Municipal Corporation (FMC) grievance assistant
-**Status:** Design stage. Nothing here is implemented until `T-21b` is done. Update this file whenever a token, component or rule changes.
+**Status:** The T-21 frontend scaffold is implemented. The visual system, tokens and base components remain planned until `T-21b`. Update this file whenever a token, component or rule changes.
 **Applies to:** everything under `frontend/`. Read this before every UI task.
 
 ---
@@ -205,7 +205,7 @@ Save 3 to 5 screenshots of UIs you like in `docs/design-refs/` with a one-line n
 | Item | Status |
 |---|---|
 | `tokens.css` and Tailwind mapping | Planned (T-21b) |
-| Fonts loaded and verified for en, hi, gu (Tier 2 fonts load on demand) | Planned (T-21b) |
+| Font loading scaffold (Tier 1 initial; Tier 2 on demand) | Implemented (T-21); visual verification pending |
 | Base components (Button, Input, Card, StatusBadge, ChatBubble, QuickReply, TicketCard, Table, Drawer, states) | Planned (T-21b) |
 | `/design` dev preview page | Planned (T-21b) |
 | Token check script in CI | Planned (T-21b) |
