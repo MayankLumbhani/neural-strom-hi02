@@ -70,16 +70,19 @@ Rules (also in `AGENTS.md`):
 | `core/database.py` | configured SQLModel engine and request-scoped database session dependency |
 | `core/logging.py` | structured JSON request logs without request bodies |
 | `core/middleware.py` | validated request IDs, response header and request metadata logging |
-| `core/security.py` | bcrypt password hashing and verification; JWT support is planned |
+| `core/security.py` | bcrypt password hashing and verification; HS256 JWT signing and validation |
 | `core/exceptions.py` | domain, HTTP and validation errors mapped to the standard JSON response |
+| `api/dependencies.py` | bearer-token authentication and role dependencies |
 | `api/v1/chat.py` | `POST /api/v1/chat/messages` |
 | `api/v1/tickets.py` | `GET /api/v1/tickets/{public_id}` public status lookup |
-| `api/v1/auth.py` | login |
-| `api/v1/admin.py` | officer and admin ticket operations and analytics |
+| `api/v1/auth.py` | `POST /api/v1/auth/login` |
+| `api/v1/admin.py` | scoped staff ticket queue, details and status updates |
 | `api/v1/health.py` | `/health`, `/ready` |
 | `services/chat_service.py` | conversation state machine and orchestration |
 | `services/ticket_service.py` | ticket creation, collision-safe public IDs and validated status transitions |
-| `repositories/ticket_repository.py` | ticket and ticket-event persistence |
+| `services/auth_service.py` | credential verification, token issuance and active-account authentication |
+| `services/admin_ticket_service.py` | role-aware ticket management |
+| `repositories/ticket_repository.py` | ticket persistence, paginated filters and department-scoped staff queries |
 | `services/escalation_service.py` | find and escalate overdue tickets |
 | `services/analytics_service.py` | aggregate counts and resolution times |
 | `nlp/languages.py` | language registry: every supported language, its tier, script, font and template file |
@@ -275,16 +278,16 @@ Base path `/api/v1`. Full request and response examples live in `docs/API.md`.
 ### Auth
 | Method and path | Purpose | Request | Response |
 |---|---|---|---|
-| `POST /auth/login` | Officer or admin login | `{ username, password }` | `{ access_token, token_type, role, department }` |
+| `POST /api/v1/auth/login` | Officer or admin login | `{ username, password }` | `{ access_token, token_type, role, department }` |
 
-### Officer and admin (Bearer token required)
+### Officer and admin (bearer token required)
 | Method and path | Purpose |
 |---|---|
-| `GET /admin/tickets` | List tickets with filters (`status`, `department`, `q`, `page`, `page_size`). Officers are restricted to their department. |
-| `GET /admin/tickets/{public_id}` | Ticket detail with full event history |
-| `PATCH /admin/tickets/{public_id}/status` | Body `{ status, note?, is_public? }`. Validates the transition and writes an event. |
-| `GET /admin/analytics/summary` | Counts by department, status, language, and average resolution time |
-| `GET /admin/departments` | Department list |
+| `GET /api/v1/admin/tickets` | List tickets with filters (`status`, `department`, `q`, `page`, `page_size`). Officers are restricted to their department by repository queries. |
+| `GET /api/v1/admin/tickets/{public_id}` | Scoped ticket detail with full event history |
+| `PATCH /api/v1/admin/tickets/{public_id}/status` | Body `{ status, note?, is_public? }`. Validates the transition and writes an event. |
+| `GET /api/v1/admin/analytics/summary` | Counts by department, status, language, and average resolution time |
+| `GET /api/v1/admin/departments` | Department list |
 
 ### Error format
 ```json
@@ -294,8 +297,8 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 
 ## 10. Security and privacy
 
-- Passwords hashed with bcrypt (12 rounds); seeded passwords must be 12 to 72 UTF-8 bytes. JWTs are planned to use `JWT_SECRET` with a short expiry.
-- Role check dependency on every `/admin` route. Officers are filtered by `department_id` in the repository layer, not only in the router.
+- Passwords hashed with bcrypt (12 rounds); seeded passwords must be 12 to 72 UTF-8 bytes. HS256 JWTs use `JWT_SECRET` and `JWT_EXPIRE_MINUTES`; the account is reloaded and checked as active on each protected request.
+- Role check dependencies guard staff endpoints. Officers are filtered by `department_id` in repository queries, not only in the router or service.
 - Rate limiting on `/chat/messages` and `/tickets/{id}` per IP (for example with `slowapi`).
 - Input length limits, Pydantic validation everywhere.
 - Secrets only from environment. `.env` is git-ignored. `.env.example` documents each variable.
@@ -406,7 +409,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Chat service and clarification flow | Implemented with persisted conversations, localized fixed replies, fake-classifier integration tests, and location follow-up |
 | Public chat and ticket status API | Implemented with typed responses, configured CORS, and API integration tests |
 | Ticket service | Implemented with public status and event history |
-| Auth and officer endpoints | Planned |
+| Auth and officer endpoints | Implemented with HS256 bearer tokens, active-account checks, department-scoped list/detail/update operations, and offline API tests |
 | Escalation job | Planned |
 | Frontend chat | Planned |
 | Frontend dashboard and analytics | Planned |

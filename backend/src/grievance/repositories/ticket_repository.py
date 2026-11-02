@@ -2,10 +2,10 @@
 
 from uuid import UUID
 
-from sqlalchemy import true
-from sqlmodel import Session, select
+from sqlalchemy import func, or_, true
+from sqlmodel import Session, col, select
 
-from grievance.models import Ticket, TicketEvent
+from grievance.models import Department, Ticket, TicketEvent
 
 
 def get_ticket_by_public_id(session: Session, public_id: str) -> Ticket | None:
@@ -28,6 +28,82 @@ def list_public_ticket_events(session: Session, ticket_id: UUID) -> list[TicketE
             TicketEvent.is_public == true(),
         )
     ).all()
+    return sorted(events, key=lambda event: (event.created_at, str(event.id)))
+
+
+def list_tickets(
+    session: Session,
+    department_id: int | None,
+    status: str | None,
+    department_code: str | None,
+    search: str | None,
+    offset: int,
+    limit: int,
+) -> tuple[list[tuple[Ticket, Department]], int]:
+    """Return a filtered ticket page and total count within the department scope."""
+    ticket_department_id = col(Ticket.department_id)
+    department_primary_key = col(Department.id)
+    ticket_status = col(Ticket.status)
+    department_code_column = col(Department.code)
+    statement = select(Ticket, Department).join(
+        Department,
+        ticket_department_id == department_primary_key,
+    )
+    count_statement = select(func.count(col(Ticket.id))).join(
+        Department,
+        ticket_department_id == department_primary_key,
+    )
+    if department_id is not None:
+        statement = statement.where(ticket_department_id == department_id)
+        count_statement = count_statement.where(ticket_department_id == department_id)
+    if status is not None:
+        statement = statement.where(ticket_status == status)
+        count_statement = count_statement.where(ticket_status == status)
+    if department_code is not None:
+        statement = statement.where(department_code_column == department_code)
+        count_statement = count_statement.where(department_code_column == department_code)
+    if search is not None:
+        pattern = f"%{search}%"
+        search_filter = or_(
+            col(Ticket.public_id).ilike(pattern),
+            col(Ticket.complaint_text).ilike(pattern),
+            col(Ticket.location_text).ilike(pattern),
+        )
+        statement = statement.where(search_filter)
+        count_statement = count_statement.where(search_filter)
+
+    total = int(session.exec(count_statement).one())
+    items = session.exec(
+        statement.order_by(col(Ticket.created_at).desc(), col(Ticket.public_id))
+        .offset(offset)
+        .limit(limit)
+    ).all()
+    return list(items), total
+
+
+def get_scoped_ticket(
+    session: Session,
+    public_id: str,
+    department_id: int | None,
+) -> tuple[Ticket, Department] | None:
+    """Find a ticket only when it belongs to the supplied department scope."""
+    statement = (
+        select(Ticket, Department)
+        .join(
+            Department,
+            col(Ticket.department_id) == col(Department.id),
+        )
+        .where(col(Ticket.public_id) == public_id)
+    )
+    if department_id is not None:
+        statement = statement.where(col(Ticket.department_id) == department_id)
+    result = session.exec(statement).one_or_none()
+    return result
+
+
+def list_ticket_events(session: Session, ticket_id: UUID) -> list[TicketEvent]:
+    """Return the complete event history for a ticket in chronological order."""
+    events = session.exec(select(TicketEvent).where(TicketEvent.ticket_id == ticket_id)).all()
     return sorted(events, key=lambda event: (event.created_at, str(event.id)))
 
 

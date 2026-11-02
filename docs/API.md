@@ -54,6 +54,62 @@ location, creation/update timestamps, and events explicitly marked public.
 Complaint text, contact details, and private event notes are never returned.
 Unknown IDs return HTTP 404.
 
+## Officer and administrator authentication
+
+`POST /api/v1/auth/login`
+
+Request:
+
+```json
+{
+  "username": "demo-officer",
+  "password": "configured-in-the-local-environment"
+}
+```
+
+Successful login returns a signed bearer token, role, and assigned department
+code (or `null` for an administrator):
+
+```json
+{
+  "access_token": "<signed-jwt>",
+  "token_type": "bearer",
+  "role": "DEPARTMENT_OFFICER",
+  "department": "WATER"
+}
+```
+
+Invalid credentials return HTTP 401. `JWT_SECRET` must be configured to issue
+or verify tokens. The API reloads the account for each protected request, so
+inactive accounts cannot continue using existing tokens.
+
+## Staff ticket queue and details
+
+Send the token using the HTTP bearer authorization header.
+
+- `GET /api/v1/admin/tickets` accepts optional `status`, `department`, and `q`
+  filters, plus `page` (default 1) and `page_size` (default 20, maximum 100).
+  Department officers can see only their assigned department, regardless of
+  the requested department filter. Administrators can see all departments.
+- `GET /api/v1/admin/tickets/{public_id}` returns ticket details and full
+  event history. An officer receives HTTP 404 for a ticket outside their
+  department, matching the response for an unknown ticket.
+- `PATCH /api/v1/admin/tickets/{public_id}/status` accepts a valid lifecycle
+  status, optional event note, and optional `is_public` flag:
+
+```json
+{
+  "status": "ASSIGNED",
+  "note": "Officer accepted the ticket",
+  "is_public": false
+}
+```
+
+Status transitions that violate the ticket lifecycle return HTTP 409. Every
+successful transition creates an event with the authenticated officer as its
+actor. Department scope is enforced by repository queries before reads and
+updates.
+
 ## Errors
 
 ```json
@@ -68,7 +124,9 @@ Unknown IDs return HTTP 404.
 ```
 
 Request validation errors return HTTP 422, overlong chat messages return HTTP
-413, unavailable classifier and department data return HTTP 503, and missing
-tickets return HTTP 404. Browser origins are restricted to `CORS_ORIGINS`.
+413, unavailable classifier and department data return HTTP 503, missing
+tickets return HTTP 404, invalid credentials or tokens return HTTP 401, and
+disallowed roles return HTTP 403. Browser origins are restricted to
+`CORS_ORIGINS`.
 
 `GET /health` reports liveness; `GET /ready` reports classifier readiness.

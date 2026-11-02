@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added officer/admin login with expiring HS256 bearer tokens and department-scoped ticket listing, details, and status updates; completed T-17.
 - Added `POST /api/v1/chat/messages` and `GET /api/v1/tickets/{public_id}`, typed public responses, configured CORS, API documentation, and HTTP integration tests; completed T-16.
 - Added persisted chat orchestration for complaints, department clarification, location follow-up, greetings/help, and ticket status lookup; completed T-15.
 - Added Gemini-backed strict JSON location extraction with a configured timeout, offline English/Hindi/Gujarati fallback rules, and tests using a fake client; completed T-14.

@@ -133,10 +133,11 @@ Language tiers used in this file:
   - Commit: `feat(api): add chat and public ticket status endpoints`
   - Notes: Typed request/response schemas, public-safe status serialization, CORS from `CORS_ORIGINS`, and offline HTTP integration tests are in place.
 
-- [ ] **T-17** Auth and officer endpoints
+- [x] **T-17** Auth and officer endpoints
   - Login with JWT, role dependency, `/admin/tickets` (filters, pagination, department restriction enforced in the repository), ticket detail, `PATCH` status with note.
   - Done when: tests prove an officer cannot see or change another department's tickets.
   - Commit: `feat(admin): add authentication and officer ticket endpoints`
+  - Notes: Login issues expiring HS256 bearer tokens; staff ticket queries enforce department scope in repositories, with offline tests for cross-department isolation.
 
 - [ ] **T-18** Escalation job
   - APScheduler job calling `EscalationService`, idempotent update, `DEMO_MODE` short SLAs.

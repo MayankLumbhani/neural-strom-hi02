@@ -6,6 +6,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from grievance.api.v1.admin import router as admin_router
+from grievance.api.v1.auth import router as auth_router
 from grievance.api.v1.chat import router as chat_router
 from grievance.api.v1.health import router as health_router
 from grievance.api.v1.tickets import router as tickets_router
@@ -47,14 +49,16 @@ def create_app(
     app.state.classifier = None
     app.state.classifier_error = None
     app.include_router(chat_router)
+    app.include_router(auth_router)
+    app.include_router(admin_router)
     app.include_router(health_router)
     app.include_router(tickets_router)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=resolved_settings.cors_origin_list,
         allow_credentials=False,
-        allow_methods=["GET", "POST"],
-        allow_headers=["Content-Type", "X-Request-ID"],
+        allow_methods=["GET", "POST", "PATCH"],
+        allow_headers=["Authorization", "Content-Type", "X-Request-ID"],
     )
     app.add_middleware(RequestContextMiddleware)
     register_exception_handlers(app)

@@ -51,8 +51,11 @@ features are tracked in [docs/TASKS.md](docs/TASKS.md).
 The public API supports `POST /api/v1/chat/messages` and
 `GET /api/v1/tickets/{public_id}`. Set `CORS_ORIGINS` to the frontend origin;
 the chat persists conversation state and returns a ticket after department and
-location clarification when needed. See [docs/API.md](docs/API.md) for request
-and response formats.
+location clarification when needed. Officer and administrator access uses
+`POST /api/v1/auth/login` and bearer-token protected routes under
+`/api/v1/admin`; set a private `JWT_SECRET` and configured demo credentials
+before seeding. Officers are limited to tickets in their assigned department.
+See [docs/API.md](docs/API.md) for request and response formats.
 
 ## Language support
 
