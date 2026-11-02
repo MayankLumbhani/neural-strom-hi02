@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Recorded D-14: use the TF-IDF baseline as the default classifier backend and keep the published MuRIL model optional.
 - Recorded fine-tuned MuRIL evaluation metrics and baseline comparison, configured the published Hub model, and completed T-10; documented the HEALTH recall limitation.
 - Added deterministic drainage-label normalization with disease-keyword exclusions, timestamped dataset backups, an ignored change audit, and offline rule tests.
 - Added the MuRIL fine-tuning script and ordered Colab notebook with offline data and metrics tests; the model has since been trained and published, with results recorded in the model card.

@@ -207,9 +207,10 @@ model for inference.
 To publish the model and tokenizer, pass both `--push_to_hub` and
 `--hub_model_id OWNER/REPOSITORY`; the script reads `HF_TOKEN` from the
 environment and never logs it. The notebook reads the token from Colab or
-Kaggle secrets. The trained model is published as
-`MayankLumbhani/hi02-muril-grievance`; `MODEL_NAME_OR_PATH` in `.env.example`
-selects this model for inference. The run report is tracked at
+Kaggle secrets. The trained model is published as the optional MuRIL backend
+`MayankLumbhani/hi02-muril-grievance`; set `CLASSIFIER_BACKEND=muril` and
+`MODEL_NAME_OR_PATH` to select it. The default backend is the TF-IDF baseline.
+The run report is tracked at
 `ml/artifacts/muril_metrics.json`; it records the base model name used for
 fine-tuning.
 

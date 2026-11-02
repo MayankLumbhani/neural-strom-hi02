@@ -106,3 +106,10 @@ Short log of technology and design choices. Newest at the bottom. Format: contex
 - **Decision:** Draft examples with Gemini according to department and registry-language metadata. Use a configured seed for stratified train/validation splits, record `source=llm`, and keep generated CSVs and raw response caches out of Git.
 - **Alternatives:** External citizen data or deterministic phrase banks.
 - **Consequences:** The corpus is LLM-drafted, synthetic, unreviewed, and not a quality claim. Human review of at least 50 Tier 1 examples per language remains required; Tier 2 remains unverified.
+
+## D-14 Default classifier backend
+
+- **Context:** Tier 1 overall accuracy is comparable for MuRIL (0.89) and the baseline (0.880); a gap of this size is not meaningful on 100 AI-authored rows. The baseline has substantially better HEALTH F1 (0.57 versus 0.0) and is faster and lighter for the free hosting tier.
+- **Decision:** Use the TF-IDF baseline as the default classifier backend. Keep the fine-tuned MuRIL model (`MayankLumbhani/hi02-muril-grievance`) as an optional backend selected through the existing `CLASSIFIER_BACKEND` environment variable.
+- **Alternatives:** Make the published MuRIL model the default, or select a backend without configuration.
+- **Consequences:** `CLASSIFIER_BACKEND` defaults to `baseline`; `muril` and `onnx` remain optional runtime choices, while `fake` is test-only. A later MuRIL retrain may prompt a review of this decision.

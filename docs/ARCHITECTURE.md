@@ -12,7 +12,7 @@
 - Clear layering so AI-generated code stays organized and testable.
 - A measurable classifier behind a swappable interface.
 - Deterministic user-facing messages (templates), LLM only where it adds value and always with a fallback.
-- Fits free-tier hosting for the hackathon: one Docker backend with the model, a static frontend, a hosted Postgres.
+- Fits free-tier hosting for the hackathon: one Docker backend using the lightweight baseline by default, a static frontend, and a hosted Postgres.
 - Solo build in a few days, so no unnecessary infrastructure (no Celery, Redis, Kubernetes).
 
 ## 2. System context
@@ -23,7 +23,7 @@ flowchart LR
   Officer["Officer / Admin (dashboard)"] --> FE
   FE -->|"REST /api/v1"| API["FastAPI backend"]
   API --> DB[("PostgreSQL")]
-  API --> CLF["Classifier (MuRIL / ONNX)"]
+  API --> CLF["Classifier (TF-IDF baseline by default; optional MuRIL / ONNX)"]
   API -.->|"optional"| LLM["LLM API (Gemini)"]
   SCH["Scheduler (APScheduler)"] --> API
 ```
@@ -33,7 +33,7 @@ flowchart LR
 | Piece | Host | Notes |
 |---|---|---|
 | Frontend | Vercel | Static React build, calls the backend over HTTPS |
-| Backend and model | Hugging Face Spaces (Docker, CPU) | Enough RAM for the model. Sleeps when idle, so wake it before judging |
+| Backend and model | Hugging Face Spaces (Docker, CPU) | TF-IDF baseline is the default; MuRIL is optional. Sleeps when idle, so wake it before judging |
 | Database | Neon PostgreSQL | Persistent, free tier |
 | Model weights | Hugging Face Hub | Not committed to Git, loaded by name from config |
 | Local dev | docker-compose (api and postgres) | `make dev`; Postgres host port is `POSTGRES_PORT` (default 5432) |
@@ -179,10 +179,11 @@ class Prediction(BaseModel):
 
 Implementations:
 - `MurilClassifier`: fine-tuned `google/muril-base-cased`, 9 classes, softmax confidence. MuRIL was pretrained on transliterated as well as native-script Indian text, which helps with Hinglish. This is validated by per-language metrics, not assumed.
-- `BaselineClassifier`: TF-IDF (character n-grams) plus Logistic Regression, used for comparison and as a fallback.
+- `BaselineClassifier`: TF-IDF (character n-grams) plus Logistic Regression, the default backend and a lightweight alternative to MuRIL.
 - `OnnxClassifier` (optional): the quantized export of the MuRIL model for faster CPU inference. Latency gain is measured, not assumed.
+- `FakeClassifier`: deterministic test implementation; not a runtime backend choice.
 
-The active implementation is chosen by `CLASSIFIER_BACKEND`. The model is loaded once at startup and reused.
+The active runtime implementation is chosen by `CLASSIFIER_BACKEND`, which defaults to `baseline` and accepts `baseline`, `muril`, or `onnx`. The model is loaded once at startup and reused.
 
 ### 6.3 Extraction
 - Goal: pull a free-text location (area, landmark, ward, street) from the complaint.
@@ -306,7 +307,7 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 | `DATABASE_URL` | Postgres connection string |
 | `JWT_SECRET`, `JWT_EXPIRE_MINUTES` | Auth |
 | `CORS_ORIGINS` | Allowed frontend origins |
-| `CLASSIFIER_BACKEND` | `muril`, `onnx` or `baseline` |
+| `CLASSIFIER_BACKEND` | Runtime backend: `baseline` (default), `muril` or `onnx`; `fake` is test-only |
 | `MODEL_NAME_OR_PATH`, `HF_TOKEN` | Published classifier model path and optional Hugging Face Hub access token |
 | `CLASSIFIER_HIGH_THRESHOLD`, `CLASSIFIER_LOW_THRESHOLD` | Confidence policy |
 | `LLM_ENABLED`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `LLM_TIMEOUT_SECONDS` | Optional extraction helper and offline Gemini dataset generation; per-request timeout defaults to 60 seconds and the model has no default |
@@ -413,7 +414,7 @@ Detailed entries go in `docs/DECISIONS.md`. Initial ones:
 
 | Decision | Chosen | Alternatives | Reason |
 |---|---|---|---|
-| Classifier | Fine-tuned MuRIL | Zero-shot LLM only, IndicBERT | Measurable, cheap at inference, handles Indian languages and transliteration well |
+| Classifier | TF-IDF baseline by default; optional fine-tuned MuRIL | Zero-shot LLM only, IndicBERT | Baseline is lightweight and has better HEALTH F1 on the current evaluation set; MuRIL remains configurable |
 | Fixed replies | Templates | LLM-generated replies | Deterministic, reviewable, free, and safe |
 | Background work | APScheduler in the API process | Celery plus Redis | Far less infrastructure, enough for the demo, idempotent so safe with replicas |
 | Database | PostgreSQL | SQLite | Persistent on free hosts, supports concurrency and `SKIP LOCKED` |
