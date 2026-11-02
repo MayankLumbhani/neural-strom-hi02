@@ -77,10 +77,11 @@ Language tiers used in this file:
   - Done when: file exists with at least 100 Tier 1 rows, all 9 labels represented, and the `verified` column filled in.
   - Commit: `feat(ml): add hand-written evaluation set`
 
-- [ ] **T-09** Baseline classifier and evaluation script
+- [x] **T-09** Baseline classifier and evaluation script
   - TF-IDF (char n-grams) plus Logistic Regression, `ml/src/evaluate.py` producing accuracy, per-class precision, recall, F1, macro-F1, per-language breakdown and a confusion matrix, saved to `ml/reports/`.
   - Done when: `make eval-baseline` writes `ml/reports/baseline_metrics.json`.
   - Commit: `feat(ml): add baseline classifier and evaluation script`
+  - Notes: The evaluator trains only on `ml/data/processed/train.csv`, rejects exact text overlap with the held-out evaluation CSV, and reports overall, per-language, and separate tier metrics.
 
 - [ ] **T-10** MuRIL fine-tuning **(human)**
   - Training script `ml/src/train_muril.py` plus `ml/notebooks/train_colab.ipynb`. Run it on Colab or Kaggle GPU, push the model to the Hugging Face Hub.

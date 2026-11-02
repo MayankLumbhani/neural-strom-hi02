@@ -340,10 +340,10 @@ frontend/src/
 
 1. `ml/src/generate_dataset.py`: use the official Google Gen AI Python SDK to draft synthetic complaints for all 9 departments and enabled languages in the registry (100 examples per department/language for Tier 1, 30 for Tier 2 by default). `GEMINI_MODEL` and `GEMINI_API_KEY` are required; the model has no hardcoded default. Strict JSON responses are validated and deduplicated, raw batches are cached under the ignored `ml/data/raw/llm_batches/` and revalidated on reuse, and train/validation CSVs are stratified by language and department with no text overlap. After the batch budget, a stratum must meet `DATASET_MINIMUM_STRATUM_FRACTION` (0.9 by default); generated rows remain unreviewed.
 2. `ml/src/make_review_sample.py`: select 50 seeded random examples per Tier 1 language from `train.csv` for human review; write blank `verdict` and `notes` fields to an ignored review CSV.
-3. `ml/data/eval_handwritten/`: about 100 to 150 messages written by hand for the Tier 1 languages, plus about 20 per Tier 2 language drafted with LLM help and marked `verified=false`. Never used for training.
-4. `ml/src/train_baseline.py`: TF-IDF plus Logistic Regression.
+3. `ml/data/eval_handwritten/eval.csv`: independent AI-authored evaluation rows; Tier 1 rows are short and parallel, and Tier 2 rows are marked `verified=false`. Never used for training.
+4. `ml/src/evaluate.py`: train the character n-gram TF-IDF plus Logistic Regression baseline using only `ml/data/processed/train.csv`, evaluate on `eval.csv`, and write accuracy, per-class precision/recall/F1, macro-F1, per-language and separate tier metrics, and a confusion matrix to `ml/reports/baseline_metrics.json`. The evaluator rejects exact text overlap between training and evaluation inputs.
 5. `ml/src/train_muril.py` (run in Colab or Kaggle): fine-tune MuRIL, save the model to the Hugging Face Hub.
-6. `ml/src/evaluate.py`: accuracy, per-class precision, recall and F1, macro-F1, per-language breakdown (with the tier shown, Tier 1 and Tier 2 in separate tables) and confusion matrix for both models on the evaluation set. Writes `ml/reports/metrics.json` and images.
+6. MuRIL evaluation (T-11): report its metrics separately from the baseline, with Tier 1 and Tier 2 results in separate tables and Tier 2 labelled unverified.
 7. `ml/src/export_onnx.py` (optional): export and quantize, then compare latency and accuracy against PyTorch.
 
 All numbers in the README and model card come from these reports.
@@ -391,9 +391,9 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Database models and migrations | Done |
 | Seed data | Done |
 | Language registry, script detection and templates | Done (Tier 2 templates are experimental and machine-translated) |
-| Synthetic dataset generator | Implemented; Tier 1 manual review pending |
-| Tier 2 datasets and evaluation | Planned |
-| Dataset and baseline classifier | Planned |
+| Synthetic dataset generator | Implemented; Tier 1 review sample documented, remaining rows unreviewed |
+| Tier 2 datasets and evaluation | Synthetic data and 70-row evaluation set; unverified |
+| Dataset and baseline classifier | Baseline evaluator implemented; MuRIL planned |
 | MuRIL fine-tune and evaluation | Planned |
 | Chat service and clarification flow | Planned |
 | Ticket service and status API | Planned |

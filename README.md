@@ -82,6 +82,13 @@ This is below the ~20 per language target in the task plan. Tier 2 metrics are
 experimental and must always be reported separately from Tier 1. See
 [docs/MODEL_CARD.md](docs/MODEL_CARD.md) for limitations.
 
+After generating the training split, run `make eval-baseline` to train the
+character n-gram TF-IDF plus Logistic Regression baseline. It reads
+`ml/data/processed/train.csv` for training, evaluates only against the separate
+evaluation set, and writes metrics and a confusion matrix to
+`ml/reports/baseline_metrics.json`. The command does not generate or modify
+either dataset.
+
 ## AI tools
 
 - GitHub Copilot was used for AI-assisted development.

@@ -5,8 +5,8 @@
 `ml/src/generate_dataset.py` drafts multilingual municipal complaints with the
 official Google Gen AI Python SDK. All examples are LLM-drafted and synthetic;
 no citizen records or other real personal data are used. The dataset was
-generated in a prior run; no new generation was performed for this review
-update, and no dataset/model metrics are reported here.
+generated in a prior run; no new generation is performed by the baseline
+evaluation command.
 
 ### Generation prompt
 
@@ -126,9 +126,52 @@ below.
 
 ## Evaluation set
 
-Tier 1 evaluation set: 100 rows (25 per language), written by Claude (an AI), independent of the Gemini-generated training data. It is NOT human-written. Rows are short and parallel across languages, so accuracy measured on it is an optimistic estimate. Tier 2 evaluation rows are pending and will be marked verified=false.
+Tier 1 evaluation set: 100 rows (25 per language), written by Claude (an AI), independent of the Gemini-generated training data. It is NOT human-written. Rows are short and parallel across languages, so accuracy measured on it is an optimistic estimate.
 
 Tier 2 evaluation set: 70 rows (10 per language for mr, bn, ta, te, kn, ml, pa), written by Claude (an AI), NOT verified by native speakers, verified=false. This is below the ~20 per language target in the task plan. Tier 2 metrics are experimental and must always be reported separately from Tier 1.
+
+## Baseline evaluation
+
+`python -m ml.src.evaluate` (or `make eval-baseline`) fits a character
+2-to-5-gram TF-IDF vectorizer and Logistic Regression using only
+`ml/data/processed/train.csv`. It evaluates against
+`ml/data/eval_handwritten/eval.csv`, rejects exact complaint-text overlap
+between the files, and writes the generated report to
+`ml/reports/baseline_metrics.json`. The JSON report contains overall accuracy,
+per-class precision/recall/F1 and support, macro-F1, a confusion matrix,
+per-language metrics, and separate Tier 1 and Tier 2 metrics. Tier 1 results
+are optimistic estimates because its AI-authored rows are short and parallel;
+Tier 2 results are experimental and unverified by native speakers. No
+evaluation rows are used for fitting.
+
+The generated report used 4,367 training rows and 170 evaluation rows:
+
+| Evaluation group | Accuracy | Macro-F1 |
+|---|---:|---:|
+| Overall | 0.894 | 0.892 |
+| Tier 1 | 0.880 | 0.877 |
+| Tier 2 (unverified) | 0.914 | 0.918 |
+
+| Tier 1 language | Accuracy | Macro-F1 |
+|---|---:|---:|
+| English (`en`) | 0.840 | 0.814 |
+| Gujarati (`gu`) | 0.840 | 0.825 |
+| Hindi (`hi`) | 1.000 | 1.000 |
+| Hinglish (`hinglish`) | 0.840 | 0.848 |
+
+| Tier 2 language (unverified) | Accuracy | Macro-F1 |
+|---|---:|---:|
+| Bengali (`bn`) | 0.700 | 0.574 |
+| Kannada (`kn`) | 0.900 | 0.867 |
+| Malayalam (`ml`) | 1.000 | 1.000 |
+| Marathi (`mr`) | 0.900 | 0.926 |
+| Punjabi (`pa`) | 1.000 | 1.000 |
+| Tamil (`ta`) | 1.000 | 1.000 |
+| Telugu (`te`) | 0.900 | 0.926 |
+
+These are real baseline results from the generated JSON report, not independent
+human-verified performance estimates. The full per-class and confusion-matrix
+results are in the report.
 
 ## Review status and limitations
 
@@ -143,4 +186,5 @@ Tier 2 evaluation set: 70 rows (10 per language for mr, bn, ta, te, kn, ml, pa),
   remain separate and must never be used for training.
 - Prompt constraints and automated validation reduce common defects but do
   not establish factuality, native-speaker quality, or label correctness.
-- No model metrics are reported here; none have been measured by this generator.
+- The baseline metrics report is generated from the local training split and
+  evaluation set; metrics are not reported by the dataset generator.
