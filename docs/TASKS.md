@@ -95,10 +95,11 @@ Language tiers used in this file:
   - Commit: `feat(ml): add MuRIL fine-tuning script and Colab notebook`
   - Notes: model published to Hugging Face Hub: MayankLumbhani/hi02-muril-grievance; HEALTH recall 0 on eval, see MODEL_CARD
 
-- [ ] **T-11** MuRIL evaluation report
-  - Run `evaluate.py` for the MuRIL model on the evaluation set, write `ml/reports/muril_metrics.json` and the confusion matrix, and fill in `docs/MODEL_CARD.md` with the real numbers next to the baseline. Show a per-language table with the tier, Tier 1 and Tier 2 in separate tables, and label Tier 2 as unverified.
+- [x] **T-11** MuRIL evaluation report
+  - Run evaluation for the MuRIL model on the evaluation set, write `ml/reports/muril_metrics.json` and the confusion matrix, and fill in `docs/MODEL_CARD.md` with the real numbers next to the baseline. Show a per-language table with the tier, Tier 1 and Tier 2 in separate tables, and label Tier 2 as unverified.
   - Done when: report files and model card are committed with real values only.
   - Commit: `docs(ml): add MuRIL evaluation results and model card`
+  - Notes: The best checkpoint was evaluated during T-10; its unchanged metrics were published from `ml/artifacts/muril_metrics.json` to `ml/reports/muril_metrics.json`, with the overall confusion matrix exported separately.
 
 - [ ] **T-12** Classifier interface and implementations
   - `Classifier` protocol, `Prediction` model, `BaselineClassifier`, `MurilClassifier`, a deterministic `FakeClassifier` for tests, factory chosen by `CLASSIFIER_BACKEND`, model loaded once at startup, `/ready` now reports model status.

@@ -210,32 +210,37 @@ environment and never logs it. The notebook reads the token from Colab or
 Kaggle secrets. The trained model is published as the optional MuRIL backend
 `MayankLumbhani/hi02-muril-grievance`; set `CLASSIFIER_BACKEND=muril` and
 `MODEL_NAME_OR_PATH` to select it. The default backend is the TF-IDF baseline.
-The run report is tracked at
-`ml/artifacts/muril_metrics.json`; it records the base model name used for
-fine-tuning.
+The training run's evaluation report is tracked at
+`ml/reports/muril_metrics.json` (also retained at
+`ml/artifacts/muril_metrics.json`) and records the base model name used for
+fine-tuning. The overall confusion matrix is available in
+`ml/reports/muril_confusion_matrix.csv`; the JSON report also includes tier
+and per-language confusion matrices. These report files contain the
+evaluation performed by the training run's best checkpoint, not a new
+training run.
 
 ### Tier 1 results
 
-| Language | Accuracy | Macro-F1 |
+| Tier 1 language | Accuracy | Macro-F1 |
 |---|---:|---:|
 | Overall (Tier 1) | 0.89 | 0.8305583305583305 |
-| English (`en`) | 0.84 | 0.7873015873015873 |
-| Hindi (`hi`) | 0.92 | 0.8571428571428572 |
-| Gujarati (`gu`) | 0.92 | 0.8571428571428572 |
-| Hinglish (`hinglish`) | 0.88 | 0.8190476190476191 |
-### Tier 2 results (unverified, experimental)
+| English (`en`, Tier 1) | 0.84 | 0.7873015873015873 |
+| Hindi (`hi`, Tier 1) | 0.92 | 0.8571428571428572 |
+| Gujarati (`gu`, Tier 1) | 0.92 | 0.8571428571428572 |
+| Hinglish (`hinglish`, Tier 1) | 0.88 | 0.8190476190476191 |
+
 ### Tier 2 results (unverified, experimental)
 
-| Language | Accuracy | Macro-F1 |
+| Tier 2 language (unverified) | Accuracy | Macro-F1 |
 |---|---:|---:|
 | Overall (Tier 2, unverified) | 0.8857142857142857 | 0.8575835957414905 |
-| Marathi (`mr`) | 0.8 | 0.7777777777777778 |
-| Bengali (`bn`) | 0.9 | 0.8518518518518517 |
-| Tamil (`ta`) | 0.9 | 0.8518518518518517 |
-| Telugu (`te`) | 0.9 | 0.8518518518518517 |
-| Kannada (`kn`) | 0.9 | 0.9259259259259258 |
-| Malayalam (`ml`) | 0.9 | 0.8518518518518517 |
-| Punjabi (`pa`) | 0.9 | 0.8518518518518517 |
+| Marathi (`mr`, Tier 2) | 0.8 | 0.7777777777777778 |
+| Bengali (`bn`, Tier 2) | 0.9 | 0.8518518518518517 |
+| Tamil (`ta`, Tier 2) | 0.9 | 0.8518518518518517 |
+| Telugu (`te`, Tier 2) | 0.9 | 0.8518518518518517 |
+| Kannada (`kn`, Tier 2) | 0.9 | 0.9259259259259258 |
+| Malayalam (`ml`, Tier 2) | 0.9 | 0.8518518518518517 |
+| Punjabi (`pa`, Tier 2) | 0.9 | 0.8518518518518517 |
 
 ### Tier 1 baseline comparison
 

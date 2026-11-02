@@ -344,8 +344,8 @@ frontend/src/
 3. `ml/src/make_review_sample.py`: select 50 seeded random examples per Tier 1 language from `train.csv` for human review; write blank `verdict` and `notes` fields to an ignored review CSV.
 4. `ml/data/eval_handwritten/eval.csv`: independent AI-authored evaluation rows; Tier 1 rows are short and parallel, and Tier 2 rows are marked `verified=false`. Never used for training.
 5. `ml/src/evaluate.py`: train the character n-gram TF-IDF plus Logistic Regression baseline using only `ml/data/processed/train.csv`, evaluate on `eval.csv`, and write accuracy, per-class precision/recall/F1, macro-F1, per-language and separate tier metrics, and a confusion matrix to `ml/reports/baseline_metrics.json`. The evaluator rejects exact text overlap between training and evaluation inputs.
-6. `ml/src/train_muril.py` (run in Colab or Kaggle): fine-tune `google/muril-base-cased` on `train.csv`, select the checkpoint with the highest validation macro-F1, and evaluate that checkpoint on `eval.csv`. Defaults are max length 128, 4 epochs, learning rate `3e-5`, batch size 32, and seed 42. The script writes the model and `label_mapping.json` under `ml/artifacts/`, plus tiered metrics to `ml/artifacts/muril_metrics.json`; optional Hub publishing requires `--push_to_hub`, `--hub_model_id`, and `HF_TOKEN`.
-7. MuRIL evaluation (T-11): report its metrics separately from the baseline, with Tier 1 and Tier 2 results in separate tables and Tier 2 labelled unverified.
+6. `ml/src/train_muril.py` (run in Colab or Kaggle): fine-tune `google/muril-base-cased` on `train.csv`, select the checkpoint with the highest validation macro-F1, and evaluate that checkpoint on `eval.csv`. Defaults are max length 128, 4 epochs, learning rate `3e-5`, batch size 32, and seed 42. The script writes the model and `label_mapping.json` under `ml/artifacts/`, plus tiered metrics and confusion matrices to `ml/artifacts/muril_metrics.json`; optional Hub publishing requires `--push_to_hub`, `--hub_model_id`, and `HF_TOKEN`.
+7. Publish the evaluated MuRIL report as `ml/reports/muril_metrics.json` and its overall confusion matrix as `ml/reports/muril_confusion_matrix.csv`. The report includes separate Tier 1 and Tier 2 metrics and per-language tier metadata; Tier 2 is unverified.
 8. `ml/src/export_onnx.py` (optional): export and quantize, then compare latency and accuracy against PyTorch.
 
 All numbers in the README and model card come from these reports.
@@ -396,7 +396,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Synthetic dataset generator | Implemented; Tier 1 review sample documented, remaining rows unreviewed |
 | Tier 2 datasets and evaluation | Synthetic data and 70-row evaluation set; unverified |
 | Dataset and baseline classifier | Baseline evaluator and published MuRIL classifier implemented |
-| MuRIL fine-tune and evaluation | Fine-tuned model published; metrics and limitations recorded in the model card |
+| MuRIL fine-tune and evaluation | Fine-tuned model published; evaluation report, confusion matrix, tiered metrics and limitations recorded |
 | Chat service and clarification flow | Planned |
 | Ticket service and status API | Planned |
 | Auth and officer endpoints | Planned |
