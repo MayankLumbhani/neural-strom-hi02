@@ -196,11 +196,20 @@ class MurilClassifier:
 class FakeClassifier:
     """Deterministic classifier for offline tests."""
 
-    def __init__(self, label: str = "OTHER") -> None:
+    def __init__(
+        self,
+        label: str = "OTHER",
+        confidence: float = 1.0,
+        top_k: list[tuple[str, float]] | None = None,
+    ) -> None:
+        """Configure a repeatable department prediction and ranked confidence scores."""
+        ranked = top_k or [(label, confidence)]
+        if ranked[0][0] != label:
+            raise ValueError("top_k must start with the configured label")
         self._prediction = Prediction(
             label=DepartmentCode(label),
-            confidence=1.0,
-            top_k=[(DepartmentCode(label), 1.0)],
+            confidence=ranked[0][1],
+            top_k=[(DepartmentCode(code), score) for code, score in ranked],
         )
 
     def predict(self, text: str) -> Prediction:

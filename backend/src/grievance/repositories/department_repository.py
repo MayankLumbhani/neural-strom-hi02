@@ -10,6 +10,11 @@ def get_department_by_code(session: Session, code: str) -> Department | None:
     return session.exec(select(Department).where(Department.code == code)).one_or_none()
 
 
+def get_department_by_id(session: Session, department_id: int) -> Department | None:
+    """Find a department by its database identifier."""
+    return session.get(Department, department_id)
+
+
 def upsert_department(session: Session, department: Department) -> Department:
     """Insert a department or update its seeded fields by code."""
     existing = get_department_by_code(session, department.code)

@@ -121,10 +121,11 @@ Language tiers used in this file:
   - Commit: `feat(nlp): add location extraction with rule-based fallback`
   - Notes: Uses the official Google Gen AI SDK when enabled; offline tests exercise fake-client JSON handling and local fallback rules.
 
-- [ ] **T-15** Chat service
+- [x] **T-15** Chat service
   - Conversation state machine from ARCHITECTURE section 5: complaint, ask department (quick replies), ask location, create ticket, status lookup, greeting and help. Uses templates and the confidence policy from config.
   - Done when: integration tests pass for happy path, missing location, ambiguous complaint and status lookup (using `FakeClassifier`).
   - Commit: `feat(chat): add conversation state machine with clarification flow`
+  - Notes: Persists conversation state and transcript, uses language templates and classifier confidence thresholds, and passes offline integration tests for filing, location follow-up, unresolved ambiguity, greetings/help and ticket status lookup.
 
 - [ ] **T-16** Public API
   - `POST /api/v1/chat/messages` and `GET /api/v1/tickets/{public_id}` with schemas, CORS from config, `docs/API.md` started.

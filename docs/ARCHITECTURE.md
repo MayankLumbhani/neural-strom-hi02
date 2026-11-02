@@ -122,6 +122,8 @@ stateDiagram-v2
 7. Decide the next action (ask for department, ask for location, create ticket).
 8. Build the reply from templates, store it, update the state, and return.
 
+The implemented service stores both sides of the transcript in `messages`; each request reloads its conversation by UUID, so no chat state lives in process memory. A conversation creates at most one ticket, matching the unique `tickets.conversation_id` constraint. Low-confidence classification asks the citizen to choose among departments; if the next clarification remains below the low threshold, it routes to `OTHER`. Missing locations are collected before the ticket and its initial status event are created.
+
 ### Classification confidence policy
 
 | Condition (initial values, tuned on the validation set) | Action |
@@ -401,7 +403,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Dataset and baseline classifier | Baseline evaluator and published MuRIL classifier implemented |
 | MuRIL fine-tune and evaluation | Fine-tuned model published; evaluation report, confusion matrix, tiered metrics and limitations recorded |
 | Location extraction | Gemini JSON extraction with timeout and offline English, Hindi and Gujarati fallbacks implemented |
-| Chat service and clarification flow | Planned |
+| Chat service and clarification flow | Implemented with persisted conversations, localized fixed replies, fake-classifier integration tests, and location follow-up; public endpoints are planned |
 | Ticket service | Implemented; public status API is planned |
 | Auth and officer endpoints | Planned |
 | Escalation job | Planned |
