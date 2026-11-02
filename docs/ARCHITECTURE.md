@@ -72,8 +72,8 @@ Rules (also in `AGENTS.md`):
 | `core/middleware.py` | validated request IDs, response header and request metadata logging |
 | `core/security.py` | bcrypt password hashing and verification; JWT support is planned |
 | `core/exceptions.py` | domain, HTTP and validation errors mapped to the standard JSON response |
-| `api/v1/chat.py` | `POST /chat/messages` |
-| `api/v1/tickets.py` | public status lookup |
+| `api/v1/chat.py` | `POST /api/v1/chat/messages` |
+| `api/v1/tickets.py` | `GET /api/v1/tickets/{public_id}` public status lookup |
 | `api/v1/auth.py` | login |
 | `api/v1/admin.py` | officer and admin ticket operations and analytics |
 | `api/v1/health.py` | `/health`, `/ready` |
@@ -267,8 +267,8 @@ Base path `/api/v1`. Full request and response examples live in `docs/API.md`.
 ### Public
 | Method and path | Purpose | Request | Response |
 |---|---|---|---|
-| `POST /chat/messages` | Send a citizen message | `{ conversation_id?, text }` | `{ conversation_id, state, language, reply: { text, quick_replies[] }, ticket? }` |
-| `GET /tickets/{public_id}` | Public status lookup | none | `{ public_id, status, department, location, created_at, updated_at, public_events[] }` |
+| `POST /api/v1/chat/messages` | Send a citizen message | `{ conversation_id?, text }` | `{ conversation_id, state, language, reply: { text, quick_replies[] }, ticket? }` |
+| `GET /api/v1/tickets/{public_id}` | Public status lookup | none | `{ public_id, status, department, location, created_at, updated_at, public_events[] }`; complaint and contact details are excluded |
 | `GET /health` | Liveness | none | `{ status: "ok" }` |
 | `GET /ready` | Readiness (database and model) | none | HTTP 200 `{ status: "ready", db: "unknown", model: "ready", model_error: null }`; HTTP 503 reports `not_ready`, `model: "unavailable"` and a safe `model_error` when classifier initialization fails |
 
@@ -403,8 +403,9 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Dataset and baseline classifier | Baseline evaluator and published MuRIL classifier implemented |
 | MuRIL fine-tune and evaluation | Fine-tuned model published; evaluation report, confusion matrix, tiered metrics and limitations recorded |
 | Location extraction | Gemini JSON extraction with timeout and offline English, Hindi and Gujarati fallbacks implemented |
-| Chat service and clarification flow | Implemented with persisted conversations, localized fixed replies, fake-classifier integration tests, and location follow-up; public endpoints are planned |
-| Ticket service | Implemented; public status API is planned |
+| Chat service and clarification flow | Implemented with persisted conversations, localized fixed replies, fake-classifier integration tests, and location follow-up |
+| Public chat and ticket status API | Implemented with typed responses, configured CORS, and API integration tests |
+| Ticket service | Implemented with public status and event history |
 | Auth and officer endpoints | Planned |
 | Escalation job | Planned |
 | Frontend chat | Planned |

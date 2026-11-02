@@ -1,8 +1,9 @@
 """Typed chat service and API response schemas."""
 
+from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ChatReply(BaseModel):
@@ -28,3 +29,33 @@ class ChatResponse(BaseModel):
     language: str
     reply: ChatReply
     ticket: ChatTicketSummary | None = None
+
+
+class ChatMessageRequest(BaseModel):
+    """Validated request body for a citizen chat message."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    text: str = Field(min_length=1)
+    conversation_id: UUID | None = None
+
+
+class PublicTicketEventResponse(BaseModel):
+    """Public status event without private notes or actor details."""
+
+    from_status: str | None
+    to_status: str
+    note: str | None
+    created_at: datetime
+
+
+class PublicTicketResponse(BaseModel):
+    """Public ticket status and explicitly public event history."""
+
+    public_id: str
+    status: str
+    department: str
+    location: str
+    created_at: datetime
+    updated_at: datetime
+    public_events: list[PublicTicketEventResponse] = Field(default_factory=list)

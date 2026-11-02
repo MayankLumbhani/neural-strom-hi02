@@ -48,6 +48,12 @@ error. Database readiness remains `unknown`. GitHub Actions runs Ruff, mypy,
 and pytest on pushes to `main` and pull requests targeting `main`; application
 features are tracked in [docs/TASKS.md](docs/TASKS.md).
 
+The public API supports `POST /api/v1/chat/messages` and
+`GET /api/v1/tickets/{public_id}`. Set `CORS_ORIGINS` to the frontend origin;
+the chat persists conversation state and returns a ticket after department and
+location clarification when needed. See [docs/API.md](docs/API.md) for request
+and response formats.
+
 ## Language support
 
 The backend registry detects English, Hindi, Gujarati, and romanized Hindi

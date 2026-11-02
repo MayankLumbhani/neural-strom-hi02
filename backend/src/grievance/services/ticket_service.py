@@ -12,13 +12,17 @@ from sqlmodel import Session
 
 from grievance.core.config import Settings
 from grievance.core.exceptions import DomainError
-from grievance.models import Ticket, TicketEvent
+from grievance.models import Department, Ticket, TicketEvent
+from grievance.nlp.template_loader import load_templates
+from grievance.repositories.department_repository import get_department_by_id
 from grievance.repositories.ticket_repository import (
     add_ticket_event,
     create_ticket,
     get_ticket_by_public_id,
+    list_public_ticket_events,
     update_ticket,
 )
+from grievance.schemas.chat import PublicTicketEventResponse, PublicTicketResponse
 
 TicketActor = Literal["system", "officer", "citizen"]
 ID_ALPHABET = string.ascii_uppercase + string.digits
@@ -31,6 +35,31 @@ VALID_TRANSITIONS: dict[str, frozenset[str]] = {
     "RESOLVED": frozenset(),
     "ESCALATED": frozenset({"IN_PROGRESS", "RESOLVED"}),
 }
+STATUS_TEMPLATE_KEYS = {
+    "FILED": "filed",
+    "ASSIGNED": "assigned",
+    "IN_PROGRESS": "in_progress",
+    "RESOLVED": "resolved",
+    "ESCALATED": "escalated",
+}
+
+
+def department_display_name(department: Department, language_code: str) -> str:
+    """Return a department name in the ticket's supported reply language."""
+    if language_code == "hi":
+        return department.name_hi
+    if language_code == "gu":
+        return department.name_gu
+    return department.name_en
+
+
+def ticket_status_label(status: str, language_code: str) -> str:
+    """Return a ticket status using the registered language's fixed template."""
+    status_key = STATUS_TEMPLATE_KEYS.get(status)
+    if status_key is None:
+        raise ValueError(f"Unsupported ticket status: {status}")
+    templates = load_templates(language_code)
+    return str(getattr(templates.status_labels, status_key))
 
 
 def generate_public_id(prefix: str, now: datetime | None = None) -> str:
@@ -152,3 +181,43 @@ class TicketService:
             ),
         )
         return ticket
+
+    def get_public_status(self, public_id: str) -> PublicTicketResponse:
+        """Return a ticket's public fields and explicitly public event history."""
+        ticket = get_ticket_by_public_id(self._session, public_id)
+        if ticket is None:
+            raise DomainError(
+                code="TICKET_NOT_FOUND",
+                message="Ticket not found",
+                status_code=404,
+            )
+        department = get_department_by_id(self._session, ticket.department_id)
+        if department is None:
+            raise DomainError(
+                code="DEPARTMENT_NOT_FOUND",
+                message="Department data is not available",
+                status_code=503,
+            )
+        department_name = department_display_name(department, ticket.language)
+        events = list_public_ticket_events(self._session, ticket.id)
+        return PublicTicketResponse(
+            public_id=ticket.public_id,
+            status=ticket_status_label(ticket.status, ticket.language),
+            department=department_name,
+            location=ticket.location_text,
+            created_at=ticket.created_at,
+            updated_at=ticket.status_changed_at,
+            public_events=[
+                PublicTicketEventResponse(
+                    from_status=(
+                        ticket_status_label(event.from_status, ticket.language)
+                        if event.from_status is not None
+                        else None
+                    ),
+                    to_status=ticket_status_label(event.to_status, ticket.language),
+                    note=event.note,
+                    created_at=event.created_at,
+                )
+                for event in events
+            ],
+        )

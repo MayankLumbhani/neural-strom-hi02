@@ -8,7 +8,7 @@ from sqlmodel import Session
 
 from grievance.core.config import Settings
 from grievance.core.exceptions import DomainError
-from grievance.models import Conversation, Department, Ticket
+from grievance.models import Conversation, Ticket
 from grievance.nlp.classifier import Classifier, Prediction
 from grievance.nlp.extraction import extract_location
 from grievance.nlp.language import detect_language
@@ -29,7 +29,11 @@ from grievance.repositories.ticket_repository import (
 )
 from grievance.schemas.chat import ChatReply, ChatResponse, ChatTicketSummary
 from grievance.seed import DEPARTMENTS
-from grievance.services.ticket_service import TicketService
+from grievance.services.ticket_service import (
+    TicketService,
+    department_display_name,
+    ticket_status_label,
+)
 
 GREETING_PHRASES: dict[str, frozenset[str]] = {
     "en": frozenset({"hi", "hello", "hey", "good morning", "good afternoon", "good evening"}),
@@ -44,13 +48,6 @@ HELP_PHRASES: dict[str, frozenset[str]] = {
     "hinglish": frozenset({"madad", "help", "/help"}),
 }
 TICKET_ID_PATTERN = re.compile(r"^[A-Z0-9]+-\d{6}-[A-Z0-9]{4}$", re.IGNORECASE)
-STATUS_TEMPLATE_KEYS = {
-    "FILED": "filed",
-    "ASSIGNED": "assigned",
-    "IN_PROGRESS": "in_progress",
-    "RESOLVED": "resolved",
-    "ESCALATED": "escalated",
-}
 
 
 class ChatService:
@@ -134,10 +131,14 @@ class ChatService:
             if ticket is None:
                 return self._response(conversation, language_code, "IDLE", templates.not_found)
             department = get_department_by_id(self._session, ticket.department_id)
-            department_name = self._department_name(department, language_code)
-            status_label = templates.status_labels.model_dump()[
-                STATUS_TEMPLATE_KEYS.get(ticket.status, "filed")
-            ]
+            if department is None:
+                raise DomainError(
+                    code="DEPARTMENT_NOT_FOUND",
+                    message="Department data is not available",
+                    status_code=503,
+                )
+            department_name = department_display_name(department, language_code)
+            status_label = ticket_status_label(ticket.status, language_code)
             reply = templates.status_reply.format(
                 ticket_id=ticket.public_id,
                 status=status_label,
@@ -295,7 +296,7 @@ class ChatService:
             location_text=location,
             predicted_confidence=predicted_confidence,
         )
-        department_name = self._department_name(department, language_code)
+        department_name = department_display_name(department, language_code)
         templates = load_templates(language_code)
         reply = templates.ticket_created.format(
             ticket_id=ticket.public_id,
@@ -329,7 +330,7 @@ class ChatService:
                 seed.name_en.casefold(),
                 seed.name_hi.casefold(),
                 seed.name_gu.casefold(),
-                self._department_name(department, language_code).casefold(),
+                department_display_name(department, language_code).casefold(),
             }
             if normalized_choice in names:
                 return seed.code
@@ -341,7 +342,7 @@ class ChatService:
         for seed in DEPARTMENTS:
             department = get_department_by_code(self._session, seed.code)
             if department is not None:
-                choices.append(self._department_name(department, language_code))
+                choices.append(department_display_name(department, language_code))
         return choices
 
     def _prediction_departments(
@@ -354,19 +355,8 @@ class ChatService:
         for code, _ in prediction.top_k[:2]:
             department = get_department_by_code(self._session, str(code))
             if department is not None:
-                choices.append(self._department_name(department, language_code))
+                choices.append(department_display_name(department, language_code))
         return choices
-
-    @staticmethod
-    def _department_name(department: Department | None, language_code: str) -> str:
-        """Return a seeded department name in a supported translation."""
-        if department is None:
-            return "Other"
-        if language_code == "hi":
-            return department.name_hi
-        if language_code == "gu":
-            return department.name_gu
-        return department.name_en
 
     @staticmethod
     def _ticket_summary(ticket: Ticket, department: str, status: str) -> ChatTicketSummary:

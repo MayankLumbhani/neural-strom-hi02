@@ -2,6 +2,7 @@
 
 from uuid import UUID
 
+from sqlalchemy import true
 from sqlmodel import Session, select
 
 from grievance.models import Ticket, TicketEvent
@@ -17,6 +18,17 @@ def get_ticket_for_conversation(session: Session, conversation_id: UUID) -> Tick
     return session.exec(
         select(Ticket).where(Ticket.conversation_id == conversation_id)
     ).one_or_none()
+
+
+def list_public_ticket_events(session: Session, ticket_id: UUID) -> list[TicketEvent]:
+    """Return only explicitly public events for a ticket in chronological order."""
+    events = session.exec(
+        select(TicketEvent).where(
+            TicketEvent.ticket_id == ticket_id,
+            TicketEvent.is_public == true(),
+        )
+    ).all()
+    return sorted(events, key=lambda event: (event.created_at, str(event.id)))
 
 
 def create_ticket(session: Session, ticket: Ticket) -> Ticket:

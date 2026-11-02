@@ -127,10 +127,11 @@ Language tiers used in this file:
   - Commit: `feat(chat): add conversation state machine with clarification flow`
   - Notes: Persists conversation state and transcript, uses language templates and classifier confidence thresholds, and passes offline integration tests for filing, location follow-up, unresolved ambiguity, greetings/help and ticket status lookup.
 
-- [ ] **T-16** Public API
+- [x] **T-16** Public API
   - `POST /api/v1/chat/messages` and `GET /api/v1/tickets/{public_id}` with schemas, CORS from config, `docs/API.md` started.
   - Done when: API tests pass and the flow works in Swagger UI.
   - Commit: `feat(api): add chat and public ticket status endpoints`
+  - Notes: Typed request/response schemas, public-safe status serialization, CORS from `CORS_ORIGINS`, and offline HTTP integration tests are in place.
 
 - [ ] **T-17** Auth and officer endpoints
   - Login with JWT, role dependency, `/admin/tickets` (filters, pagination, department restriction enforced in the repository), ticket detail, `PATCH` status with note.
