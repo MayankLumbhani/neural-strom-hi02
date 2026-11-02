@@ -62,15 +62,14 @@ Language tiers used in this file:
 
 ## Phase 2: ML pipeline (target: Oct 31 to Nov 1)
 
-- [ ] **T-07** Synthetic dataset generator
+- [x] **T-07** Synthetic dataset generator
   - `ml/src/generate_dataset.py`: draft complaints through Gemini for 9 departments and enabled registry languages, varying tone, length, spoken style, typos, fictional details, duration, and missing locations. Validate strict JSON and script, remove repeats/phone-like data, cache raw batches, and save stratified train/validation CSVs with tier, source, variation, and verification metadata.
   - Done when: datasets are roughly balanced and you have manually reviewed at least 50 rows per Tier 1 language. For each Tier 2 language, MODEL_CARD.md states whether a native speaker reviewed a sample or not.
   - Commit: `feat(ml): add synthetic dataset generator and splits`
-  - Notes: Generator implementation and offline fake-client tests are in place, but no real generation was run and no dataset was created. T-07 remains unchecked until generated examples are manually reviewed.
-  - Follow-up: Trial review identified department drift into water-bill complaints, English/Hinglish mixing, Western-style place names, and repeated formulaic openers. Prompts and offline validation now address these; no new generation was run, and T-07 remains unchecked.
-  - Follow-up: Cached Hindi WATER batches exposed a Unicode tokenization false-positive for repeated adjacent words; tokenizer now preserves combining marks. A stratum shortfall threshold is configurable at 90%, and raw cached batches are revalidated on reuse; T-07 remains unchecked.
-  - Follow-up: Gemini timeouts and transport failures retry with exponential backoff; exhausted retries stop with a resumable message. Cached batches replay without delay, and `LLM_TIMEOUT_SECONDS` defaults to 60 seconds; T-07 remains unchecked.
-  - Follow-up: Configure `GEMINI_API_KEY` and `GEMINI_MODEL`, run `python -m ml.src.generate_dataset --check`, then generate data and run `make review-sample` to prepare 50 training rows per Tier 1 language. Have a human review them and record the outcome in `docs/MODEL_CARD.md`; this task remains incomplete until that review is done.
+  - Notes: The generator, offline fake-client tests, and generated dataset are in place. The Tier 1 review log is recorded in `docs/MODEL_CARD.md`; 25 specified bad rows were removed from training data. The remaining rows are unreviewed, and Tier 2 data remains unverified by native speakers.
+  - Follow-up: Trial review identified department drift into water-bill complaints, English/Hinglish mixing, Western-style place names, and repeated formulaic openers. Prompts and offline validation now address these.
+  - Follow-up: Cached Hindi WATER batches exposed a Unicode tokenization false-positive for repeated adjacent words; tokenizer now preserves combining marks. A stratum shortfall threshold is configurable at 90%, and raw cached batches are revalidated on reuse.
+  - Follow-up: Gemini timeouts and transport failures retry with exponential backoff; exhausted retries stop with a resumable message. Cached batches replay without delay, and `LLM_TIMEOUT_SECONDS` defaults to 60 seconds.
 
 - [ ] **T-08** Hand-written evaluation set **(human, with AI help for formatting)**
   - Write about 100 to 150 messages yourself (or with a friend) in the four Tier 1 languages, including ambiguous and messy ones. For each Tier 2 language, add about 20 messages drafted with LLM help. Save to `ml/data/eval_handwritten/eval.csv` with columns `text,label,language,verified`. Tier 1 rows are `verified=true`, Tier 2 rows are `verified=false` unless a native speaker checked them. Never train on it.

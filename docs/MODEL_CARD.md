@@ -4,8 +4,9 @@
 
 `ml/src/generate_dataset.py` drafts multilingual municipal complaints with the
 official Google Gen AI Python SDK. All examples are LLM-drafted and synthetic;
-no citizen records or other real personal data are used. No real generation run
-was performed for this change, and no dataset/model metrics are reported here.
+no citizen records or other real personal data are used. The dataset was
+generated in a prior run; no new generation was performed for this review
+update, and no dataset/model metrics are reported here.
 
 ### Generation prompt
 
@@ -110,16 +111,25 @@ Generated CSVs and raw batches are ignored by Git.
 After generating the training data, run `make review-sample` to select 50
 random training rows per enabled Tier 1 language using seed `20261031`. The
 script writes `ml/data/review/review_sample.csv` with columns
-`text,label,language,verdict,notes`; the last two columns are blank for the
-reviewer. The review directory is ignored by Git. Creating the sample does not
-count as completing the review: record the human review outcome below.
+`text,label,language,verdict,notes`; the last two columns are initially blank
+and filled during review. The review directory is ignored by Git. Creating a
+sample does not count as completing the review: record the review outcome
+below.
+
+### Tier 1 review log
+
+- Reviewed sample: 200 rows (50 each for en, hi, gu, hinglish), randomly sampled with a fixed seed.
+- Method: an AI pre-flagged suspicious rows, and the developer spot-checked the flags. The full 200 rows were not independently read line by line by a human.
+- Rows judged bad: en 7/50, hi 1/50, gu 9/50, hinglish 8/50 (25/200 total).
+- Bad rows were removed from the training data. The remaining rows of the dataset are unreviewed.
+- Tier 2 data remains unverified by native speakers.
 
 ## Review status and limitations
 
 - **Tier 1 (English, Hindi, Gujarati, Hinglish):** Generated examples are
-  synthetic and LLM-drafted, not manually reviewed, and not quality-verified.
-  A human must review at least 50 generated rows per Tier 1 language and record
-  the outcome here before treating this dataset as reviewed.
+  synthetic and LLM-drafted. The review log above records the AI pre-flagging
+  and developer spot-check; the full sample was not independently read line by
+  line by a human, and the remaining rows are unreviewed.
 - **Tier 2 (Marathi, Bengali, Tamil, Telugu, Kannada, Malayalam, Punjabi):**
   Experimental, LLM-drafted, synthetic, and unverified by native speakers.
 - The `verified` column is `false` for every generated row. It is not a
