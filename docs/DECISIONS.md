@@ -113,3 +113,10 @@ Short log of technology and design choices. Newest at the bottom. Format: contex
 - **Decision:** Use the TF-IDF baseline as the default classifier backend. Keep the fine-tuned MuRIL model (`MayankLumbhani/hi02-muril-grievance`) as an optional backend selected through the existing `CLASSIFIER_BACKEND` environment variable.
 - **Alternatives:** Make the published MuRIL model the default, or select a backend without configuration.
 - **Consequences:** `CLASSIFIER_BACKEND` defaults to `baseline`; `muril` is the optional model runtime, while `fake` is test-only. ONNX inference remains future work. A later MuRIL retrain may prompt a review of this decision.
+
+## D-15 Process-local public rate limits
+
+- **Context:** Public chat and ticket-status endpoints need configurable per-IP request limits, while the hackathon deployment targets a single lightweight API instance.
+- **Decision:** Enforce sliding-window limits in process memory using `RATE_LIMIT_CHAT` and `RATE_LIMIT_STATUS`; identify callers by the direct ASGI client address and do not trust unconfigured forwarded-IP headers.
+- **Alternatives:** Shared database counters or a distributed cache, which require persistent/shared rate-limit infrastructure.
+- **Consequences:** Each worker or replica maintains an independent quota, so aggregate enforcement is not distributed. Move to a shared store before relying on these limits across multiple replicas. Stale per-IP windows are periodically removed; no raw request content or address is logged.

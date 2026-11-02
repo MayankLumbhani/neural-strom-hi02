@@ -302,8 +302,9 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 
 - Passwords hashed with bcrypt (12 rounds); seeded passwords must be 12 to 72 UTF-8 bytes. HS256 JWTs use `JWT_SECRET` and `JWT_EXPIRE_MINUTES`; the account is reloaded and checked as active on each protected request.
 - Role check dependencies guard staff endpoints. Officers are filtered by `department_id` in repository queries, not only in the router or service.
-- Rate limiting on `/chat/messages` and `/tickets/{id}` per IP (for example with `slowapi`).
+- Sliding-window per-IP limits on public chat/status routes use `RATE_LIMIT_CHAT` and `RATE_LIMIT_STATUS`. Current buckets are process-local and independent across workers/replicas; use a shared store before depending on aggregate enforcement at multiple replicas. Client identity uses the direct ASGI peer address; forwarded headers are not trusted.
 - Input length limits, Pydantic validation everywhere.
+- Responses include `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Content-Security-Policy`, and `Permissions-Policy`; HSTS is sent for HTTPS requests.
 - Secrets only from environment. `.env` is git-ignored. `.env.example` documents each variable.
 - Logs include request ID, route, status and latency. They exclude complaint text and phone numbers.
 - Public status lookup returns only public fields.

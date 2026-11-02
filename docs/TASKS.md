@@ -151,10 +151,11 @@ Language tiers used in this file:
   - Commit: `feat(admin): add analytics summary endpoint`
   - Notes: Authenticated analytics report grouped ticket counts and average resolved-ticket duration in hours; officer results are restricted to their department.
 
-- [ ] **T-20** Rate limiting and hardening
+- [x] **T-20** Rate limiting and hardening
   - Per-IP limits on public endpoints from config, input length limits, security headers.
   - Done when: a test shows the 429 response.
   - Commit: `feat(security): add rate limiting and input limits`
+  - Notes: Public chat/status limits use process-local sliding windows configured by the existing environment settings; oversized messages are rejected, and browser security headers are added. Each worker has its own quota (D-15).
 
 ## Phase 4: Frontend (target: Nov 2 to 3)
 

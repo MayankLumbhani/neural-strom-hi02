@@ -63,6 +63,9 @@ The backend runs its SLA escalation job on the configured
 `ESCALATION_INTERVAL_SECONDS` cadence when `DATABASE_URL` is set. In
 `DEMO_MODE`, department SLA values are interpreted as minutes; otherwise they
 are hours.
+Public chat and status endpoints are limited by `RATE_LIMIT_CHAT` and
+`RATE_LIMIT_STATUS`. Limits are process-local; quotas are not shared across
+workers or replicas. Public responses include browser security headers.
 
 ## Language support
 

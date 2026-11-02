@@ -21,6 +21,13 @@ Request:
 follow-up messages. The request rejects empty text and messages above
 `MAX_MESSAGE_LENGTH`.
 
+Public chat requests and `GET /api/v1/tickets/{public_id}` are rate-limited
+per client IP using `RATE_LIMIT_CHAT` and `RATE_LIMIT_STATUS` (defaults:
+`10/minute` and `30/minute`). Exceeding a limit returns HTTP 429 with the
+standard error envelope and a `Retry-After` header. Limits are process-local:
+each API worker maintains its own quota. The direct connection address is used;
+forwarded-IP headers are ignored.
+
 Response:
 
 ```json
@@ -129,9 +136,10 @@ updates.
 ```
 
 Request validation errors return HTTP 422, overlong chat messages return HTTP
-413, unavailable classifier and department data return HTTP 503, missing
-tickets return HTTP 404, invalid credentials or tokens return HTTP 401, and
-disallowed roles return HTTP 403. Browser origins are restricted to
+413, rate-limited public requests return HTTP 429, unavailable classifier and
+department data return HTTP 503, missing tickets return HTTP 404, invalid
+credentials or tokens return HTTP 401, and disallowed roles return HTTP 403.
+Responses include security headers; browser origins are restricted to
 `CORS_ORIGINS`.
 
 `GET /health` reports liveness; `GET /ready` reports classifier readiness.

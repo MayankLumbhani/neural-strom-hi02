@@ -57,6 +57,8 @@ def public_api() -> Generator[tuple[TestClient, Engine], None, None]:
         app_env="test",
         cors_origins="https://citizen.example",
         max_message_length=80,
+        rate_limit_chat="2/minute",
+        rate_limit_status="2/minute",
     )
     app = create_app(settings, classifier=FakeClassifier("WATER"))
     app.dependency_overrides[get_session] = override_session
@@ -157,6 +159,40 @@ def test_public_ticket_lookup_uses_standard_not_found_error(
 
     assert response.status_code == 404
     assert response.json()["error"]["code"] == "TICKET_NOT_FOUND"
+
+
+def test_public_status_limit_returns_standard_429_response(
+    public_api: tuple[TestClient, Engine],
+) -> None:
+    """Enforce the configured per-IP request cap and include Retry-After."""
+    client, _ = public_api
+    path = "/api/v1/tickets/FMC-261102-LIMIT"
+
+    responses = [client.get(path) for _ in range(3)]
+
+    assert [response.status_code for response in responses] == [404, 404, 429]
+    limited = responses[-1]
+    assert limited.json()["error"]["code"] == "RATE_LIMIT_EXCEEDED"
+    assert limited.json()["request_id"] == limited.headers["x-request-id"]
+    assert int(limited.headers["retry-after"]) >= 1
+
+
+def test_public_responses_include_security_headers(
+    public_api: tuple[TestClient, Engine],
+) -> None:
+    """Set browser hardening headers on successful and error responses."""
+    client, _ = public_api
+
+    response = client.get("/api/v1/tickets/FMC-261102-MISS")
+
+    assert response.status_code == 404
+    assert response.headers["x-content-type-options"] == "nosniff"
+    assert response.headers["x-frame-options"] == "DENY"
+    assert response.headers["referrer-policy"] == "strict-origin-when-cross-origin"
+    assert response.headers["content-security-policy"] == (
+        "default-src 'none'; frame-ancestors 'none'"
+    )
+    assert response.headers["permissions-policy"] == ("camera=(), geolocation=(), microphone=()")
 
 
 def test_chat_request_validates_size_and_extra_fields(

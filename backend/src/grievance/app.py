@@ -13,6 +13,7 @@ from grievance.api.v1.health import router as health_router
 from grievance.api.v1.tickets import router as tickets_router
 from grievance.core.config import Settings, get_settings
 from grievance.core.exceptions import register_exception_handlers
+from grievance.core.hardening import PublicHardeningMiddleware
 from grievance.core.logging import configure_logging, logger
 from grievance.core.middleware import RequestContextMiddleware
 from grievance.jobs.scheduler import create_scheduler
@@ -69,6 +70,7 @@ def create_app(
     app.include_router(admin_router)
     app.include_router(health_router)
     app.include_router(tickets_router)
+    app.add_middleware(PublicHardeningMiddleware, settings=resolved_settings)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=resolved_settings.cors_origin_list,
