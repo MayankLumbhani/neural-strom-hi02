@@ -55,6 +55,9 @@ location clarification when needed. Officer and administrator access uses
 `POST /api/v1/auth/login` and bearer-token protected routes under
 `/api/v1/admin`; set a private `JWT_SECRET` and configured demo credentials
 before seeding. Officers are limited to tickets in their assigned department.
+The authenticated `GET /api/v1/admin/analytics/summary` endpoint reports
+ticket counts and average resolution duration, scoped to an officer's
+department or all departments for administrators.
 See [docs/API.md](docs/API.md) for request and response formats.
 The backend runs its SLA escalation job on the configured
 `ESCALATION_INTERVAL_SECONDS` cadence when `DATABASE_URL` is set. In

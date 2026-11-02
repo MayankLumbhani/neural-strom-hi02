@@ -94,6 +94,11 @@ Send the token using the HTTP bearer authorization header.
 - `GET /api/v1/admin/tickets/{public_id}` returns ticket details and full
   event history. An officer receives HTTP 404 for a ticket outside their
   department, matching the response for an unknown ticket.
+- `GET /api/v1/admin/analytics/summary` returns total tickets, counts by
+  department, status, and language, plus the average resolution time in hours
+  for resolved tickets. Department officers receive metrics only for their
+  department; administrators receive all-department metrics. The average is
+  `null` when no ticket has been resolved.
 - `PATCH /api/v1/admin/tickets/{public_id}/status` accepts a valid lifecycle
   status, optional event note, and optional `is_public` flag:
 

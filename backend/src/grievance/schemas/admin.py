@@ -60,3 +60,28 @@ class TicketStatusUpdateRequest(BaseModel):
     status: TicketStatus
     note: str | None = Field(default=None, max_length=2000)
     is_public: bool = False
+
+
+class TicketDimensionCount(BaseModel):
+    """Ticket count for a status or language value."""
+
+    value: str
+    count: int
+
+
+class DepartmentTicketCount(BaseModel):
+    """Ticket count with a department's stable code and display name."""
+
+    department_code: str
+    department_name: str
+    count: int
+
+
+class AnalyticsSummaryResponse(BaseModel):
+    """Aggregate ticket counts and mean resolution duration."""
+
+    total_tickets: int
+    by_department: list[DepartmentTicketCount]
+    by_status: list[TicketDimensionCount]
+    by_language: list[TicketDimensionCount]
+    average_resolution_time_hours: float | None

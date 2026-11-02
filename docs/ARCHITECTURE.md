@@ -82,7 +82,9 @@ Rules (also in `AGENTS.md`):
 | `services/ticket_service.py` | ticket creation, collision-safe public IDs and validated status transitions |
 | `services/auth_service.py` | credential verification, token issuance and active-account authentication |
 | `services/admin_ticket_service.py` | role-aware ticket management |
+| `services/analytics_service.py` | role-scoped ticket counts and average resolution duration |
 | `repositories/ticket_repository.py` | ticket persistence, paginated filters and department-scoped staff queries |
+| `repositories/analytics_repository.py` | grouped ticket counts and resolved-ticket timestamps |
 | `services/escalation_service.py` | find and escalate overdue tickets |
 | `services/analytics_service.py` | aggregate counts and resolution times |
 | `nlp/languages.py` | language registry: every supported language, its tier, script, font and template file |
@@ -287,7 +289,7 @@ Base path `/api/v1`. Full request and response examples live in `docs/API.md`.
 | `GET /api/v1/admin/tickets` | List tickets with filters (`status`, `department`, `q`, `page`, `page_size`). Officers are restricted to their department by repository queries. |
 | `GET /api/v1/admin/tickets/{public_id}` | Scoped ticket detail with full event history |
 | `PATCH /api/v1/admin/tickets/{public_id}/status` | Body `{ status, note?, is_public? }`. Validates the transition and writes an event. |
-| `GET /api/v1/admin/analytics/summary` | Counts by department, status, language, and average resolution time |
+| `GET /api/v1/admin/analytics/summary` | Scoped counts by department, status, language, and average resolved-ticket duration in hours |
 | `GET /api/v1/admin/departments` | Department list |
 
 ### Error format
@@ -411,6 +413,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Public chat and ticket status API | Implemented with typed responses, configured CORS, and API integration tests |
 | Ticket service | Implemented with public status and event history |
 | Auth and officer endpoints | Implemented with HS256 bearer tokens, active-account checks, department-scoped list/detail/update operations, and offline API tests |
+| Analytics endpoint | Implemented with role-scoped grouped counts, average resolution time, and seeded-data integration tests |
 | Escalation job | Implemented with APScheduler, atomic idempotent updates, transactional system events, demo-mode minute SLAs, and offline integration tests |
 | Frontend chat | Planned |
 | Frontend dashboard and analytics | Planned |

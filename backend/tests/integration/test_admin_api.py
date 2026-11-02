@@ -1,6 +1,7 @@
 """HTTP integration tests for authentication and department-scoped tickets."""
 
 from collections.abc import Generator
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -225,3 +226,91 @@ def test_admin_can_list_tickets_across_departments(
     assert response.status_code == 200
     assert response.json()["total"] == 2
     assert {item["public_id"] for item in response.json()["items"]} == {water_id, roads_id}
+
+
+def test_analytics_summary_aggregates_seeded_tickets_and_resolution_time(
+    admin_api: tuple[TestClient, Engine, Settings],
+) -> None:
+    """Report grouped counts and mean resolved duration for admins and officers."""
+    client, engine, _ = admin_api
+    now = datetime.now(UTC)
+    with Session(engine) as session:
+        water = session.exec(select(Department).where(Department.code == "WATER")).one()
+        roads = session.exec(select(Department).where(Department.code == "ROADS")).one()
+        conversations = [Conversation(language=language) for language in ("en", "hi", "gu")]
+        session.add_all(conversations)
+        session.flush()
+        tickets = [
+            Ticket(
+                public_id="FMC-261102-ANL1",
+                conversation_id=conversations[0].id,
+                department_id=water.id,
+                complaint_text="Synthetic water complaint",
+                language="en",
+                location_text="Ward 1",
+                status="FILED",
+                created_at=now - timedelta(hours=4),
+                status_changed_at=now - timedelta(hours=4),
+            ),
+            Ticket(
+                public_id="FMC-261102-ANL2",
+                conversation_id=conversations[1].id,
+                department_id=water.id,
+                complaint_text="Synthetic Hindi complaint",
+                language="hi",
+                location_text="Ward 2",
+                status="ASSIGNED",
+                created_at=now - timedelta(hours=3),
+                status_changed_at=now - timedelta(hours=2),
+            ),
+            Ticket(
+                public_id="FMC-261102-ANL3",
+                conversation_id=conversations[2].id,
+                department_id=roads.id,
+                complaint_text="Synthetic resolved complaint",
+                language="gu",
+                location_text="Ward 3",
+                status="RESOLVED",
+                created_at=now - timedelta(hours=2, minutes=30),
+                status_changed_at=now,
+                resolved_at=now,
+            ),
+        ]
+        session.add_all(tickets)
+        session.commit()
+
+    admin_token = _login(client, "administrator", ADMIN_PASSWORD)
+    officer_token = _login(client, "water-officer", OFFICER_PASSWORD)
+    admin_summary = client.get(
+        "/api/v1/admin/analytics/summary",
+        headers={"Authorization": f"Bearer {admin_token}"},
+    )
+    officer_summary = client.get(
+        "/api/v1/admin/analytics/summary",
+        headers={"Authorization": f"Bearer {officer_token}"},
+    )
+
+    assert admin_summary.status_code == 200
+    admin_body = admin_summary.json()
+    assert admin_body["total_tickets"] == 3
+    assert {item["department_code"]: item["count"] for item in admin_body["by_department"]} == {
+        "ROADS": 1,
+        "WATER": 2,
+    }
+    assert {item["value"]: item["count"] for item in admin_body["by_status"]} == {
+        "ASSIGNED": 1,
+        "FILED": 1,
+        "RESOLVED": 1,
+    }
+    assert {item["value"]: item["count"] for item in admin_body["by_language"]} == {
+        "en": 1,
+        "gu": 1,
+        "hi": 1,
+    }
+    assert admin_body["average_resolution_time_hours"] == pytest.approx(2.5)
+
+    assert officer_summary.status_code == 200
+    officer_body = officer_summary.json()
+    assert officer_body["total_tickets"] == 2
+    assert officer_body["by_department"][0]["department_code"] == "WATER"
+    assert officer_body["average_resolution_time_hours"] is None

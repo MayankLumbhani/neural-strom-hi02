@@ -11,13 +11,24 @@ from grievance.models import Officer
 from grievance.schemas.admin import (
     AdminTicketListResponse,
     AdminTicketResponse,
+    AnalyticsSummaryResponse,
     TicketStatus,
     TicketStatusUpdateRequest,
 )
 from grievance.services.admin_ticket_service import AdminTicketService
+from grievance.services.analytics_service import AnalyticsService
 
 router = APIRouter(prefix="/api/v1/admin", tags=["admin"])
 get_staff_officer = require_roles("ADMIN", "DEPARTMENT_OFFICER")
+
+
+@router.get("/analytics/summary", response_model=AnalyticsSummaryResponse)
+def get_analytics_summary(
+    officer: Annotated[Officer, Depends(get_staff_officer)],
+    session: Annotated[Session, Depends(get_session)],
+) -> AnalyticsSummaryResponse:
+    """Return ticket metrics scoped to the authenticated staff member."""
+    return AnalyticsService(session).summary(officer)
 
 
 @router.get("/tickets", response_model=AdminTicketListResponse)

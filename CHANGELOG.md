@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added authenticated `/api/v1/admin/analytics/summary` with department-, status-, and language-based counts and scoped average resolution time; completed T-19.
 - Added an APScheduler SLA escalation job with demo-mode minute windows, atomic idempotent ticket updates, transactional system events, and lifecycle-managed startup/shutdown; completed T-18.
 - Added officer/admin login with expiring HS256 bearer tokens and department-scoped ticket listing, details, and status updates; completed T-17.
 - Added `POST /api/v1/chat/messages` and `GET /api/v1/tickets/{public_id}`, typed public responses, configured CORS, API documentation, and HTTP integration tests; completed T-16.

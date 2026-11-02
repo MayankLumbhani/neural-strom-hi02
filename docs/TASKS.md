@@ -145,10 +145,11 @@ Language tiers used in this file:
   - Commit: `feat(escalation): add scheduled SLA escalation job`
   - Notes: APScheduler runs the escalation service when a database is configured; guarded updates and event inserts share a transaction, and DEMO_MODE interprets department SLA values as minutes.
 
-- [ ] **T-19** Analytics endpoint
+- [x] **T-19** Analytics endpoint
   - `GET /admin/analytics/summary` with counts by department, status, language and average resolution time.
   - Done when: tests pass on seeded data.
   - Commit: `feat(admin): add analytics summary endpoint`
+  - Notes: Authenticated analytics report grouped ticket counts and average resolved-ticket duration in hours; officer results are restricted to their department.
 
 - [ ] **T-20** Rate limiting and hardening
   - Per-IP limits on public endpoints from config, input length limits, security headers.
