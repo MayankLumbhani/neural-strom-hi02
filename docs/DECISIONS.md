@@ -73,21 +73,34 @@ Short log of technology and design choices. Newest at the bottom. Format: contex
 - **Alternatives:** Continue maintaining hand-authored phrase banks or use another model provider.
 - **Consequences:** Generation requires configured Gemini credentials and incurs API usage. LLM output is untrusted, so strict JSON, script, length, repetition, phone-number, and duplicate checks run before output; generated text is synthetic and unreviewed until human review.
 
-## D-10 Demo account hashing and seed data
+## D-10 Deterministic drainage-label normalization
+
+- **Context:** Generated complaints containing drainage issues were sometimes assigned to HEALTH or SANITATION, overlapping the DRAINAGE class and reducing classifier recall.
+- **Decision:** In the processed training and validation splits, relabel a row to DRAINAGE only when its original label is HEALTH or SANITATION, its text contains a drainage keyword, and its text contains no disease keyword. Latin keywords match case-insensitively as whole words; Hindi and Gujarati keywords match as case-insensitive substrings. No other original label changes.
+  - Latin drainage: `drain`, `drains`, `drainage`, `sewer`, `sewers`, `sewage`, `manhole`, `manholes`, `gutter`, `gutters`, `nala`, `naala`, `nalla`, `naale`, `naali`, `nali`, `nalli`.
+  - Hindi drainage: `नाला`, `नाले`, `नाली`, `सीवर`, `ड्रेनेज`, `मैनहोल`, `गटर`.
+  - Gujarati drainage: `ગટર`, `નાળું`, `નાળા`, `ગરનાળ`, `ડ્રેનેજ`, `મેનહોલ`.
+  - Latin disease: `mosquito`, `mosquitoes`, `malaria`, `dengue`, `disease`, `diseases`, `infection`, `infectious`, `sick`, `ill`, `illness`, `bimar`, `bimari`, `machhar`, `fogging`, `epidemic`.
+  - Hindi disease: `मच्छर`, `मलेरिया`, `डेंगू`, `बीमार`, `बीमारी`, `संक्रामक`, `संक्रमण`.
+  - Gujarati disease: `મચ્છર`, `મેલેરિયા`, `ડેંગ્યુ`, `બીમાર`, `બીમારી`, `રોગ`, `રોગચાળો`.
+- **Alternatives:** Manually relabel rows, retrain without correcting labels, or use a probabilistic classifier.
+- **Consequences:** `ml/src/relabel_drainage.py` applies the rule deterministically and idempotently, preserves timestamped pre-change backups, and writes a local audit CSV. The rule only normalizes existing synthetic training/validation labels; it does not alter evaluation rows or predict labels for other departments.
+
+## D-11 Demo account hashing and seed data
 
 - **Context:** The database needs repeatable synthetic departments and demo officer/admin accounts for local development.
 - **Decision:** Seed the nine departments with initial synthetic SLA hours, require demo usernames and passwords from environment variables, and hash passwords with bcrypt (12 rounds; 12 to 72 UTF-8 bytes). Re-running the seed updates seeded department/account fields while retaining hashes when passwords are unchanged.
 - **Alternatives:** Store passwords directly, choose default demo passwords, or use Argon2.
 - **Consequences:** Demo credentials must be configured before seeding, and bcrypt is an explicit backend dependency. The seeded SLA values are illustrative and are not legal or service guarantees.
 
-## D-11 Localized template format
+## D-12 Localized template format
 
 - **Context:** All supported languages need the same fixed-message keys, with Tier 2 files visibly labelled as machine-translated.
 - **Decision:** Store template data in TOML files, load it with Python 3.11's built-in `tomllib`, and validate it with a typed Pydantic schema.
 - **Alternatives:** JSON (no standard comment syntax for the Tier 2 warning) or YAML (would add a dependency).
 - **Consequences:** No extra parsing dependency; all files are validated consistently, and Tier 2 warning comments remain alongside their translations.
 
-## D-12 Synthetic training corpus generation
+## D-13 Synthetic training corpus generation
 
 - **Context:** The baseline and MuRIL pipelines need multilingual, labelled training examples, but no real citizen data may be used.
 - **Decision:** Draft examples with Gemini according to department and registry-language metadata. Use a configured seed for stratified train/validation splits, record `source=llm`, and keep generated CSVs and raw response caches out of Git.

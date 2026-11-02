@@ -83,6 +83,12 @@ Language tiers used in this file:
   - Commit: `feat(ml): add baseline classifier and evaluation script`
   - Notes: The evaluator trains only on `ml/data/processed/train.csv`, rejects exact text overlap with the held-out evaluation CSV, and reports overall, per-language, and separate tier metrics.
 
+- [x] **T-09b** Normalize drainage labels in processed splits
+  - Apply the deterministic D-10 rule to relabel eligible HEALTH/SANITATION drainage complaints in `train.csv` and `validation.csv`; create backups and an ignored row-level audit report. Do not modify the evaluation set.
+  - Done when: both processed splits are normalized, the script is idempotent, and unit tests cover Latin word boundaries plus Hindi/Gujarati keywords.
+  - Commit: `fix(ml): resolve DRAINAGE label overlap in training data`
+  - Notes: Relabelled 136 rows (113 train, 23 validation); the rule excludes rows with disease keywords and leaves all labels other than HEALTH and SANITATION unchanged.
+
 - [ ] **T-10** MuRIL fine-tuning **(human)**
   - Training script `ml/src/train_muril.py` plus `ml/notebooks/train_colab.ipynb`. Run it on Colab or Kaggle GPU, push the model to the Hugging Face Hub.
   - Done when: model is on the Hub and the model name is in `.env.example`.

@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added deterministic drainage-label normalization with disease-keyword exclusions, timestamped dataset backups, an ignored change audit, and offline rule tests.
 - Added the MuRIL fine-tuning script and ordered Colab notebook with offline data and metrics tests; training and model metrics remain pending.
 - Added a TF-IDF character n-gram plus Logistic Regression baseline evaluator and `make eval-baseline`; its generated report separates Tier 1 and Tier 2 metrics.
 - Added 70 Claude-authored, unverified Tier 2 evaluation rows (10 per language) and completed T-08; documentation records that Tier 2 results are experimental and reported separately.

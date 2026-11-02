@@ -69,6 +69,12 @@ Generated CSVs and raw response batches are not committed; review requirements
 and generation details are in
 [docs/MODEL_CARD.md](docs/MODEL_CARD.md).
 
+After generating the processed splits, run
+`python -m ml.src.relabel_drainage` to apply the deterministic D-10 drainage
+label normalization to train and validation data. The command creates
+timestamped backups under `ml/data/processed/backup/` and a local audit at
+`ml/data/review/relabel_changes.csv`; it leaves the evaluation set unchanged.
+
 After generating the training split, run `make review-sample` to create a
 seeded sample of 50 rows per Tier 1 language at
 `ml/data/review/review_sample.csv`. Fill in the `verdict` and `notes` columns

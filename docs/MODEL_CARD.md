@@ -173,6 +173,17 @@ These are real baseline results from the generated JSON report, not independent
 human-verified performance estimates. The full per-class and confusion-matrix
 results are in the report.
 
+## Training-label normalization
+
+The processed `train.csv` and `validation.csv` labels were normalized with the
+deterministic D-10 rule in `docs/DECISIONS.md`: HEALTH or SANITATION rows with
+a drainage keyword and no disease keyword are relabelled DRAINAGE. Latin
+keywords use case-insensitive word boundaries; Hindi and Gujarati keywords
+use substring matching. The local run changed 113 training rows and 23
+validation rows; the hand-authored evaluation CSV was not changed. The
+committed baseline report predates this normalization and has not been
+recomputed on the updated local split.
+
 ## MuRIL fine-tuning
 
 The training implementation is `ml/src/train_muril.py`; the ordered Colab
