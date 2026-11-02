@@ -139,10 +139,11 @@ Language tiers used in this file:
   - Commit: `feat(admin): add authentication and officer ticket endpoints`
   - Notes: Login issues expiring HS256 bearer tokens; staff ticket queries enforce department scope in repositories, with offline tests for cross-department isolation.
 
-- [ ] **T-18** Escalation job
+- [x] **T-18** Escalation job
   - APScheduler job calling `EscalationService`, idempotent update, `DEMO_MODE` short SLAs.
   - Done when: a test creates an old ticket and proves it is escalated exactly once.
   - Commit: `feat(escalation): add scheduled SLA escalation job`
+  - Notes: APScheduler runs the escalation service when a database is configured; guarded updates and event inserts share a transaction, and DEMO_MODE interprets department SLA values as minutes.
 
 - [ ] **T-19** Analytics endpoint
   - `GET /admin/analytics/summary` with counts by department, status, language and average resolution time.

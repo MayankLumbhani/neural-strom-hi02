@@ -63,6 +63,11 @@ strict = true
 module = ["sklearn.*"]
 ignore_missing_imports = true
 
+# APScheduler 3 does not ship a py.typed marker.
+[[tool.mypy.overrides]]
+module = ["apscheduler.*"]
+ignore_missing_imports = true
+
 # NumPy 2.5 stubs use Python 3.12 syntax while this project targets Python 3.11.
 [[tool.mypy.overrides]]
 module = ["numpy", "numpy.*"]

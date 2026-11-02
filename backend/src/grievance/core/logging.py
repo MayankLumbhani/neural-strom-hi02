@@ -5,7 +5,15 @@ import logging
 from datetime import UTC, datetime
 from typing import Any
 
-_LOG_FIELDS = ("request_id", "method", "path", "status_code", "duration_ms", "error_type")
+_LOG_FIELDS = (
+    "request_id",
+    "method",
+    "path",
+    "status_code",
+    "duration_ms",
+    "error_type",
+    "tickets_escalated",
+)
 
 
 class JsonFormatter(logging.Formatter):

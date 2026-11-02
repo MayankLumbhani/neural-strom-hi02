@@ -56,6 +56,10 @@ location clarification when needed. Officer and administrator access uses
 `/api/v1/admin`; set a private `JWT_SECRET` and configured demo credentials
 before seeding. Officers are limited to tickets in their assigned department.
 See [docs/API.md](docs/API.md) for request and response formats.
+The backend runs its SLA escalation job on the configured
+`ESCALATION_INTERVAL_SECONDS` cadence when `DATABASE_URL` is set. In
+`DEMO_MODE`, department SLA values are interpreted as minutes; otherwise they
+are hours.
 
 ## Language support
 

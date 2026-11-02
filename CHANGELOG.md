@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added an APScheduler SLA escalation job with demo-mode minute windows, atomic idempotent ticket updates, transactional system events, and lifecycle-managed startup/shutdown; completed T-18.
 - Added officer/admin login with expiring HS256 bearer tokens and department-scoped ticket listing, details, and status updates; completed T-17.
 - Added `POST /api/v1/chat/messages` and `GET /api/v1/tickets/{public_id}`, typed public responses, configured CORS, API documentation, and HTTP integration tests; completed T-16.
 - Added persisted chat orchestration for complaints, department clarification, location follow-up, greetings/help, and ticket status lookup; completed T-15.

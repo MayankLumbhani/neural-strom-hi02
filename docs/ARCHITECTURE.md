@@ -224,9 +224,10 @@ stateDiagram-v2
 
 ### Escalation
 - APScheduler runs `EscalationService.run()` every `ESCALATION_INTERVAL_SECONDS`.
-- It selects tickets not in `RESOLVED` or `ESCALATED` whose `status_changed_at` is older than the department SLA, marks them `ESCALATED`, increments `escalation_level` and records an event.
-- The job must be idempotent, because with several replicas more than one instance could run it. Use a single `UPDATE ... WHERE` statement (or `SELECT ... FOR UPDATE SKIP LOCKED`) so a ticket is escalated only once.
+- It selects active tickets whose `status_changed_at` is older than the department SLA, atomically marks them `ESCALATED`, increments `escalation_level`, and records each event in the same transaction.
+- The eligibility-guarded `UPDATE ... WHERE` is idempotent across concurrent scheduler instances; only rows returned by the update receive a system event.
 - `DEMO_MODE=true` uses minutes instead of hours for SLA windows.
+- The scheduler starts with the API only when `DATABASE_URL` is configured and shuts down with the application lifespan.
 
 ## 8. Data model
 
@@ -410,7 +411,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Public chat and ticket status API | Implemented with typed responses, configured CORS, and API integration tests |
 | Ticket service | Implemented with public status and event history |
 | Auth and officer endpoints | Implemented with HS256 bearer tokens, active-account checks, department-scoped list/detail/update operations, and offline API tests |
-| Escalation job | Planned |
+| Escalation job | Implemented with APScheduler, atomic idempotent updates, transactional system events, demo-mode minute SLAs, and offline integration tests |
 | Frontend chat | Planned |
 | Frontend dashboard and analytics | Planned |
 | Deployment (HF Spaces, Vercel, Neon) | Planned |

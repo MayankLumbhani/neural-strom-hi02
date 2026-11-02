@@ -15,6 +15,7 @@ from grievance.core.config import Settings, get_settings
 from grievance.core.exceptions import register_exception_handlers
 from grievance.core.logging import configure_logging, logger
 from grievance.core.middleware import RequestContextMiddleware
+from grievance.jobs.scheduler import create_scheduler
 from grievance.nlp.classifier import Classifier, ClassifierLoadError, build_classifier
 
 
@@ -28,7 +29,8 @@ def create_app(
 
     @asynccontextmanager
     async def lifespan(application: FastAPI) -> AsyncIterator[None]:
-        """Load the selected classifier once as the application starts."""
+        """Load the classifier and start configured background jobs."""
+        scheduler = None
         try:
             application.state.classifier = (
                 classifier if classifier is not None else build_classifier(resolved_settings)
@@ -42,12 +44,26 @@ def create_app(
                 resolved_settings.classifier_backend,
                 error,
             )
-        yield
+        if resolved_settings.database_url is not None:
+            scheduler = create_scheduler(resolved_settings)
+            scheduler.start()
+            application.state.scheduler = scheduler
+            logger.info("escalation.scheduler.started")
+        else:
+            application.state.scheduler = None
+            logger.info("escalation.scheduler.disabled reason=DATABASE_URL_not_configured")
+        try:
+            yield
+        finally:
+            if scheduler is not None and scheduler.running:
+                scheduler.shutdown(wait=True)
+                logger.info("escalation.scheduler.stopped")
 
     app = FastAPI(title="Neural Storm Grievance API", lifespan=lifespan)
     app.state.settings = resolved_settings
     app.state.classifier = None
     app.state.classifier_error = None
+    app.state.scheduler = None
     app.include_router(chat_router)
     app.include_router(auth_router)
     app.include_router(admin_router)
