@@ -13,3 +13,4 @@ dist/
 /ml/data/processed/*.csv
 /ml/data/review/
 /ml/data/raw/llm_batches/
+/ml/artifacts/muril_model/

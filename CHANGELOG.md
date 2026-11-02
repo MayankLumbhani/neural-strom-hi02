@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added the MuRIL fine-tuning script and ordered Colab notebook with offline data and metrics tests; training and model metrics remain pending.
 - Added a TF-IDF character n-gram plus Logistic Regression baseline evaluator and `make eval-baseline`; its generated report separates Tier 1 and Tier 2 metrics.
 - Added 70 Claude-authored, unverified Tier 2 evaluation rows (10 per language) and completed T-08; documentation records that Tier 2 results are experimental and reported separately.
 - Added a 100-row Tier 1 evaluation set, with its AI-written provenance and optimistic-estimate limitations documented; Tier 2 evaluation rows remain pending.

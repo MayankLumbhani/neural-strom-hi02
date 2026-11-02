@@ -87,6 +87,7 @@ Language tiers used in this file:
   - Training script `ml/src/train_muril.py` plus `ml/notebooks/train_colab.ipynb`. Run it on Colab or Kaggle GPU, push the model to the Hugging Face Hub.
   - Done when: model is on the Hub and the model name is in `.env.example`.
   - Commit: `feat(ml): add MuRIL fine-tuning script and Colab notebook`
+  - Notes: Training script and notebook are implemented; model training and Hub publishing remain pending.
 
 - [ ] **T-11** MuRIL evaluation report
   - Run `evaluate.py` for the MuRIL model on the evaluation set, write `ml/reports/muril_metrics.json` and the confusion matrix, and fill in `docs/MODEL_CARD.md` with the real numbers next to the baseline. Show a per-language table with the tier, Tier 1 and Tier 2 in separate tables, and label Tier 2 as unverified.

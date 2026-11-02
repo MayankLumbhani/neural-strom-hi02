@@ -89,6 +89,19 @@ evaluation set, and writes metrics and a confusion matrix to
 `ml/reports/baseline_metrics.json`. The command does not generate or modify
 either dataset.
 
+## MuRIL fine-tuning
+
+Install the training dependencies with
+`python -m pip install -e ".[training]"`. The script trains from the ignored
+`ml/data/processed/train.csv`, selects by validation macro-F1 using
+`validation.csv`, evaluates the best checkpoint on the separate evaluation
+set, and writes model files and metrics under `ml/artifacts/`. Defaults are
+max length 128, 4 epochs, learning rate `3e-5`, batch size 32, and seed 42;
+each can be overridden with a command-line option. The ordered Colab workflow,
+including upload of ignored training files, is in
+[ml/notebooks/train_colab.ipynb](ml/notebooks/train_colab.ipynb). Training has
+not yet been run; see [docs/MODEL_CARD.md](docs/MODEL_CARD.md) for details.
+
 ## AI tools
 
 - GitHub Copilot was used for AI-assisted development.

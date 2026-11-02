@@ -173,6 +173,32 @@ These are real baseline results from the generated JSON report, not independent
 human-verified performance estimates. The full per-class and confusion-matrix
 results are in the report.
 
+## MuRIL fine-tuning
+
+The training implementation is `ml/src/train_muril.py`; the ordered Colab
+workflow is in `ml/notebooks/train_colab.ipynb`. It fine-tunes
+`google/muril-base-cased` for the nine department labels from the repository's
+department seed list. Training reads `ml/data/processed/train.csv`, selects
+the best checkpoint by validation macro-F1 on
+`ml/data/processed/validation.csv`, and evaluates that checkpoint on the
+separate `ml/data/eval_handwritten/eval.csv`. The evaluation set is never used
+for training or checkpoint selection.
+
+Defaults are `max_length=128`, `epochs=4`, `learning_rate=3e-5`,
+`batch_size=32`, and `seed=42`; all are command-line options. Install training
+dependencies with `python -m pip install -e ".[training]"`, then run
+`python -m ml.src.train_muril`. The script saves model/tokenizer files and
+`label_mapping.json` under `ml/artifacts/muril_model/`, and writes the
+baseline-compatible report to `ml/artifacts/muril_metrics.json`. The mapping
+is derived from the canonical department seed data and is saved alongside the
+model for inference.
+
+To publish the model and tokenizer, pass both `--push_to_hub` and
+`--hub_model_id OWNER/REPOSITORY`; the script reads `HF_TOKEN` from the
+environment and never logs it. The notebook reads the token from Colab or
+Kaggle secrets. Training has not been run, no MuRIL metrics are available, and
+no trained weights or model identifier are committed.
+
 ## Review status and limitations
 
 - **Tier 1 (English, Hindi, Gujarati, Hinglish):** Generated examples are

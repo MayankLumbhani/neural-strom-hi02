@@ -342,7 +342,7 @@ frontend/src/
 2. `ml/src/make_review_sample.py`: select 50 seeded random examples per Tier 1 language from `train.csv` for human review; write blank `verdict` and `notes` fields to an ignored review CSV.
 3. `ml/data/eval_handwritten/eval.csv`: independent AI-authored evaluation rows; Tier 1 rows are short and parallel, and Tier 2 rows are marked `verified=false`. Never used for training.
 4. `ml/src/evaluate.py`: train the character n-gram TF-IDF plus Logistic Regression baseline using only `ml/data/processed/train.csv`, evaluate on `eval.csv`, and write accuracy, per-class precision/recall/F1, macro-F1, per-language and separate tier metrics, and a confusion matrix to `ml/reports/baseline_metrics.json`. The evaluator rejects exact text overlap between training and evaluation inputs.
-5. `ml/src/train_muril.py` (run in Colab or Kaggle): fine-tune MuRIL, save the model to the Hugging Face Hub.
+5. `ml/src/train_muril.py` (run in Colab or Kaggle): fine-tune `google/muril-base-cased` on `train.csv`, select the checkpoint with the highest validation macro-F1, and evaluate that checkpoint on `eval.csv`. Defaults are max length 128, 4 epochs, learning rate `3e-5`, batch size 32, and seed 42. The script writes the model and `label_mapping.json` under `ml/artifacts/`, plus tiered metrics to `ml/artifacts/muril_metrics.json`; optional Hub publishing requires `--push_to_hub`, `--hub_model_id`, and `HF_TOKEN`.
 6. MuRIL evaluation (T-11): report its metrics separately from the baseline, with Tier 1 and Tier 2 results in separate tables and Tier 2 labelled unverified.
 7. `ml/src/export_onnx.py` (optional): export and quantize, then compare latency and accuracy against PyTorch.
 
@@ -393,8 +393,8 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Language registry, script detection and templates | Done (Tier 2 templates are experimental and machine-translated) |
 | Synthetic dataset generator | Implemented; Tier 1 review sample documented, remaining rows unreviewed |
 | Tier 2 datasets and evaluation | Synthetic data and 70-row evaluation set; unverified |
-| Dataset and baseline classifier | Baseline evaluator implemented; MuRIL planned |
-| MuRIL fine-tune and evaluation | Planned |
+| Dataset and baseline classifier | Baseline evaluator implemented; MuRIL training script and notebook added, training pending |
+| MuRIL fine-tune and evaluation | Training not run; evaluation remains pending |
 | Chat service and clarification flow | Planned |
 | Ticket service and status API | Planned |
 | Auth and officer endpoints | Planned |
