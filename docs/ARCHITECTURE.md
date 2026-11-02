@@ -307,7 +307,7 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 | `JWT_SECRET`, `JWT_EXPIRE_MINUTES` | Auth |
 | `CORS_ORIGINS` | Allowed frontend origins |
 | `CLASSIFIER_BACKEND` | `muril`, `onnx` or `baseline` |
-| `MODEL_NAME_OR_PATH`, `HF_TOKEN` | Where to load weights from |
+| `MODEL_NAME_OR_PATH`, `HF_TOKEN` | Published classifier model path and optional Hugging Face Hub access token |
 | `CLASSIFIER_HIGH_THRESHOLD`, `CLASSIFIER_LOW_THRESHOLD` | Confidence policy |
 | `LLM_ENABLED`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `LLM_TIMEOUT_SECONDS` | Optional extraction helper and offline Gemini dataset generation; per-request timeout defaults to 60 seconds and the model has no default |
 | `DATASET_SEED`, `DATASET_TIER1_SAMPLES_PER_CLASS_LANGUAGE`, `DATASET_TIER2_SAMPLES_PER_CLASS_LANGUAGE`, `DATASET_MINIMUM_STRATUM_FRACTION` | Dataset seed, requested examples (100 Tier 1, 30 Tier 2), and minimum accepted stratum fraction (0.9) |
@@ -394,8 +394,8 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Language registry, script detection and templates | Done (Tier 2 templates are experimental and machine-translated) |
 | Synthetic dataset generator | Implemented; Tier 1 review sample documented, remaining rows unreviewed |
 | Tier 2 datasets and evaluation | Synthetic data and 70-row evaluation set; unverified |
-| Dataset and baseline classifier | Baseline evaluator implemented; MuRIL training script and notebook added, training pending |
-| MuRIL fine-tune and evaluation | Training not run; evaluation remains pending |
+| Dataset and baseline classifier | Baseline evaluator and published MuRIL classifier implemented |
+| MuRIL fine-tune and evaluation | Fine-tuned model published; metrics and limitations recorded in the model card |
 | Chat service and clarification flow | Planned |
 | Ticket service and status API | Planned |
 | Auth and officer endpoints | Planned |

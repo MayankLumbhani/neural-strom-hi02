@@ -105,8 +105,10 @@ set, and writes model files and metrics under `ml/artifacts/`. Defaults are
 max length 128, 4 epochs, learning rate `3e-5`, batch size 32, and seed 42;
 each can be overridden with a command-line option. The ordered Colab workflow,
 including upload of ignored training files, is in
-[ml/notebooks/train_colab.ipynb](ml/notebooks/train_colab.ipynb). Training has
-not yet been run; see [docs/MODEL_CARD.md](docs/MODEL_CARD.md) for details.
+[ml/notebooks/train_colab.ipynb](ml/notebooks/train_colab.ipynb). The published
+fine-tuned classifier is `MayankLumbhani/hi02-muril-grievance`, configured by
+`MODEL_NAME_OR_PATH`; see [docs/MODEL_CARD.md](docs/MODEL_CARD.md) for its
+measured results and limitations.
 
 ## AI tools
 

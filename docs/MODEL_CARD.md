@@ -184,7 +184,7 @@ validation rows; the hand-authored evaluation CSV was not changed. The
 committed baseline report predates this normalization and has not been
 recomputed on the updated local split.
 
-## MuRIL fine-tuning
+## MuRIL fine-tuned classifier
 
 The training implementation is `ml/src/train_muril.py`; the ordered Colab
 workflow is in `ml/notebooks/train_colab.ipynb`. It fine-tunes
@@ -207,20 +207,87 @@ model for inference.
 To publish the model and tokenizer, pass both `--push_to_hub` and
 `--hub_model_id OWNER/REPOSITORY`; the script reads `HF_TOKEN` from the
 environment and never logs it. The notebook reads the token from Colab or
-Kaggle secrets. Training has not been run, no MuRIL metrics are available, and
-no trained weights or model identifier are committed.
+Kaggle secrets. The trained model is published as
+`MayankLumbhani/hi02-muril-grievance`; `MODEL_NAME_OR_PATH` in `.env.example`
+selects this model for inference. The run report is tracked at
+`ml/artifacts/muril_metrics.json`; it records the base model name used for
+fine-tuning.
 
-## Review status and limitations
+### Tier 1 results
 
-- **Tier 1 (English, Hindi, Gujarati, Hinglish):** Generated examples are
-  synthetic and LLM-drafted. The review log above records the AI pre-flagging
-  and developer spot-check; the full sample was not independently read line by
-  line by a human, and the remaining rows are unreviewed.
-- **Tier 2 (Marathi, Bengali, Tamil, Telugu, Kannada, Malayalam, Punjabi):**
-  Experimental, LLM-drafted, synthetic, and unverified by native speakers.
+| Language | Accuracy | Macro-F1 |
+|---|---:|---:|
+| Overall (Tier 1) | 0.89 | 0.8305583305583305 |
+| English (`en`) | 0.84 | 0.7873015873015873 |
+| Hindi (`hi`) | 0.92 | 0.8571428571428572 |
+| Gujarati (`gu`) | 0.92 | 0.8571428571428572 |
+| Hinglish (`hinglish`) | 0.88 | 0.8190476190476191 |
+### Tier 2 results (unverified, experimental)
+### Tier 2 results (unverified, experimental)
+
+| Language | Accuracy | Macro-F1 |
+|---|---:|---:|
+| Overall (Tier 2, unverified) | 0.8857142857142857 | 0.8575835957414905 |
+| Marathi (`mr`) | 0.8 | 0.7777777777777778 |
+| Bengali (`bn`) | 0.9 | 0.8518518518518517 |
+| Tamil (`ta`) | 0.9 | 0.8518518518518517 |
+| Telugu (`te`) | 0.9 | 0.8518518518518517 |
+| Kannada (`kn`) | 0.9 | 0.9259259259259258 |
+| Malayalam (`ml`) | 0.9 | 0.8518518518518517 |
+| Punjabi (`pa`) | 0.9 | 0.8518518518518517 |
+
+### Tier 1 baseline comparison
+
+The baseline values below are from the committed T-09 report, generated
+before the D-10 training-label normalization; the MuRIL values are from its
+second run on the normalized training data. Both reports use the same
+evaluation set.
+
+| Tier 1 metric | Baseline | MuRIL |
+|---|---:|---:|
+| Overall accuracy | 0.88 | 0.89 |
+| Macro-F1 | 0.8767333793420751 | 0.8305583305583305 |
+
+| Department | Baseline F1 | MuRIL F1 |
+|---|---:|---:|
+| WATER | 0.8695652173913043 | 1.0 |
+| ROADS | 1.0 | 1.0 |
+| SANITATION | 0.7826086956521738 | 0.7857142857142857 |
+| ELECTRICITY | 0.9565217391304348 | 0.9090909090909091 |
+| STREETLIGHT | 0.9600000000000001 | 0.923076923076923 |
+| DRAINAGE | 0.8571428571428571 | 0.8571428571428571 |
+| HEALTH | 0.5714285714285714 | 0.0 |
+| TAX | 0.9600000000000001 | 1.0 |
+| OTHER | 0.9333333333333333 | 1.0 |
+
+### Training history
+
+The first MuRIL run on unrelabelled data scored Tier 1 accuracy `0.83` and
+DRAINAGE recall `0.053` on the full evaluation set because the training labels
+for DRAINAGE, HEALTH, and SANITATION overlapped. D-10's rule-based relabelling
+fixed this training-label overlap. The published model is the second run,
+trained on the relabelled data.
+
+### Known limitations
+
+- HEALTH recall is `0.0` on the Tier 1 evaluation set (8 rows): 5 were
+  predicted as SANITATION and 3 as DRAINAGE, so HEALTH complaints are likely
+  to be misrouted.
+- The Tier 1 evaluation set has only 100 AI-authored rows. Its rows are short
+  and parallel, making accuracy an optimistic estimate; the approximately
+  `0.01` accuracy gap between MuRIL (`0.89`) and the baseline (`0.88`) is not
+  meaningful.
+- Tier 2 results are experimental and rest on only 10 unverified rows per
+  language.
+- The baseline report predates D-10 label normalization, so the baseline and
+  MuRIL training data are not directly equivalent.
+- Generated examples are synthetic and LLM-drafted. The review log above
+  records AI pre-flagging and developer spot-checks; the full sample was not
+  independently read line by line by a human, and remaining rows are
+  unreviewed.
 - The `verified` column is `false` for every generated row. It is not a
-  substitute for the independent evaluation set described above, which must
-  remain separate and must never be used for training.
+  substitute for the independent evaluation set, which must remain separate
+  and must never be used for training.
 - Prompt constraints and automated validation reduce common defects but do
   not establish factuality, native-speaker quality, or label correctness.
 - The baseline metrics report is generated from the local training split and
