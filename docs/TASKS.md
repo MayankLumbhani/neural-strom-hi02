@@ -101,10 +101,11 @@ Language tiers used in this file:
   - Commit: `docs(ml): add MuRIL evaluation results and model card`
   - Notes: The best checkpoint was evaluated during T-10; its unchanged metrics were published from `ml/artifacts/muril_metrics.json` to `ml/reports/muril_metrics.json`, with the overall confusion matrix exported separately.
 
-- [ ] **T-12** Classifier interface and implementations
+- [x] **T-12** Classifier interface and implementations
   - `Classifier` protocol, `Prediction` model, `BaselineClassifier`, `MurilClassifier`, a deterministic `FakeClassifier` for tests, factory chosen by `CLASSIFIER_BACKEND`, model loaded once at startup, `/ready` now reports model status.
   - Done when: unit tests pass using the fake, and a manual check loads the real model.
   - Commit: `feat(nlp): add classifier interface with baseline, MuRIL and fake implementations`
+  - Notes: Ruff, mypy, and all 102 tests passed; the published MuRIL model loaded and produced a synthetic WATER prediction.
 
 ## Phase 3: Core features (target: Nov 1 to 2)
 

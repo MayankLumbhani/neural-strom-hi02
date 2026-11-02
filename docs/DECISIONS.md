@@ -112,4 +112,4 @@ Short log of technology and design choices. Newest at the bottom. Format: contex
 - **Context:** Tier 1 overall accuracy is comparable for MuRIL (0.89) and the baseline (0.880); a gap of this size is not meaningful on 100 AI-authored rows. The baseline has substantially better HEALTH F1 (0.57 versus 0.0) and is faster and lighter for the free hosting tier.
 - **Decision:** Use the TF-IDF baseline as the default classifier backend. Keep the fine-tuned MuRIL model (`MayankLumbhani/hi02-muril-grievance`) as an optional backend selected through the existing `CLASSIFIER_BACKEND` environment variable.
 - **Alternatives:** Make the published MuRIL model the default, or select a backend without configuration.
-- **Consequences:** `CLASSIFIER_BACKEND` defaults to `baseline`; `muril` and `onnx` remain optional runtime choices, while `fake` is test-only. A later MuRIL retrain may prompt a review of this decision.
+- **Consequences:** `CLASSIFIER_BACKEND` defaults to `baseline`; `muril` is the optional model runtime, while `fake` is test-only. ONNX inference remains future work. A later MuRIL retrain may prompt a review of this decision.

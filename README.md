@@ -41,11 +41,12 @@ supported variables and local examples are listed in `.env.example`. API
 responses include an `X-Request-ID` for correlation. Request logs are JSON and
 include request metadata only, never request bodies.
 
-The API currently provides `GET /health` for liveness and `GET /ready` for
-readiness. Database and model readiness are reported as `unknown` until those
-components are implemented. GitHub Actions runs Ruff, mypy, and pytest on pushes
-to `main` and pull requests targeting `main`; application features are tracked
-in [docs/TASKS.md](docs/TASKS.md).
+The API provides `GET /health` for liveness and `GET /ready` for readiness.
+The configured classifier loads once at startup; readiness reports
+`model=ready` or returns HTTP 503 with `model=unavailable` and an initialization
+error. Database readiness remains `unknown`. GitHub Actions runs Ruff, mypy,
+and pytest on pushes to `main` and pull requests targeting `main`; application
+features are tracked in [docs/TASKS.md](docs/TASKS.md).
 
 ## Language support
 

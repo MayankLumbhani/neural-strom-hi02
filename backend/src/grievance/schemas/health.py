@@ -12,8 +12,9 @@ class HealthResponse(BaseModel):
 
 
 class ReadinessResponse(BaseModel):
-    """Readiness response before database and model checks are implemented."""
+    """Readiness response including classifier initialization status."""
 
-    status: Literal["ready"]
+    status: Literal["ready", "not_ready"]
     db: Literal["unknown"]
-    model: Literal["unknown"]
+    model: Literal["ready", "unavailable"]
+    model_error: str | None = None

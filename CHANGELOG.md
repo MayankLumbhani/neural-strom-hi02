@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added the classifier protocol, validated prediction model, TF-IDF and MuRIL backends, deterministic fake, startup factory, and classifier-aware readiness reporting.
 - Published the existing MuRIL evaluation metrics and overall confusion matrix under `ml/reports/`, documented tiered/per-language results, and completed T-11.
 - Recorded D-14: use the TF-IDF baseline as the default classifier backend and keep the published MuRIL model optional.
 - Recorded fine-tuned MuRIL evaluation metrics and baseline comparison, configured the published Hub model, and completed T-10; documented the HEALTH recall limitation.

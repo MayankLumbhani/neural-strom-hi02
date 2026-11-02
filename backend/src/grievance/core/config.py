@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     jwt_secret: SecretStr | None = None
     jwt_expire_minutes: int = Field(default=60, gt=0)
     cors_origins: str = ""
-    classifier_backend: Literal["muril", "onnx", "baseline"] = "baseline"
+    classifier_backend: Literal["muril", "baseline", "fake"] = "baseline"
     model_name_or_path: str | None = None
     hf_token: SecretStr | None = None
     classifier_high_threshold: float = Field(default=0.75, gt=0, le=1)

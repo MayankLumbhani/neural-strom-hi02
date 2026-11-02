@@ -180,10 +180,10 @@ class Prediction(BaseModel):
 Implementations:
 - `MurilClassifier`: fine-tuned `google/muril-base-cased`, 9 classes, softmax confidence. MuRIL was pretrained on transliterated as well as native-script Indian text, which helps with Hinglish. This is validated by per-language metrics, not assumed.
 - `BaselineClassifier`: TF-IDF (character n-grams) plus Logistic Regression, the default backend and a lightweight alternative to MuRIL.
-- `OnnxClassifier` (optional): the quantized export of the MuRIL model for faster CPU inference. Latency gain is measured, not assumed.
+- ONNX export and inference are a future optional optimization; no ONNX backend is currently selectable.
 - `FakeClassifier`: deterministic test implementation; not a runtime backend choice.
 
-The active runtime implementation is chosen by `CLASSIFIER_BACKEND`, which defaults to `baseline` and accepts `baseline`, `muril`, or `onnx`. The model is loaded once at startup and reused.
+The active runtime implementation is chosen by `CLASSIFIER_BACKEND`, which defaults to `baseline` and accepts `baseline` or `muril`; `fake` is available only in tests. The classifier is loaded once during application startup and reused. `/ready` reports `model=ready` after initialization or returns HTTP 503 with `model=unavailable` and a safe initialization error.
 
 ### 6.3 Extraction
 - Goal: pull a free-text location (area, landmark, ward, street) from the complaint.
@@ -266,7 +266,7 @@ Base path `/api/v1`. Full request and response examples live in `docs/API.md`.
 | `POST /chat/messages` | Send a citizen message | `{ conversation_id?, text }` | `{ conversation_id, state, language, reply: { text, quick_replies[] }, ticket? }` |
 | `GET /tickets/{public_id}` | Public status lookup | none | `{ public_id, status, department, location, created_at, updated_at, public_events[] }` |
 | `GET /health` | Liveness | none | `{ status: "ok" }` |
-| `GET /ready` | Readiness (database and model) | none | `{ status: "ready", db: "unknown", model: "unknown" }` until those checks are implemented |
+| `GET /ready` | Readiness (database and model) | none | HTTP 200 `{ status: "ready", db: "unknown", model: "ready", model_error: null }`; HTTP 503 reports `not_ready`, `model: "unavailable"` and a safe `model_error` when classifier initialization fails |
 
 ### Auth
 | Method and path | Purpose | Request | Response |
@@ -307,7 +307,7 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 | `DATABASE_URL` | Postgres connection string |
 | `JWT_SECRET`, `JWT_EXPIRE_MINUTES` | Auth |
 | `CORS_ORIGINS` | Allowed frontend origins |
-| `CLASSIFIER_BACKEND` | Runtime backend: `baseline` (default), `muril` or `onnx`; `fake` is test-only |
+| `CLASSIFIER_BACKEND` | Runtime backend: `baseline` (default) or `muril`; `fake` is test-only |
 | `MODEL_NAME_OR_PATH`, `HF_TOKEN` | Published classifier model path and optional Hugging Face Hub access token |
 | `CLASSIFIER_HIGH_THRESHOLD`, `CLASSIFIER_LOW_THRESHOLD` | Confidence policy |
 | `LLM_ENABLED`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `LLM_TIMEOUT_SECONDS` | Optional extraction helper and offline Gemini dataset generation; per-request timeout defaults to 60 seconds and the model has no default |

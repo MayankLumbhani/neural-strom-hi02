@@ -64,6 +64,12 @@ def test_llm_timeout_default_is_suitable_for_generation_requests() -> None:
     assert Settings(_env_file=None).llm_timeout_seconds == 60
 
 
+def test_classifier_backend_defaults_to_baseline_and_accepts_fake_for_tests() -> None:
+    """Use baseline in production by default and allow deterministic test injection."""
+    assert Settings(_env_file=None).classifier_backend == "baseline"
+    assert Settings(_env_file=None, classifier_backend="fake").classifier_backend == "fake"
+
+
 def test_settings_reject_inverted_confidence_thresholds() -> None:
     """Require the low classifier threshold to remain below the high threshold."""
     with pytest.raises(ValidationError):
