@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added the multilingual citizen chat UI with API-backed conversation handling, quick-reply clarification, readiness retries, tier-aware replies, and ticket confirmation; chat responses now include language tier metadata.
 - Added the token-backed civic design system, accessible base components, development-only multilingual `/design` preview, and CI token enforcement; updated border tokens to meet UI contrast guidance and completed T-21b.
 - Added the React/Vite/TypeScript/Tailwind frontend scaffold, routing, typed API client, script-aware font loading, ESLint, and frontend CI checks; completed T-21.
 - Added configurable per-IP sliding-window limits for public chat/status routes, standard 429 responses, and browser security headers; documented the process-local quota scope in D-15 and completed T-20.

@@ -35,6 +35,7 @@ Response:
   "conversation_id": "00000000-0000-0000-0000-000000000000",
   "state": "TICKET_CREATED",
   "language": "en",
+  "language_tier": 1,
   "reply": {
     "text": "Your complaint has been filed. Ticket ID: FMC-261102-AB12. Department: Water Supply.",
     "quick_replies": []
@@ -49,8 +50,9 @@ Response:
 
 During clarification, `state` is `AWAITING_DEPARTMENT` or
 `AWAITING_LOCATION`; the response includes the localized prompt and optional
-department `quick_replies`. No ticket is returned until filing or a ticket
-status lookup.
+department `quick_replies`. `language_tier` comes from the language registry
+and lets clients identify experimental Tier 2 replies. No ticket is returned
+until filing or a ticket status lookup.
 
 ## Look up ticket status
 

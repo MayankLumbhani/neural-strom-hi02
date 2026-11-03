@@ -1,33 +1,46 @@
+import { useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { ChatPage } from "@/features/chat/ChatPage";
 import { DesignPreviewPage } from "@/pages/DesignPreviewPage";
-import { getDesignMessages, type UiLanguage } from "@/lib/i18n";
+import type { UiLanguage } from "@/lib/i18n";
 import type { ReactNode } from "react";
 
-function ScaffoldPage({ language }: { language: UiLanguage }) {
-  const messages = getDesignMessages(language);
-
-  return (
-    <main lang={language}>
-      <h1>{messages.title}</h1>
-      <p>{messages.description}</p>
-    </main>
-  );
+interface AppRoutesProps {
+  language: UiLanguage;
+  onLanguageChange: (language: UiLanguage) => void;
 }
 
-function AppRoutes({ language }: { language: UiLanguage }) {
+function AppRoutes({ language, onLanguageChange }: AppRoutesProps) {
   const routes: ReactNode[] = [];
   if (import.meta.env.DEV) {
     routes.push(<Route element={<DesignPreviewPage />} key="design" path="/design" />);
   }
-  routes.push(<Route element={<ScaffoldPage language={language} />} key="home" path="*" />);
+  routes.push(
+    <Route
+      element={
+        <ChatPage language={language} onLanguageChange={onLanguageChange} />
+      }
+      key="home"
+      path="*"
+    />,
+  );
 
   return <Routes>{routes}</Routes>;
 }
 
 export function App({ language }: { language: UiLanguage }) {
+  const [uiLanguage, setUiLanguage] = useState(language);
+
+  useEffect(() => {
+    document.documentElement.lang = uiLanguage;
+  }, [uiLanguage]);
+
   return (
     <BrowserRouter>
-      <AppRoutes language={language} />
+      <AppRoutes
+        language={uiLanguage}
+        onLanguageChange={setUiLanguage}
+      />
     </BrowserRouter>
   );
 }

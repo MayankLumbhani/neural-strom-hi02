@@ -211,4 +211,5 @@ Save 3 to 5 screenshots of UIs you like in `docs/design-refs/` with a one-line n
 | Base components (Button, Input, Card, StatusBadge, ChatBubble, QuickReply, TicketCard, Table, Drawer, states) | Implemented (T-21b) |
 | `/design` dev preview page | Implemented with English, Hindi, and Gujarati previews (T-21b) |
 | Token check script in CI | Implemented (T-21b) |
-| Chat, status, dashboard, analytics, login screens | Planned (T-22 to T-25) |
+| Citizen chat | Implemented (T-22); multilingual complaint flow, clarifications, and ticket confirmation |
+| Status, dashboard, analytics, login screens | Planned (T-23 to T-25) |

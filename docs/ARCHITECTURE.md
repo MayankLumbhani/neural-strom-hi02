@@ -273,7 +273,7 @@ Base path `/api/v1`. Full request and response examples live in `docs/API.md`.
 ### Public
 | Method and path | Purpose | Request | Response |
 |---|---|---|---|
-| `POST /api/v1/chat/messages` | Send a citizen message | `{ conversation_id?, text }` | `{ conversation_id, state, language, reply: { text, quick_replies[] }, ticket? }` |
+| `POST /api/v1/chat/messages` | Send a citizen message | `{ conversation_id?, text }` | `{ conversation_id, state, language, language_tier, reply: { text, quick_replies[] }, ticket? }` |
 | `GET /api/v1/tickets/{public_id}` | Public status lookup | none | `{ public_id, status, department, location, created_at, updated_at, public_events[] }`; complaint and contact details are excluded |
 | `GET /health` | Liveness | none | `{ status: "ok" }` |
 | `GET /ready` | Readiness (database and model) | none | HTTP 200 `{ status: "ready", db: "unknown", model: "ready", model_error: null }`; HTTP 503 reports `not_ready`, `model: "unavailable"` and a safe `model_error` when classifier initialization fails |
@@ -337,7 +337,8 @@ frontend/
   src/
     App.tsx        React Router shell
     components/ui/ token-backed accessible base components
-    features/      chat, tickets, dashboard, and auth (future tasks)
+    features/chat/ citizen chat screen and message flow
+    features/      tickets, dashboard, and auth (future tasks)
     lib/           typed API client, config, i18n, font loader
     pages/         development-only /design preview and future app pages
     styles/        design tokens and shadcn variable mappings
@@ -359,6 +360,12 @@ frontend/
   `npm ci`, copy `frontend/.env.example` to `frontend/.env`, then run
   `npm run dev` from that directory. `VITE_API_BASE_URL` configures the typed
   REST client and has no production URL default.
+- The root route provides the citizen chat. It sends messages through the typed
+  `/api/v1/chat/messages` client, keeps the returned conversation ID for
+  follow-ups, renders backend quick replies and ticket confirmations, and
+  displays registry language metadata on each message. Before the first POST,
+  it retries the safe `/ready` GET while a sleeping service starts; it does not
+  automatically retry chat POSTs.
 - ESLint and the production TypeScript/Vite build run in CI. Tier 1 Latin,
   Devanagari, and Gujarati fonts load initially; `loadScriptFont` loads the
   other Noto Sans registry scripts on demand.
@@ -434,9 +441,9 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Auth and officer endpoints | Implemented with HS256 bearer tokens, active-account checks, department-scoped list/detail/update operations, and offline API tests |
 | Analytics endpoint | Implemented with role-scoped grouped counts, average resolution time, and seeded-data integration tests |
 | Escalation job | Implemented with APScheduler, atomic idempotent updates, transactional system events, demo-mode minute SLAs, and offline integration tests |
-| Frontend scaffold | Implemented (T-21); routes and feature screens remain planned |
+| Frontend scaffold | Implemented (T-21); citizen chat route added in T-22 |
 | Design tokens and base component library | Implemented (T-21b); CI token check and multilingual preview in place |
-| Frontend chat | Planned |
+| Frontend chat | Implemented (T-22); multilingual complaint flow, clarifications, readiness retry, and ticket confirmation |
 | Frontend dashboard and analytics | Planned |
 | Deployment (HF Spaces, Vercel, Neon) | Planned |
 | Load test and SCALING.md | Planned |

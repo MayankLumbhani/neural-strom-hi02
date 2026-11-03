@@ -260,6 +260,12 @@ const messages = {
 
 export type UiLanguage = keyof typeof messages;
 
+export const UI_LANGUAGES: readonly { code: UiLanguage; label: string }[] = [
+  { code: "en", label: "English" },
+  { code: "hi", label: "हिन्दी" },
+  { code: "gu", label: "ગુજરાતી" },
+];
+
 export function resolveUiLanguage(browserLanguage: string): UiLanguage {
   const languageCode = browserLanguage.split("-")[0]?.toLowerCase();
   return isUiLanguage(languageCode) ? languageCode : "en";

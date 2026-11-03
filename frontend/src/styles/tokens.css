@@ -148,6 +148,18 @@
   }
 }
 
+@layer components {
+  .chat-typing-dot {
+    animation: chat-typing var(--motion-base) var(--motion-ease) infinite alternate;
+  }
+
+  @keyframes chat-typing {
+    to {
+      opacity: 0.4;
+    }
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

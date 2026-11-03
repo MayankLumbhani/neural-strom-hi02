@@ -17,6 +17,12 @@ const eagerlyLoadedScripts = new Set<RegistryScript>([
   "Devanagari",
   "Gujarati",
 ]);
+const scriptMatchers = new Map(
+  (Object.keys(fontFamiliesByScript) as RegistryScript[]).map((script) => [
+    script,
+    new RegExp(String.raw`\p{Script=${script}}`, "u"),
+  ]),
+);
 const pendingFonts = new Map<RegistryScript, Promise<void>>();
 
 export function loadScriptFont(script: RegistryScript): Promise<void> {
@@ -49,4 +55,12 @@ export function loadScriptFont(script: RegistryScript): Promise<void> {
 
   pendingFonts.set(script, request);
   return request;
+}
+
+/** Load any supported script fonts needed by the supplied text. */
+export function loadFontsForText(text: string): Promise<void[]> {
+  const requests = Array.from(scriptMatchers, ([script, matcher]) =>
+    matcher.test(text) ? loadScriptFont(script) : undefined,
+  ).filter((request): request is Promise<void> => request !== undefined);
+  return Promise.all(requests);
 }

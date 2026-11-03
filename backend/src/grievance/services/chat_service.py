@@ -12,6 +12,7 @@ from grievance.models import Conversation, Ticket
 from grievance.nlp.classifier import Classifier, Prediction
 from grievance.nlp.extraction import extract_location
 from grievance.nlp.language import detect_language
+from grievance.nlp.languages import LANGUAGES
 from grievance.nlp.template_loader import load_templates
 from grievance.repositories.conversation_repository import (
     add_message,
@@ -381,6 +382,7 @@ class ChatService:
             conversation_id=conversation.id,
             state=state,
             language=language_code,
+            language_tier=LANGUAGES[language_code].tier,
             reply=ChatReply(text=text, quick_replies=quick_replies or []),
             ticket=ticket,
         )

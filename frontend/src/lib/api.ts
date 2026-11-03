@@ -20,8 +20,16 @@ export interface ChatMessageResponse {
   conversation_id: string;
   state: string;
   language: string;
+  language_tier: number;
   reply: ChatReply;
   ticket: ChatTicketSummary | null;
+}
+
+export interface ReadinessResponse {
+  status: string;
+  db: string;
+  model: string;
+  model_error: string | null;
 }
 
 export interface PublicTicketEvent {
@@ -124,6 +132,10 @@ export function sendChatMessage(
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export function getBackendReadiness(): Promise<ReadinessResponse> {
+  return requestJson<ReadinessResponse>("/ready");
 }
 
 export function getTicketStatus(publicId: string): Promise<PublicTicketResponse> {

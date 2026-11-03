@@ -171,10 +171,11 @@ Language tiers used in this file:
   - Commit: `feat(frontend): add design tokens and base component library`
   - Notes: Added semantic design tokens/Tailwind mappings, accessible base components, an English/Hindi/Gujarati dev preview, and CI enforcement against raw colors, default palette classes, and arbitrary utilities. Border tokens were darkened to meet the documented 3:1 UI-boundary contrast target.
 
-- [ ] **T-22** Chat UI
+- [x] **T-22** Chat UI
   - Chat window, message list, quick-reply buttons, ticket confirmation card, language-aware rendering, "waking up the server" state, error handling.
   - Done when: you can file a Gujarati, a Hinglish and an ambiguous complaint end to end locally.
   - Commit: `feat(frontend): add chat interface`
+  - Notes: Added the responsive multilingual citizen chat, language-aware message rendering, registry-tier notices, server readiness retries, quick-reply clarification flow, and ticket confirmation cards. Gujarati, Hinglish, and ambiguous flows verified in the local UI against the chat API.
 
 - [ ] **T-23** Status page
   - `/status` page with ticket ID input, status timeline and public notes.
@@ -282,3 +283,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-10-31: implemented the deterministic synthetic dataset generator and documented its settings; Tier 1 manual review remains pending.
 - 2026-11-03: completed T-21 frontend tooling, routing, typed API client, script-font loading and CI checks.
 - 2026-11-03: completed T-21b design tokens, base components, multilingual preview and CI token check.
+- 2026-11-03: completed T-22 multilingual citizen chat with API-backed clarifications and ticket confirmation.

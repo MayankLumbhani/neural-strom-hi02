@@ -13,8 +13,8 @@ import type { TicketStatus } from "@/components/ui/ticket-status";
 export interface TicketCardProps {
   ticketId: string;
   department: string;
-  location: string;
-  filedAt: string;
+  location?: string;
+  filedAt?: string;
   status: TicketStatus;
   statusLabel: string;
   labels: {
@@ -60,8 +60,10 @@ export function TicketCard({
       </CardHeader>
       <dl className="grid gap-3 border-y border-dashed py-4">
         <TicketDetail label={labels.department} value={department} />
-        <TicketDetail label={labels.location} value={location} />
-        <TicketDetail label={labels.filedAt} value={filedAt} />
+        {location ? (
+          <TicketDetail label={labels.location} value={location} />
+        ) : null}
+        {filedAt ? <TicketDetail label={labels.filedAt} value={filedAt} /> : null}
       </dl>
       <CardContent className="mt-4 flex flex-wrap items-center justify-between gap-3">
         <StatusBadge label={statusLabel} status={status} />

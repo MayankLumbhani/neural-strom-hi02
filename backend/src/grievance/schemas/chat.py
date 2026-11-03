@@ -27,6 +27,7 @@ class ChatResponse(BaseModel):
     conversation_id: UUID
     state: str
     language: str
+    language_tier: int = Field(ge=1)
     reply: ChatReply
     ticket: ChatTicketSummary | None = None
 

@@ -25,17 +25,9 @@ import {
 import { TICKET_STATUSES } from "@/components/ui/ticket-status";
 import {
   getDesignMessages,
+  UI_LANGUAGES,
   type UiLanguage,
 } from "@/lib/i18n";
-
-const availableLanguages: Array<{
-  code: UiLanguage;
-  labelKey: "languageEnglish" | "languageHindi" | "languageGujarati";
-}> = [
-  { code: "en", labelKey: "languageEnglish" },
-  { code: "hi", labelKey: "languageHindi" },
-  { code: "gu", labelKey: "languageGujarati" },
-];
 
 export function DesignPreviewPage() {
   const [language, setLanguage] = useState<UiLanguage>("en");
@@ -57,7 +49,7 @@ export function DesignPreviewPage() {
         <fieldset className="grid gap-2">
           <legend className="font-semibold">{copy.languageLabel}</legend>
           <div className="flex flex-wrap gap-2" role="group">
-            {availableLanguages.map(({ code, labelKey }) => (
+            {UI_LANGUAGES.map(({ code, label }) => (
               <Button
                 aria-pressed={language === code}
                 key={code}
@@ -67,7 +59,7 @@ export function DesignPreviewPage() {
                 }}
                 variant={language === code ? "primary" : "secondary"}
               >
-                {copy[labelKey]}
+                {label}
               </Button>
             ))}
           </div>

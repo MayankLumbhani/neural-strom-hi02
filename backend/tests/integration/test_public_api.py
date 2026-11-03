@@ -81,8 +81,25 @@ def test_post_chat_message_creates_ticket(public_api: tuple[TestClient, Engine])
     body = response.json()
     assert body["state"] == "TICKET_CREATED"
     assert body["language"] == "en"
+    assert body["language_tier"] == 1
     assert body["ticket"]["department"] == "Water Supply"
     assert body["ticket"]["ticket_id"].startswith("FMC-")
+
+
+def test_chat_response_marks_experimental_language_tier(
+    public_api: tuple[TestClient, Engine],
+) -> None:
+    """Return registry tier metadata so the client can identify experimental replies."""
+    client, _ = public_api
+
+    response = client.post(
+        "/api/v1/chat/messages",
+        json={"text": "எங்கள் பகுதியில் தண்ணீர் வரவில்லை"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["language"] == "ta"
+    assert response.json()["language_tier"] == 2
 
 
 def test_chat_endpoint_persists_missing_location_follow_up(
