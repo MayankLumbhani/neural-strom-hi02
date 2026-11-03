@@ -99,7 +99,6 @@
   *::before,
   *::after {
     border-color: var(--color-border);
-    border-width: var(--border-width);
   }
 
   html {
