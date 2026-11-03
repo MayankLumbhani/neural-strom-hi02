@@ -9,6 +9,7 @@ export interface ChatExample {
 export interface ChatMessages {
   serviceName: string;
   serviceDescription: string;
+  statusLink: string;
   languageLabel: string;
   welcomeTitle: string;
   welcomeDescription: string;
@@ -39,6 +40,7 @@ const translations: Record<UiLanguage, ChatMessages> = {
   en: {
     serviceName: "Furfuri Nagar Municipal Corporation",
     serviceDescription: "Citizen grievance service",
+    statusLink: "Check ticket status",
     languageLabel: "Interface language",
     welcomeTitle: "How can we help?",
     welcomeDescription:
@@ -87,6 +89,7 @@ const translations: Record<UiLanguage, ChatMessages> = {
   hi: {
     serviceName: "फुरफुरी नगर नगर निगम",
     serviceDescription: "नागरिक शिकायत सेवा",
+    statusLink: "टिकट की स्थिति देखें",
     languageLabel: "इंटरफ़ेस की भाषा",
     welcomeTitle: "हम आपकी कैसे मदद कर सकते हैं?",
     welcomeDescription:
@@ -135,6 +138,7 @@ const translations: Record<UiLanguage, ChatMessages> = {
   gu: {
     serviceName: "ફુરફુરી નગર મહાનગરપાલિકા",
     serviceDescription: "નાગરિક ફરિયાદ સેવા",
+    statusLink: "ટિકિટની સ્થિતિ જુઓ",
     languageLabel: "ઇન્ટરફેસની ભાષા",
     welcomeTitle: "અમે તમારી કેવી રીતે મદદ કરી શકીએ?",
     welcomeDescription:

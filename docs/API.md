@@ -62,9 +62,31 @@ until filing or a ticket status lookup.
 `GET /api/v1/tickets/{public_id}`
 
 The response contains the public ticket ID, localized status and department,
-location, creation/update timestamps, and events explicitly marked public.
-Complaint text, contact details, and private event notes are never returned.
-Unknown IDs return HTTP 404.
+the ticket's registry `language`, location, creation/update timestamps, and
+events explicitly marked public. The language identifies the locale of the
+returned status, department, and event labels. Complaint text, contact details,
+and private event notes are never returned. Unknown IDs return HTTP 404.
+
+```json
+{
+  "public_id": "FMC-261103-AB12",
+  "language": "en",
+  "status_code": "ASSIGNED",
+  "status": "Assigned",
+  "department": "Water Supply",
+  "location": "Ward 04, Neem Chowk",
+  "created_at": "2026-11-03T08:30:00Z",
+  "updated_at": "2026-11-03T08:45:00Z",
+  "public_events": [
+    {
+      "from_status": "Filed",
+      "to_status": "Assigned",
+      "note": "A crew will inspect the issue.",
+      "created_at": "2026-11-03T08:45:00Z"
+    }
+  ]
+}
+```
 
 ## Officer and administrator authentication
 

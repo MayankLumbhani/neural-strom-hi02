@@ -175,6 +175,16 @@ def test_public_ticket_lookup_returns_only_public_fields(
                 from_status="FILED",
                 to_status="ASSIGNED",
                 actor_type="officer",
+                note="A crew will inspect the issue.",
+                is_public=True,
+            )
+        )
+        session.add(
+            TicketEvent(
+                ticket_id=ticket.id,
+                from_status="ASSIGNED",
+                to_status="ASSIGNED",
+                actor_type="officer",
                 note="internal synthetic note",
                 is_public=False,
             )
@@ -187,10 +197,13 @@ def test_public_ticket_lookup_returns_only_public_fields(
     assert response.status_code == 200
     body = response.json()
     assert body["public_id"] == public_id
+    assert body["language"] == "en"
+    assert body["status_code"] == "FILED"
     assert body["status"] == "Filed"
     assert body["department"] == "Water Supply"
     assert body["location"] == "Ward 2"
-    assert len(body["public_events"]) == 1
+    assert len(body["public_events"]) == 2
+    assert any(event["note"] == "A crew will inspect the issue." for event in body["public_events"])
     assert "private synthetic complaint" not in response.text
     assert "5550101234" not in response.text
     assert "internal synthetic note" not in response.text

@@ -80,10 +80,12 @@ npm run dev
 ```
 
 Set `VITE_API_BASE_URL` in `frontend/.env` to the backend origin. The
-frontend provides the citizen chat at `/`, backed by the typed chat API. It
-supports Gujarati, Hinglish, ambiguous complaint clarification, and ticket
-confirmation; the interface can be switched between English, Hindi, and
-Gujarati. Keep the backend running locally while using the chat.
+frontend provides the citizen chat at `/` and public ticket lookup at
+`/status`, backed by the typed API. The status page shows localized ticket
+details and public status updates, and explains when an ID is not found. The
+chat supports Gujarati, Hinglish, ambiguous complaint clarification, and
+ticket confirmation; the interface can be switched between English, Hindi,
+and Gujarati. Keep the backend running locally while using the frontend.
 Staff screens are tracked in [docs/TASKS.md](docs/TASKS.md).
 While the Vite dev server is running, visit `/design` to preview the shared
 base components in English, Hindi, and Gujarati. `npm run check:design-tokens`,

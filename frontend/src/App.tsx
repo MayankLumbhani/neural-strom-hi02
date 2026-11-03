@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ChatPage } from "@/features/chat/ChatPage";
+import { StatusPage } from "@/features/status/StatusPage";
 import { DesignPreviewPage } from "@/pages/DesignPreviewPage";
-import type { UiLanguage } from "@/lib/i18n";
 import type { ReactNode } from "react";
+import type { UiLanguage } from "@/lib/i18n";
 
 interface AppRoutesProps {
   language: UiLanguage;
@@ -16,6 +17,11 @@ function AppRoutes({ language, onLanguageChange }: AppRoutesProps) {
     routes.push(<Route element={<DesignPreviewPage />} key="design" path="/design" />);
   }
   routes.push(
+    <Route
+      element={<StatusPage language={language} />}
+      key="status"
+      path="/status"
+    />,
     <Route
       element={
         <ChatPage language={language} onLanguageChange={onLanguageChange} />

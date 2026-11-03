@@ -39,8 +39,17 @@ export interface PublicTicketEvent {
   created_at: string;
 }
 
+export type TicketStatusCode =
+  | "FILED"
+  | "ASSIGNED"
+  | "IN_PROGRESS"
+  | "RESOLVED"
+  | "ESCALATED";
+
 export interface PublicTicketResponse {
   public_id: string;
+  language: string;
+  status_code: TicketStatusCode;
   status: string;
   department: string;
   location: string;

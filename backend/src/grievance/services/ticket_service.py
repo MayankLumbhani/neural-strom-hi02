@@ -22,7 +22,11 @@ from grievance.repositories.ticket_repository import (
     list_public_ticket_events,
     update_ticket,
 )
-from grievance.schemas.chat import PublicTicketEventResponse, PublicTicketResponse
+from grievance.schemas.chat import (
+    PublicTicketEventResponse,
+    PublicTicketResponse,
+    TicketStatusCode,
+)
 
 TicketActor = Literal["system", "officer", "citizen"]
 ID_ALPHABET = string.ascii_uppercase + string.digits
@@ -42,6 +46,23 @@ STATUS_TEMPLATE_KEYS = {
     "RESOLVED": "resolved",
     "ESCALATED": "escalated",
 }
+
+
+def _ticket_status_code(status: str) -> TicketStatusCode:
+    """Return a validated public status code for a persisted ticket status."""
+    match status:
+        case "FILED":
+            return "FILED"
+        case "ASSIGNED":
+            return "ASSIGNED"
+        case "IN_PROGRESS":
+            return "IN_PROGRESS"
+        case "RESOLVED":
+            return "RESOLVED"
+        case "ESCALATED":
+            return "ESCALATED"
+        case _:
+            raise ValueError(f"Unsupported ticket status: {status}")
 
 
 def department_display_name(department: Department, language_code: str) -> str:
@@ -202,6 +223,8 @@ class TicketService:
         events = list_public_ticket_events(self._session, ticket.id)
         return PublicTicketResponse(
             public_id=ticket.public_id,
+            language=ticket.language,
+            status_code=_ticket_status_code(ticket.status),
             status=ticket_status_label(ticket.status, ticket.language),
             department=department_name,
             location=ticket.location_text,

@@ -17,6 +17,7 @@ export interface TicketCardProps {
   filedAt?: string;
   status: TicketStatus;
   statusLabel: string;
+  valueLanguage?: string;
   labels: {
     title: string;
     department: string;
@@ -35,6 +36,7 @@ export function TicketCard({
   filedAt,
   status,
   statusLabel,
+  valueLanguage,
   labels,
 }: TicketCardProps) {
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">(
@@ -59,14 +61,26 @@ export function TicketCard({
         </p>
       </CardHeader>
       <dl className="grid gap-3 border-y border-dashed py-4">
-        <TicketDetail label={labels.department} value={department} />
+        <TicketDetail
+          label={labels.department}
+          value={department}
+          valueLanguage={valueLanguage}
+        />
         {location ? (
-          <TicketDetail label={labels.location} value={location} />
+          <TicketDetail
+            label={labels.location}
+            value={location}
+            valueLanguage={valueLanguage}
+          />
         ) : null}
         {filedAt ? <TicketDetail label={labels.filedAt} value={filedAt} /> : null}
       </dl>
       <CardContent className="mt-4 flex flex-wrap items-center justify-between gap-3">
-        <StatusBadge label={statusLabel} status={status} />
+        <StatusBadge
+          label={statusLabel}
+          lang={valueLanguage}
+          status={status}
+        />
         <Button onClick={copyTicketId} variant="secondary">
           {copyState === "copied" ? (
             <Check aria-hidden="true" className="icon" />
@@ -87,11 +101,21 @@ export function TicketCard({
   );
 }
 
-function TicketDetail({ label, value }: { label: string; value: string }) {
+function TicketDetail({
+  label,
+  value,
+  valueLanguage,
+}: {
+  label: string;
+  value: string;
+  valueLanguage?: string;
+}) {
   return (
     <div className="grid gap-1">
       <dt className="text-small text-ink-muted">{label}</dt>
-      <dd className="break-words text-body text-ink">{value}</dd>
+      <dd className="break-words text-body text-ink" lang={valueLanguage}>
+        {value}
+      </dd>
     </div>
   );
 }

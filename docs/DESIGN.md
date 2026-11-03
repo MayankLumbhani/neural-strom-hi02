@@ -139,7 +139,7 @@ Icons: one set only (Lucide), consistent 1.75px stroke, sized from tokens. **No 
 
 ### 5.2 Status page (`/status`)
 - Ticket ID field and a primary "Check status" button.
-- Result shows the TicketCard and a **vertical timeline** of public events (dot, label, time, note).
+- Result shows the shared **TicketCard** and a **vertical timeline** of public events (dot, label, time, note).
 - Not found state is friendly and suggests checking the ID.
 
 ### 5.3 Officer dashboard (`/dashboard`)
@@ -212,4 +212,5 @@ Save 3 to 5 screenshots of UIs you like in `docs/design-refs/` with a one-line n
 | `/design` dev preview page | Implemented with English, Hindi, and Gujarati previews (T-21b) |
 | Token check script in CI | Implemented (T-21b) |
 | Citizen chat | Implemented (T-22); multilingual complaint flow, clarifications, and ticket confirmation |
-| Status, dashboard, analytics, login screens | Planned (T-23 to T-25) |
+| Status page | Implemented (T-23); ticket lookup, ticket details, public event timeline, and missing-ticket state |
+| Dashboard, analytics, login screens | Planned (T-24 to T-25) |

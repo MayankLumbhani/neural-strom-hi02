@@ -177,10 +177,11 @@ Language tiers used in this file:
   - Commit: `feat(frontend): add chat interface`
   - Notes: Added the responsive multilingual citizen chat, language-aware message rendering, registry-tier notices, server readiness retries, quick-reply clarification flow, and ticket confirmation cards. Gujarati, Hinglish, and ambiguous flows verified in the local UI against the chat API.
 
-- [ ] **T-23** Status page
+- [x] **T-23** Status page
   - `/status` page with ticket ID input, status timeline and public notes.
   - Done when: lookup works for an existing and a missing ticket.
   - Commit: `feat(frontend): add ticket status page`
+  - Notes: Added a localized public ticket lookup and timeline; verified existing and missing IDs against the status API.
 
 - [ ] **T-24** Login and officer dashboard
   - Login form, protected routes, ticket table with filters, detail drawer, status update with note.
@@ -285,3 +286,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-11-03: completed T-21b design tokens, base components, multilingual preview and CI token check.
 - 2026-11-03: completed T-22 multilingual citizen chat with API-backed clarifications and ticket confirmation.
 - 2026-11-03: fixed chat follow-up replies using stale conversation language; backend API tests verify Gujarati and Hindi replies despite an English request-language header.
+- 2026-11-03: completed T-23 ticket status lookup with localized details, public event notes, and missing-ticket handling.

@@ -1,4 +1,5 @@
 import { Building2, LoaderCircle, Send } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   useEffect,
   useRef,
@@ -188,6 +189,12 @@ export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
               </Button>
             ))}
           </fieldset>
+          <Link
+            className="min-h-touch content-center text-small font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
+            to="/status"
+          >
+            {copy.statusLink}
+          </Link>
         </div>
       </header>
 

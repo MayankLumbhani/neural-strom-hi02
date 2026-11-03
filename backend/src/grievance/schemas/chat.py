@@ -1,9 +1,12 @@
 """Typed chat service and API response schemas."""
 
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
+
+TicketStatusCode = Literal["FILED", "ASSIGNED", "IN_PROGRESS", "RESOLVED", "ESCALATED"]
 
 
 class ChatReply(BaseModel):
@@ -54,6 +57,8 @@ class PublicTicketResponse(BaseModel):
     """Public ticket status and explicitly public event history."""
 
     public_id: str
+    language: str
+    status_code: TicketStatusCode
     status: str
     department: str
     location: str
