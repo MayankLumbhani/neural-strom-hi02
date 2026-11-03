@@ -58,6 +58,55 @@ export interface PublicTicketResponse {
   public_events: PublicTicketEvent[];
 }
 
+export interface LoginResponse {
+  access_token: string;
+  token_type: "bearer";
+  role: "ADMIN" | "DEPARTMENT_OFFICER";
+  department: string | null;
+}
+
+export type AdminTicketStatus =
+  | "FILED"
+  | "ASSIGNED"
+  | "IN_PROGRESS"
+  | "RESOLVED"
+  | "ESCALATED";
+
+export interface AdminTicketSummary {
+  public_id: string;
+  status: AdminTicketStatus;
+  department: string;
+  location: string;
+  language: string;
+  created_at: string;
+  status_changed_at: string;
+  escalation_level: number;
+}
+
+export interface AdminTicketEvent {
+  id: string;
+  from_status: AdminTicketStatus | null;
+  to_status: AdminTicketStatus;
+  actor_type: string;
+  note: string | null;
+  is_public: boolean;
+  created_at: string;
+}
+
+export interface AdminTicket extends AdminTicketSummary {
+  complaint_text: string;
+  contact_phone: string | null;
+  resolved_at: string | null;
+  events: AdminTicketEvent[];
+}
+
+export interface AdminTicketList {
+  items: AdminTicketSummary[];
+  total: number;
+  page: number;
+  page_size: number;
+}
+
 interface ApiErrorBody {
   error?: {
     code?: string;
@@ -150,5 +199,72 @@ export function getBackendReadiness(): Promise<ReadinessResponse> {
 export function getTicketStatus(publicId: string): Promise<PublicTicketResponse> {
   return requestJson<PublicTicketResponse>(
     `/api/v1/tickets/${encodeURIComponent(publicId)}`,
+  );
+}
+
+export function loginStaff(
+  username: string,
+  password: string,
+): Promise<LoginResponse> {
+  return requestJson<LoginResponse>("/api/v1/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  });
+}
+
+export function getAdminTickets(
+  accessToken: string,
+  filters: {
+    status?: AdminTicketStatus;
+    search?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    page: number;
+    pageSize: number;
+  },
+): Promise<AdminTicketList> {
+  const query = new URLSearchParams({
+    page: String(filters.page),
+    page_size: String(filters.pageSize),
+  });
+  if (filters.status) {
+    query.set("status", filters.status);
+  }
+  if (filters.search) {
+    query.set("q", filters.search);
+  }
+  if (filters.dateFrom) {
+    query.set("date_from", filters.dateFrom);
+  }
+  if (filters.dateTo) {
+    query.set("date_to", filters.dateTo);
+  }
+  return requestJson<AdminTicketList>(`/api/v1/admin/tickets?${query}`, {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+}
+
+export function getAdminTicket(
+  accessToken: string,
+  publicId: string,
+): Promise<AdminTicket> {
+  return requestJson<AdminTicket>(
+    `/api/v1/admin/tickets/${encodeURIComponent(publicId)}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } },
+  );
+}
+
+export function updateAdminTicketStatus(
+  accessToken: string,
+  publicId: string,
+  update: { status: AdminTicketStatus; note: string; is_public: boolean },
+): Promise<AdminTicket> {
+  return requestJson<AdminTicket>(
+    `/api/v1/admin/tickets/${encodeURIComponent(publicId)}/status`,
+    {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify(update),
+    },
   );
 }

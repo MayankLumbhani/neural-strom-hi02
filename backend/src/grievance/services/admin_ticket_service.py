@@ -1,5 +1,7 @@
 """Department-scoped ticket management for authenticated staff."""
 
+from datetime import date
+
 from sqlmodel import Session
 
 from grievance.core.config import Settings
@@ -33,6 +35,8 @@ class AdminTicketService:
         status: str | None,
         department_code: str | None,
         search: str | None,
+        date_from: date | None,
+        date_to: date | None,
         page: int,
         page_size: int,
     ) -> AdminTicketListResponse:
@@ -44,6 +48,8 @@ class AdminTicketService:
             status,
             department_code,
             search,
+            date_from,
+            date_to,
             (page - 1) * page_size,
             page_size,
         )

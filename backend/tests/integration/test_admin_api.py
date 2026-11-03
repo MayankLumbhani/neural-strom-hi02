@@ -174,6 +174,46 @@ def test_officer_list_and_detail_are_scoped_to_their_department(
     assert other_ticket.json()["error"]["code"] == "TICKET_NOT_FOUND"
 
 
+def test_admin_ticket_list_filters_by_inclusive_filing_dates(
+    admin_api: tuple[TestClient, Engine, Settings],
+) -> None:
+    """Apply the dashboard's inclusive date range to the scoped ticket queue."""
+    client, engine, _ = admin_api
+    today = datetime.now(UTC).date()
+    current_ticket_id = _create_ticket(engine, "WATER")
+    older_ticket_id = _create_ticket(engine, "WATER")
+    with Session(engine) as session:
+        current_ticket = session.exec(
+            select(Ticket).where(Ticket.public_id == current_ticket_id)
+        ).one()
+        older_ticket = session.exec(select(Ticket).where(Ticket.public_id == older_ticket_id)).one()
+        current_ticket.created_at = datetime.combine(today, datetime.min.time(), tzinfo=UTC)
+        older_ticket.created_at = datetime.combine(
+            today - timedelta(days=1),
+            datetime.min.time(),
+            tzinfo=UTC,
+        )
+        session.add_all([current_ticket, older_ticket])
+        session.commit()
+    token = _login(client, "water-officer", OFFICER_PASSWORD)
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = client.get(
+        f"/api/v1/admin/tickets?date_from={today}&date_to={today}",
+        headers=headers,
+    )
+    invalid_range = client.get(
+        f"/api/v1/admin/tickets?date_from={today}&date_to={today - timedelta(days=1)}",
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["total"] == 1
+    assert response.json()["items"][0]["public_id"] == current_ticket_id
+    assert invalid_range.status_code == 422
+    assert invalid_range.json()["error"]["code"] == "INVALID_DATE_RANGE"
+
+
 def test_officer_cannot_change_another_departments_ticket(
     admin_api: tuple[TestClient, Engine, Settings],
 ) -> None:
@@ -192,8 +232,13 @@ def test_officer_cannot_change_another_departments_ticket(
     allowed = client.patch(
         f"/api/v1/admin/tickets/{water_id}/status",
         headers=headers,
-        json={"status": "ASSIGNED", "note": "Officer accepted ticket"},
+        json={
+            "status": "ASSIGNED",
+            "note": "Officer accepted ticket",
+            "is_public": True,
+        },
     )
+    public_status = client.get(f"/api/v1/tickets/{water_id}")
 
     with Session(engine) as session:
         roads_ticket = session.exec(select(Ticket).where(Ticket.public_id == roads_id)).one()
@@ -205,6 +250,9 @@ def test_officer_cannot_change_another_departments_ticket(
     assert allowed.status_code == 200
     assert allowed.json()["status"] == "ASSIGNED"
     assert allowed.json()["events"][-1]["note"] == "Officer accepted ticket"
+    assert public_status.status_code == 200
+    assert public_status.json()["status_code"] == "ASSIGNED"
+    assert public_status.json()["public_events"][-1]["note"] == "Officer accepted ticket"
     assert roads_ticket.status == "FILED"
     assert roads_event_notes == [None]
 

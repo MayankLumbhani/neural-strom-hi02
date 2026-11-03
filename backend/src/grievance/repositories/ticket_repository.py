@@ -1,5 +1,6 @@
 """Ticket and ticket-event persistence operations."""
 
+from datetime import UTC, date, datetime, time, timedelta
 from uuid import UUID
 
 from sqlalchemy import func, or_, true
@@ -37,6 +38,8 @@ def list_tickets(
     status: str | None,
     department_code: str | None,
     search: str | None,
+    date_from: date | None,
+    date_to: date | None,
     offset: int,
     limit: int,
 ) -> tuple[list[tuple[Ticket, Department]], int]:
@@ -45,6 +48,7 @@ def list_tickets(
     department_primary_key = col(Department.id)
     ticket_status = col(Ticket.status)
     department_code_column = col(Department.code)
+    ticket_created_at = col(Ticket.created_at)
     statement = select(Ticket, Department).join(
         Department,
         ticket_department_id == department_primary_key,
@@ -71,6 +75,14 @@ def list_tickets(
         )
         statement = statement.where(search_filter)
         count_statement = count_statement.where(search_filter)
+    if date_from is not None:
+        start = datetime.combine(date_from, time.min, tzinfo=UTC)
+        statement = statement.where(ticket_created_at >= start)
+        count_statement = count_statement.where(ticket_created_at >= start)
+    if date_to is not None:
+        end = datetime.combine(date_to + timedelta(days=1), time.min, tzinfo=UTC)
+        statement = statement.where(ticket_created_at < end)
+        count_statement = count_statement.where(ticket_created_at < end)
 
     total = int(session.exec(count_statement).one())
     items = session.exec(

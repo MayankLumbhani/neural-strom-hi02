@@ -288,7 +288,7 @@ Base path `/api/v1`. Full request and response examples live in `docs/API.md`.
 ### Officer and admin (bearer token required)
 | Method and path | Purpose |
 |---|---|
-| `GET /api/v1/admin/tickets` | List tickets with filters (`status`, `department`, `q`, `page`, `page_size`). Officers are restricted to their department by repository queries. |
+| `GET /api/v1/admin/tickets` | List tickets with filters (`status`, `department`, `q`, inclusive `date_from`/`date_to`), pagination, and repository-enforced officer department scope. |
 | `GET /api/v1/admin/tickets/{public_id}` | Scoped ticket detail with full event history |
 | `PATCH /api/v1/admin/tickets/{public_id}/status` | Body `{ status, note?, is_public? }`. Validates the transition and writes an event. |
 | `GET /api/v1/admin/analytics/summary` | Scoped counts by department, status, language, and average resolved-ticket duration in hours |
@@ -452,7 +452,8 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Design tokens and base component library | Implemented (T-21b); CI token check and multilingual preview in place |
 | Frontend chat | Implemented (T-22); multilingual complaint flow, clarifications, readiness retry, and ticket confirmation |
 | Frontend status page | Implemented (T-23); public ticket lookup, friendly not-found state, and public event timeline |
-| Frontend dashboard and analytics | Planned |
+| Frontend login and officer dashboard | Implemented (T-24); protected login, scoped filtered queue, ticket details, event history, and public status updates |
+| Frontend admin analytics | Planned (T-25) |
 | Deployment (HF Spaces, Vercel, Neon) | Planned |
 | Load test and SCALING.md | Planned |
 | README with metrics and screenshots | Planned |

@@ -1,5 +1,6 @@
 """Authenticated staff ticket endpoints."""
 
+from datetime import date
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, Path, Query, Request
@@ -7,6 +8,7 @@ from sqlmodel import Session
 
 from grievance.api.dependencies import require_roles
 from grievance.core.database import get_session
+from grievance.core.exceptions import DomainError
 from grievance.models import Officer
 from grievance.schemas.admin import (
     AdminTicketListResponse,
@@ -39,12 +41,29 @@ def list_admin_tickets(
     status: TicketStatus | None = None,
     department: Annotated[str | None, Query(max_length=50)] = None,
     q: Annotated[str | None, Query(min_length=1, max_length=200)] = None,
+    date_from: date | None = None,
+    date_to: date | None = None,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
 ) -> AdminTicketListResponse:
     """Return a filtered and paginated ticket queue within the staff scope."""
+    if date_from is not None and date_to is not None and date_from > date_to:
+        raise DomainError(
+            code="INVALID_DATE_RANGE",
+            message="The start date must not be after the end date",
+            status_code=422,
+        )
     service = AdminTicketService(session, request.app.state.settings)
-    return service.list_tickets(officer, status, department, q, page, page_size)
+    return service.list_tickets(
+        officer,
+        status,
+        department,
+        q,
+        date_from,
+        date_to,
+        page,
+        page_size,
+    )
 
 
 @router.get("/tickets/{public_id}", response_model=AdminTicketResponse)

@@ -195,6 +195,12 @@ export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
           >
             {copy.statusLink}
           </Link>
+          <Link
+            className="min-h-touch content-center text-small font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
+            to="/login"
+          >
+            {copy.staffLogin}
+          </Link>
         </div>
       </header>
 

@@ -121,8 +121,10 @@ inactive accounts cannot continue using existing tokens.
 
 Send the token using the HTTP bearer authorization header.
 
-- `GET /api/v1/admin/tickets` accepts optional `status`, `department`, and `q`
-  filters, plus `page` (default 1) and `page_size` (default 20, maximum 100).
+- `GET /api/v1/admin/tickets` accepts optional `status`, `department`, `q`,
+  `date_from`, and `date_to` filters. Date bounds use inclusive ISO calendar
+  dates (`YYYY-MM-DD`); a start date after the end date returns HTTP 422.
+  Pagination uses `page` (default 1) and `page_size` (default 20, maximum 100).
   Department officers can see only their assigned department, regardless of
   the requested department filter. Administrators can see all departments.
 - `GET /api/v1/admin/tickets/{public_id}` returns ticket details and full

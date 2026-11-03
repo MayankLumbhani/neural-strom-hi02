@@ -1,7 +1,7 @@
 # Design System and UX Guide
 
 **Project:** neural-storm-hi02, Furfuri Nagar Municipal Corporation (FMC) grievance assistant
-**Status:** The T-21 frontend scaffold is implemented. The visual system, tokens and base components remain planned until `T-21b`. Update this file whenever a token, component or rule changes.
+**Status:** The frontend scaffold and visual system are implemented through T-21b. Officer login and dashboard are implemented in T-24. Update this file whenever a token, component or rule changes.
 **Applies to:** everything under `frontend/`. Read this before every UI task.
 
 ---
@@ -213,4 +213,5 @@ Save 3 to 5 screenshots of UIs you like in `docs/design-refs/` with a one-line n
 | Token check script in CI | Implemented (T-21b) |
 | Citizen chat | Implemented (T-22); multilingual complaint flow, clarifications, and ticket confirmation |
 | Status page | Implemented (T-23); ticket lookup, ticket details, public event timeline, and missing-ticket state |
-| Dashboard, analytics, login screens | Planned (T-24 to T-25) |
+| Login and officer dashboard screens | Implemented (T-24); login, filtered ticket table, detail drawer, status updates |
+| Admin analytics screen | Planned (T-25) |

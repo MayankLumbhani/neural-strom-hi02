@@ -80,13 +80,20 @@ npm run dev
 ```
 
 Set `VITE_API_BASE_URL` in `frontend/.env` to the backend origin. The
-frontend provides the citizen chat at `/` and public ticket lookup at
-`/status`, backed by the typed API. The status page shows localized ticket
-details and public status updates, and explains when an ID is not found. The
-chat supports Gujarati, Hinglish, ambiguous complaint clarification, and
-ticket confirmation; the interface can be switched between English, Hindi,
-and Gujarati. Keep the backend running locally while using the frontend.
-Staff screens are tracked in [docs/TASKS.md](docs/TASKS.md).
+frontend provides the citizen chat at `/`, public ticket lookup at `/status`,
+staff login at `/login`, and the protected officer dashboard at `/dashboard`,
+backed by the typed API. Sign in with an officer or administrator account
+created by `make seed`; the active dashboard session ends when the page is
+reloaded or the user signs out. Officers see only tickets assigned to their
+department. The dashboard filters by status, text and filing date, and lets
+staff inspect ticket history and add public or internal status notes. A public
+status update appears in the citizen's `/status` timeline.
+
+The status page shows localized ticket details and public status updates, and
+explains when an ID is not found. The chat supports Gujarati, Hinglish,
+ambiguous complaint clarification, and ticket confirmation; the interface can
+be switched between English, Hindi, and Gujarati. Keep the backend running
+locally while using the frontend.
 While the Vite dev server is running, visit `/design` to preview the shared
 base components in English, Hindi, and Gujarati. `npm run check:design-tokens`,
 `npm run lint`, and `npm run build` validate the frontend.
