@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added the admin-only `/analytics` view with ticket summary cards, token-colored Recharts breakdowns, accessible chart data tables, an escalated ticket queue, and English/Hindi/Gujarati copy.
 - Added the English/Hindi/Gujarati staff login and protected officer dashboard with department-scoped status, text, and inclusive date filters, ticket history, and public/internal status updates; verified that public updates appear in the citizen status API.
 - Added the localized `/status` ticket lookup page with ticket details, public status timeline, and a friendly missing-ticket state; public status responses now identify ticket language and canonical status.
 - Added the multilingual citizen chat UI with API-backed conversation handling, quick-reply clarification, readiness retries, tier-aware replies, and ticket confirmation; chat responses now include language tier metadata.

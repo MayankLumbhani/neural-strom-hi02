@@ -184,15 +184,16 @@ Language tiers used in this file:
   - Notes: Added a localized public ticket lookup and timeline; verified existing and missing IDs against the status API.
 
 - [x] **T-24** Login and officer dashboard
-  - Login form, protected routes, ticket table with filters, detail drawer, status update with note.
+3  - Login form, protected routes, ticket table with filters, detail drawer, status update with note.
   - Done when: an officer updates a ticket and the status page shows the change.
   - Commit: `feat(frontend): add officer login and ticket dashboard`
   - Notes: Added English/Hindi/Gujarati staff login and dashboard. Status, search and inclusive filing-date filters use the scoped admin API; status updates create public events that appear on the citizen status endpoint.
 
-- [ ] **T-25** Admin analytics view
+- [x] **T-25** Admin analytics view
   - Charts (Recharts) for tickets per department, status breakdown, language mix, average resolution time, plus an escalated tickets list.
   - Done when: charts render from the analytics endpoint.
   - Commit: `feat(frontend): add admin analytics view`
+  - Notes: Added an administrator-only `/analytics` page with localized summary cards, token-colored Recharts bars, accessible data tables, and the scoped escalated ticket queue.
 
 - [ ] **T-26** UI translations
   - i18n for UI strings (buttons, labels, headings) in the Tier 1 languages English, Hindi and Gujarati with a language switcher. The chat itself already works in every registry language, and Tier 2 users see the English UI.

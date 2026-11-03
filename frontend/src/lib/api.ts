@@ -107,6 +107,18 @@ export interface AdminTicketList {
   page_size: number;
 }
 
+export interface AnalyticsSummary {
+  total_tickets: number;
+  by_department: {
+    department_code: string;
+    department_name: string;
+    count: number;
+  }[];
+  by_status: { value: AdminTicketStatus; count: number }[];
+  by_language: { value: string; count: number }[];
+  average_resolution_time_hours: number | null;
+}
+
 interface ApiErrorBody {
   error?: {
     code?: string;
@@ -267,4 +279,12 @@ export function updateAdminTicketStatus(
       body: JSON.stringify(update),
     },
   );
+}
+
+export function getAdminAnalyticsSummary(
+  accessToken: string,
+): Promise<AnalyticsSummary> {
+  return requestJson<AnalyticsSummary>("/api/v1/admin/analytics/summary", {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
 }

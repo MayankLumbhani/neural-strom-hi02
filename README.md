@@ -81,13 +81,15 @@ npm run dev
 
 Set `VITE_API_BASE_URL` in `frontend/.env` to the backend origin. The
 frontend provides the citizen chat at `/`, public ticket lookup at `/status`,
-staff login at `/login`, and the protected officer dashboard at `/dashboard`,
-backed by the typed API. Sign in with an officer or administrator account
-created by `make seed`; the active dashboard session ends when the page is
-reloaded or the user signs out. Officers see only tickets assigned to their
-department. The dashboard filters by status, text and filing date, and lets
-staff inspect ticket history and add public or internal status notes. A public
-status update appears in the citizen's `/status` timeline.
+staff login at `/login`, the protected ticket dashboard at `/dashboard`, and
+the admin-only analytics view at `/analytics`, backed by the typed API. Sign
+in with an officer or administrator account created by `make seed`; the active
+dashboard session ends when the page is reloaded or the user signs out. Officers
+see only tickets assigned to their department. The dashboard filters by status,
+text and filing date, and lets staff inspect ticket history and add public or
+internal status notes. A public status update appears in the citizen's
+`/status` timeline. Administrators can view ticket summaries by department,
+status and language, average resolution time, and the escalated ticket queue.
 
 The status page shows localized ticket details and public status updates, and
 explains when an ID is not found. The chat supports Gujarati, Hinglish,

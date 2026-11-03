@@ -1,13 +1,20 @@
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ChatPage } from "@/features/chat/ChatPage";
 import { LoginPage } from "@/features/officer/LoginPage";
 import { OfficerDashboard } from "@/features/officer/OfficerDashboard";
 import { StatusPage } from "@/features/status/StatusPage";
 import type { LoginResponse } from "@/lib/api";
+import { getAnalyticsMessages } from "@/lib/analytics-i18n";
 import { DesignPreviewPage } from "@/pages/DesignPreviewPage";
 import type { ReactNode } from "react";
 import type { UiLanguage } from "@/lib/i18n";
+
+const AdminAnalyticsPage = lazy(() =>
+  import("@/features/analytics/AdminAnalyticsPage").then((module) => ({
+    default: module.AdminAnalyticsPage,
+  })),
+);
 
 interface AppRoutesProps {
   language: UiLanguage;
@@ -54,6 +61,31 @@ function AppRoutes({
       }
       key="dashboard"
       path="/dashboard"
+    />,
+    <Route
+      element={
+        session?.role === "ADMIN" ? (
+          <Suspense
+            fallback={
+              <p className="p-6 text-body text-ink-muted" role="status">
+                {getAnalyticsMessages(language).loading}
+              </p>
+            }
+          >
+            <AdminAnalyticsPage
+              language={language}
+              onLogout={onLogout}
+              session={session}
+            />
+          </Suspense>
+        ) : session ? (
+          <Navigate replace to="/dashboard" />
+        ) : (
+          <Navigate replace to="/login" />
+        )
+      }
+      key="analytics"
+      path="/analytics"
     />,
     <Route
       element={<StatusPage language={language} />}

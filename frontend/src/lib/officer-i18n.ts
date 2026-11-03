@@ -15,6 +15,7 @@ export interface OfficerMessages {
   closeMenu: string;
   ticketQueue: string;
   statusPage: string;
+  analytics: string;
   signedInAs: string;
   administrator: string;
   logout: string;
@@ -75,6 +76,7 @@ const translations: Record<UiLanguage, OfficerMessages> = {
     closeMenu: "Close dashboard navigation",
     ticketQueue: "Ticket queue",
     statusPage: "Public ticket lookup",
+    analytics: "Analytics",
     signedInAs: "Signed in",
     administrator: "Administrator",
     logout: "Sign out",
@@ -149,6 +151,7 @@ const translations: Record<UiLanguage, OfficerMessages> = {
     closeMenu: "डैशबोर्ड नेविगेशन बंद करें",
     ticketQueue: "टिकट सूची",
     statusPage: "सार्वजनिक टिकट स्थिति",
+    analytics: "आँकड़े",
     signedInAs: "साइन इन",
     administrator: "प्रशासक",
     logout: "साइन आउट",
@@ -223,6 +226,7 @@ const translations: Record<UiLanguage, OfficerMessages> = {
     closeMenu: "ડૅશબોર્ડ નેવિગેશન બંધ કરો",
     ticketQueue: "ટિકિટ યાદી",
     statusPage: "જાહેર ટિકિટ સ્થિતિ",
+    analytics: "આંકડા",
     signedInAs: "સાઇન ઇન",
     administrator: "વહીવટકર્તા",
     logout: "સાઇન આઉટ",

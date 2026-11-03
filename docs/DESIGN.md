@@ -101,6 +101,7 @@ Status is never shown by color alone. Every badge has a text label and a small i
 |---|---|
 | Spacing scale | 4px base: `--space-1` 4, `-2` 8, `-3` 12, `-4` 16, `-6` 24, `-8` 32, `-12` 48 |
 | `--radius-sm` / `--radius-card` / `--radius-pill` | 6px / 12px / 999px |
+| `--chart-height` | 18rem for responsive dashboard charts |
 | `--shadow-card` | one soft shadow, low opacity, warm tinted (not pure black) |
 | `--shadow-raised` | used only for the ticket stub and open drawers |
 | `--motion-fast` / `--motion-base` | 120ms / 200ms, ease-out |
@@ -214,4 +215,4 @@ Save 3 to 5 screenshots of UIs you like in `docs/design-refs/` with a one-line n
 | Citizen chat | Implemented (T-22); multilingual complaint flow, clarifications, and ticket confirmation |
 | Status page | Implemented (T-23); ticket lookup, ticket details, public event timeline, and missing-ticket state |
 | Login and officer dashboard screens | Implemented (T-24); login, filtered ticket table, detail drawer, status updates |
-| Admin analytics screen | Planned (T-25) |
+| Admin analytics screen | Implemented (T-25); summary cards, department/status/language charts, accessible data tables, and escalated ticket queue |

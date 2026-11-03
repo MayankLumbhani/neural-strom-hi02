@@ -57,6 +57,9 @@ export default {
       minHeight: {
         textarea: "var(--textarea-min-height)",
       },
+      height: {
+        chart: "var(--chart-height)",
+      },
       borderRadius: {
         sm: "var(--radius-sm)",
         card: "var(--radius-card)",

@@ -272,6 +272,15 @@ export function OfficerDashboard({
             >
               {copy.statusPage}
             </Link>
+            {session.role === "ADMIN" ? (
+              <Link
+                className="min-h-touch content-center rounded-sm px-3 font-semibold text-primary hover:bg-surface-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus"
+                onClick={() => setSidebarOpen(false)}
+                to="/analytics"
+              >
+                {copy.analytics}
+              </Link>
+            ) : null}
           </nav>
           <Button onClick={onLogout} variant="secondary">
             <LogOut aria-hidden="true" className="icon" />

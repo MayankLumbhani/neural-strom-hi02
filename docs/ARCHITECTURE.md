@@ -341,7 +341,8 @@ frontend/
     components/ui/ token-backed accessible base components
     features/chat/ citizen chat screen and message flow
     features/status/ public ticket status lookup and timeline
-    features/      tickets, dashboard, and auth (future tasks)
+    features/officer/ staff login and scoped ticket dashboard
+    features/analytics/ admin summary charts and escalated ticket queue
     lib/           typed API client, config, i18n, font loader
     pages/         development-only /design preview and future app pages
     styles/        design tokens and shadcn variable mappings
@@ -373,6 +374,10 @@ frontend/
   chronological timeline containing only public ticket events and notes. The
   status response includes the ticket language so returned labels can be
   rendered with the correct language metadata.
+- `/analytics` is available to authenticated administrators. It loads the
+  role-scoped analytics summary and escalated ticket queue from the admin API,
+  renders token-colored Recharts distributions, provides data tables as chart
+  alternatives, and localizes the interface in English, Hindi, and Gujarati.
 - ESLint and the production TypeScript/Vite build run in CI. Tier 1 Latin,
   Devanagari, and Gujarati fonts load initially; `loadScriptFont` loads the
   other Noto Sans registry scripts on demand.
@@ -453,7 +458,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Frontend chat | Implemented (T-22); multilingual complaint flow, clarifications, readiness retry, and ticket confirmation |
 | Frontend status page | Implemented (T-23); public ticket lookup, friendly not-found state, and public event timeline |
 | Frontend login and officer dashboard | Implemented (T-24); protected login, scoped filtered queue, ticket details, event history, and public status updates |
-| Frontend admin analytics | Planned (T-25) |
+| Frontend admin analytics | Implemented (T-25); admin-only summary cards, department/status/language charts, accessible data tables, and escalated ticket queue |
 | Deployment (HF Spaces, Vercel, Neon) | Planned |
 | Load test and SCALING.md | Planned |
 | README with metrics and screenshots | Planned |
