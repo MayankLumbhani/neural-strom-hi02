@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added the Hugging Face Spaces production Docker image with non-root execution, configurable port, pre-start Alembic migrations, and CPU MuRIL runtime dependencies; updated local Compose and setup instructions.
 - Completed T-26 with English/Hindi/Gujarati UI translations and a shared, accessible language switcher across citizen, status, staff, officer, and analytics screens; unsupported browser locales continue to use English.
 - Added the admin-only `/analytics` view with ticket summary cards, token-colored Recharts breakdowns, accessible chart data tables, an escalated ticket queue, and English/Hindi/Gujarati copy.
 - Added the English/Hindi/Gujarati staff login and protected officer dashboard with department-scoped status, text, and inclusive date filters, ticket history, and public/internal status updates; verified that public updates appear in the citizen status API.

@@ -23,11 +23,17 @@ Requirements: Python 3.11 or newer; Docker Compose is optional for PostgreSQL.
 
 3. Copy `.env.example` to `.env`. Set a local PostgreSQL password in `.env`
    before starting Docker Compose.
-4. Start the API and PostgreSQL with `docker compose up --build`, or start the
-   API locally with `make dev` after PostgreSQL is available.
-5. Apply database migrations with `make migrate`. Compose PostgreSQL is exposed
-   on `POSTGRES_PORT` (5432 by default); the example `DATABASE_URL` credentials
-   match the example PostgreSQL user and password.
+4. Start the API and PostgreSQL with `docker compose up --build`. The container
+   waits for PostgreSQL, applies Alembic migrations, and then starts the API.
+   Compose PostgreSQL is exposed on `POSTGRES_PORT` (5432 by default); the
+   example `DATABASE_URL` credentials match the example PostgreSQL user and
+   password. The Compose API port defaults to 8000 and can be changed with
+   `PORT` (container) and `API_PORT` (host).
+5. To start the API locally instead, apply database migrations with
+   `make migrate`, then run `make dev`. The default baseline classifier needs
+   the generated `ml/data/processed/train.csv`; alternatively configure
+   `CLASSIFIER_BACKEND=muril` and `MODEL_NAME_OR_PATH` to load MuRIL from the
+   Hugging Face Hub.
 6. Set `DEMO_OFFICER_USERNAME`, `DEMO_OFFICER_PASSWORD`, `DEMO_ADMIN_USERNAME`,
    and `DEMO_ADMIN_PASSWORD` in `.env`. Use passwords between 12 and 72 UTF-8
    bytes, then run `make seed` to create the synthetic departments and demo
@@ -66,6 +72,13 @@ are hours.
 Public chat and status endpoints are limited by `RATE_LIMIT_CHAT` and
 `RATE_LIMIT_STATUS`. Limits are process-local; quotas are not shared across
 workers or replicas. Public responses include browser security headers.
+
+The production Docker image targets the Hugging Face Spaces Docker SDK: it runs
+as a non-root user, uses the `PORT` environment variable (7860 by default),
+applies migrations before serving, and includes the CPU runtime dependencies
+for MuRIL. Configure `CLASSIFIER_BACKEND=muril` and `MODEL_NAME_OR_PATH` in the
+Space variables to load the model from the Hub during startup. Do not copy
+`.env` or model weights into the image.
 
 ## Frontend scaffold
 

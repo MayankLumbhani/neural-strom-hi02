@@ -6,11 +6,14 @@ services:
     env_file: .env
     environment:
       DATABASE_URL: postgresql+psycopg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PORT: ${PORT:-8000}
     ports:
-      - "8000:8000"
+      - "${API_PORT:-8000}:${PORT:-8000}"
     depends_on:
       postgres:
         condition: service_healthy
+    volumes:
+      - ./ml/data/processed:/app/ml/data/processed:ro
 
   postgres:
     image: postgres:16

@@ -203,10 +203,11 @@ Language tiers used in this file:
 
 ## Phase 5: Deployment and performance (target: Nov 3)
 
-- [ ] **T-27** Production Dockerfile
+- [x] **T-27** Production Dockerfile
   - Backend image for Hugging Face Spaces (Docker SDK), non-root user, port from env, model loaded from the Hub at startup, Alembic migration on start.
   - Done when: image builds and runs locally against Neon or local Postgres.
   - Commit: `chore(deploy): add production Dockerfile for Hugging Face Spaces`
+  - Notes: The production image installs the CPU-only PyTorch runtime, runs as a non-root user, migrates before serving on `PORT` (default 7860 for Spaces), and loads the configured classifier during application startup. Local Compose keeps the API on port 8000 by default and mounts ignored baseline data read-only. image builds successfully; container startup was not fully re-verified after the entrypoint line-ending fix, to be confirmed on the first Hugging Face Space build
 
 - [ ] **T-28** Deploy backend **(human)**
   - Create the Space, set secrets (`DATABASE_URL`, `JWT_SECRET`, keys), run migrations and seed, check `/ready`.

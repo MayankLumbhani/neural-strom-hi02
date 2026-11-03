@@ -33,12 +33,22 @@ flowchart LR
 | Piece | Host | Notes |
 |---|---|---|
 | Frontend | Vercel | Static React build, calls the backend over HTTPS |
-| Backend and model | Hugging Face Spaces (Docker, CPU) | TF-IDF baseline is the default; MuRIL is optional. Sleeps when idle, so wake it before judging |
+| Backend and model | Hugging Face Spaces (Docker, CPU) | Production image defaults to `PORT=7860`, applies Alembic migrations before serving, and loads the configured classifier at startup. Set `CLASSIFIER_BACKEND=muril` and `MODEL_NAME_OR_PATH` in Space variables to load MuRIL from the Hub; local application defaults remain baseline. Sleeps when idle, so wake it before judging |
 | Database | Neon PostgreSQL | Persistent, free tier |
 | Model weights | Hugging Face Hub | Not committed to Git, loaded by name from config |
 | Local dev | docker-compose (api and postgres) | `make dev`; Postgres host port is `POSTGRES_PORT` (default 5432) |
 
 CORS allows only the configured frontend origin.
+
+The root `Dockerfile` installs the CPU PyTorch runtime, runs as an unprivileged
+user, and starts through `backend/scripts/start.sh`. The entrypoint applies
+database migrations before launching Uvicorn, using `PORT` from the host
+(7860 by default for Hugging Face Spaces). Docker Compose overrides the port to
+8000 by default for local development and mounts generated baseline training
+data read-only; the dataset is not included in the production image. In
+production, configure the classifier backend and model path through Space
+environment variables. Classifier initialization downloads a configured
+MuRIL model from the Hugging Face Hub once when the application starts.
 
 ## 4. Backend layering
 
@@ -329,6 +339,7 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 | `ESCALATION_INTERVAL_SECONDS` | Scheduler cadence |
 | `RATE_LIMIT_CHAT`, `RATE_LIMIT_STATUS` | Rate limits |
 | `MAX_MESSAGE_LENGTH` | Input cap |
+| `PORT`, `API_PORT` | Container listening port and local Compose host port (`PORT` defaults to 7860 for Spaces; `.env.example` uses 8000 locally) |
 | `DEMO_OFFICER_USERNAME`, `DEMO_OFFICER_PASSWORD`, `DEMO_OFFICER_DEPARTMENT_CODE` | Seeded synthetic department-officer account |
 | `DEMO_ADMIN_USERNAME`, `DEMO_ADMIN_PASSWORD` | Seeded synthetic administrator account |
 
@@ -464,7 +475,8 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Frontend status page | Implemented (T-23); public ticket lookup, friendly not-found state, and public event timeline |
 | Frontend login and officer dashboard | Implemented (T-24); protected login, scoped filtered queue, ticket details, event history, and public status updates |
 | Frontend admin analytics | Implemented (T-25); admin-only summary cards, department/status/language charts, accessible data tables, and escalated ticket queue |
-| Deployment (HF Spaces, Vercel, Neon) | Planned |
+| Production backend container | Implemented (T-27); non-root Docker image, environment-selected port, startup migrations, CPU MuRIL dependencies and runtime Hub model loading |
+| Deployment (HF Spaces, Vercel, Neon) | Planned; no live deployment is claimed |
 | Load test and SCALING.md | Planned |
 | README with metrics and screenshots | Planned |
 | Voice input (stretch) | Not started |
