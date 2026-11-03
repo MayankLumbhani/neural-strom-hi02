@@ -370,6 +370,11 @@ frontend/
   displays registry language metadata on each message. Before the first POST,
   it retries the safe `/ready` GET while a sleeping service starts; it does not
   automatically retry chat POSTs.
+- The app-level UI language state is shared across routes. The accessible
+  English/Hindi/Gujarati language switcher is available in the chat, status,
+  staff login, officer dashboard, and admin analytics headers. Unsupported
+  browser locales resolve to English; changing the interface language does not
+  change complaint language detection.
 - `/status` provides a public ticket-ID lookup, localized ticket details, and a
   chronological timeline containing only public ticket events and notes. The
   status response includes the ticket language so returned labels can be

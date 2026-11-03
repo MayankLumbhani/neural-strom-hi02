@@ -132,6 +132,7 @@ Icons: one set only (Lucide), consistent 1.75px stroke, sized from tokens. **No 
 ### 5.1 Citizen chat (`/`)
 - Single centered column, max width about 720px, warm `bg` background.
 - Header: text wordmark "Furfuri Nagar Municipal Corporation" with a small mark, a UI language switcher (English, हिन्दी, ગુજરાતી), and a link to the status page. No logo images that imply a real government.
+- The same interface language switcher is available in the status, staff login, officer dashboard, and admin analytics headers.
 - The chat accepts any language in the language registry. The UI language switcher only changes the interface text (Tier 1 languages). When the detected language of a complaint is Tier 2, show a small neutral note under the reply, for example "Support for this language is experimental" (the note itself goes through i18n).
 - First view: a short welcome, one line of instruction, and 3 tappable example complaints in different languages so people see what to do.
 - Input bar fixed at the bottom with a large send button. It supports multi-line text and Enter to send.

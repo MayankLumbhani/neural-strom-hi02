@@ -2,17 +2,19 @@ import { ArrowLeft } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { Button, Card, Input } from "@/components/ui";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { loginStaff, type LoginResponse } from "@/lib/api";
 import { getOfficerMessages } from "@/lib/officer-i18n";
 import type { UiLanguage } from "@/lib/i18n";
 
 interface LoginPageProps {
   language: UiLanguage;
+  onLanguageChange: (language: UiLanguage) => void;
   onLogin: (session: LoginResponse) => void;
 }
 
 /** Authenticate staff and open the protected officer dashboard. */
-export function LoginPage({ language, onLogin }: LoginPageProps) {
+export function LoginPage({ language, onLanguageChange, onLogin }: LoginPageProps) {
   const copy = getOfficerMessages(language);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -35,10 +37,15 @@ export function LoginPage({ language, onLogin }: LoginPageProps) {
   return (
     <div className="flex min-h-screen flex-col bg-background text-ink">
       <header className="border-b border-border bg-surface">
-        <div className="mx-auto flex w-full max-w-page items-center justify-between gap-4 px-4 py-4">
+        <div className="mx-auto flex w-full max-w-page flex-wrap items-center justify-between gap-4 px-4 py-4">
           <p className="text-heading font-semibold">
             {copy.serviceName}
           </p>
+          <LanguageSwitcher
+            language={language}
+            label={copy.languageLabel}
+            onLanguageChange={onLanguageChange}
+          />
           <Link
             className="inline-flex min-h-touch items-center gap-2 text-small font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
             to="/"

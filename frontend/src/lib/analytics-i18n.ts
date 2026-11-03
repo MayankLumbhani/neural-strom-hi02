@@ -1,6 +1,7 @@
 import type { UiLanguage } from "@/lib/i18n";
 
 export interface AnalyticsMessages {
+  languageLabel: string;
   title: string;
   description: string;
   backToDashboard: string;
@@ -38,6 +39,7 @@ export interface AnalyticsMessages {
 
 const translations: Record<UiLanguage, AnalyticsMessages> = {
   en: {
+    languageLabel: "Interface language",
     title: "Admin analytics",
     description: "A summary of tickets across municipal departments.",
     backToDashboard: "Ticket dashboard",
@@ -73,6 +75,7 @@ const translations: Record<UiLanguage, AnalyticsMessages> = {
     retry: "Try again",
   },
   hi: {
+    languageLabel: "इंटरफ़ेस की भाषा",
     title: "प्रशासनिक आँकड़े",
     description: "नगर विभागों के सभी टिकटों का सारांश।",
     backToDashboard: "टिकट डैशबोर्ड",
@@ -108,6 +111,7 @@ const translations: Record<UiLanguage, AnalyticsMessages> = {
     retry: "फिर कोशिश करें",
   },
   gu: {
+    languageLabel: "ઇન્ટરફેસની ભાષા",
     title: "વહીવટી આંકડા",
     description: "નગરપાલિકાના તમામ વિભાગોની ટિકિટનો સારાંશ.",
     backToDashboard: "ટિકિટ ડૅશબોર્ડ",

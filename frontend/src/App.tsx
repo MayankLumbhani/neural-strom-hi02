@@ -41,7 +41,11 @@ function AppRoutes({
         session ? (
           <Navigate replace to="/dashboard" />
         ) : (
-          <LoginPage language={language} onLogin={onLogin} />
+          <LoginPage
+            language={language}
+            onLanguageChange={onLanguageChange}
+            onLogin={onLogin}
+          />
         )
       }
       key="login"
@@ -52,6 +56,7 @@ function AppRoutes({
         session ? (
           <OfficerDashboard
             language={language}
+            onLanguageChange={onLanguageChange}
             onLogout={onLogout}
             session={session}
           />
@@ -74,6 +79,7 @@ function AppRoutes({
           >
             <AdminAnalyticsPage
               language={language}
+              onLanguageChange={onLanguageChange}
               onLogout={onLogout}
               session={session}
             />
@@ -88,7 +94,12 @@ function AppRoutes({
       path="/analytics"
     />,
     <Route
-      element={<StatusPage language={language} />}
+      element={
+        <StatusPage
+          language={language}
+          onLanguageChange={onLanguageChange}
+        />
+      }
       key="status"
       path="/status"
     />,

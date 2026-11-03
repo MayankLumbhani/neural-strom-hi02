@@ -26,6 +26,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
   ApiError,
   getAdminAnalyticsSummary,
@@ -47,6 +48,7 @@ const DATE_LOCALES: Record<UiLanguage, string> = {
 
 interface AdminAnalyticsPageProps {
   language: UiLanguage;
+  onLanguageChange: (language: UiLanguage) => void;
   session: LoginResponse;
   onLogout: () => void;
 }
@@ -59,6 +61,7 @@ interface ChartDatum {
 /** Present ticket analytics and the current escalated ticket queue. */
 export function AdminAnalyticsPage({
   language,
+  onLanguageChange,
   session,
   onLogout,
 }: AdminAnalyticsPageProps) {
@@ -168,6 +171,11 @@ export function AdminAnalyticsPage({
             <p className="text-small text-ink-muted">{copy.title}</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <LanguageSwitcher
+              language={language}
+              label={copy.languageLabel}
+              onLanguageChange={onLanguageChange}
+            />
             <Link
               className="inline-flex min-h-touch items-center text-small font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
               to="/dashboard"

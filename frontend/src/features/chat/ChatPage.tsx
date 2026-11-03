@@ -14,6 +14,7 @@ import {
   TicketCard,
 } from "@/components/ui";
 import { Button } from "@/components/ui/button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
   ApiError,
   getBackendReadiness,
@@ -22,7 +23,7 @@ import {
 } from "@/lib/api";
 import { getChatMessages } from "@/lib/chat-i18n";
 import { loadFontsForText } from "@/lib/fonts";
-import { UI_LANGUAGES, type UiLanguage } from "@/lib/i18n";
+import type { UiLanguage } from "@/lib/i18n";
 
 const WAKE_MESSAGE_DELAY_MS = 3000;
 const READINESS_RETRY_DELAYS_MS = [500, 1000, 2000] as const;
@@ -176,19 +177,11 @@ export function ChatPage({ language, onLanguageChange }: ChatPageProps) {
               </p>
             </div>
           </div>
-          <fieldset className="flex flex-wrap items-center gap-2">
-            <legend className="sr-only">{copy.languageLabel}</legend>
-            {UI_LANGUAGES.map(({ code, label }) => (
-              <Button
-                aria-pressed={language === code}
-                key={code}
-                onClick={() => onLanguageChange(code)}
-                variant={language === code ? "primary" : "secondary"}
-              >
-                {label}
-              </Button>
-            ))}
-          </fieldset>
+          <LanguageSwitcher
+            language={language}
+            label={copy.languageLabel}
+            onLanguageChange={onLanguageChange}
+          />
           <Link
             className="min-h-touch content-center text-small font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
             to="/status"

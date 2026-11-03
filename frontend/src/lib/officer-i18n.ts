@@ -3,6 +3,7 @@ import type { UiLanguage } from "@/lib/i18n";
 
 export interface OfficerMessages {
   serviceName: string;
+  languageLabel: string;
   loginTitle: string;
   loginDescription: string;
   username: string;
@@ -64,6 +65,7 @@ export interface OfficerMessages {
 const translations: Record<UiLanguage, OfficerMessages> = {
   en: {
     serviceName: "Furfuri Nagar Municipal Corporation",
+    languageLabel: "Interface language",
     loginTitle: "Staff login",
     loginDescription: "Sign in to manage municipal service tickets.",
     username: "Username",
@@ -139,6 +141,7 @@ const translations: Record<UiLanguage, OfficerMessages> = {
   },
   hi: {
     serviceName: "फुरफुरी नगर नगर निगम",
+    languageLabel: "इंटरफ़ेस की भाषा",
     loginTitle: "कर्मचारी लॉगिन",
     loginDescription: "नगर सेवा टिकट प्रबंधित करने के लिए साइन इन करें।",
     username: "उपयोगकर्ता नाम",
@@ -214,6 +217,7 @@ const translations: Record<UiLanguage, OfficerMessages> = {
   },
   gu: {
     serviceName: "ફુરફુરી નગર મહાનગરપાલિકા",
+    languageLabel: "ઇન્ટરફેસની ભાષા",
     loginTitle: "સ્ટાફ લૉગિન",
     loginDescription: "નગર સેવા ટિકિટ સંચાલિત કરવા સાઇન ઇન કરો.",
     username: "વપરાશકર્તા નામ",

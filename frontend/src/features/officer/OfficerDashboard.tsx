@@ -16,6 +16,7 @@ import {
   TableRow,
   Textarea,
 } from "@/components/ui";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import {
   ApiError,
   getAdminTicket,
@@ -62,6 +63,7 @@ const DATE_LOCALES: Record<UiLanguage, string> = {
 
 interface OfficerDashboardProps {
   language: UiLanguage;
+  onLanguageChange: (language: UiLanguage) => void;
   session: LoginResponse;
   onLogout: () => void;
 }
@@ -69,6 +71,7 @@ interface OfficerDashboardProps {
 /** Show a scoped ticket queue and let staff update ticket status. */
 export function OfficerDashboard({
   language,
+  onLanguageChange,
   session,
   onLogout,
 }: OfficerDashboardProps) {
@@ -232,6 +235,11 @@ export function OfficerDashboard({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            <LanguageSwitcher
+              language={language}
+              label={copy.languageLabel}
+              onLanguageChange={onLanguageChange}
+            />
             <Link
               className="inline-flex min-h-touch items-center gap-2 text-small font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
               to="/"

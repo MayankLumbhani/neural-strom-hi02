@@ -9,6 +9,7 @@ import {
   Skeleton,
   TicketCard,
 } from "@/components/ui";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ApiError, getTicketStatus, type PublicTicketResponse } from "@/lib/api";
 import { getStatusMessages } from "@/lib/status-i18n";
 import type { UiLanguage } from "@/lib/i18n";
@@ -34,10 +35,11 @@ const DISPLAY_STATUSES: Record<
 
 interface StatusPageProps {
   language: UiLanguage;
+  onLanguageChange: (language: UiLanguage) => void;
 }
 
 /** Look up a ticket and show its public status history. */
-export function StatusPage({ language }: StatusPageProps) {
+export function StatusPage({ language, onLanguageChange }: StatusPageProps) {
   const copy = getStatusMessages(language);
   const [ticketId, setTicketId] = useState("");
   const [ticket, setTicket] = useState<PublicTicketResponse | null>(null);
@@ -80,6 +82,11 @@ export function StatusPage({ language }: StatusPageProps) {
               {copy.serviceDescription}
             </p>
           </div>
+          <LanguageSwitcher
+            language={language}
+            label={copy.languageLabel}
+            onLanguageChange={onLanguageChange}
+          />
           <Link
             className="inline-flex min-h-touch items-center gap-2 text-small font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-focus focus-visible:ring-offset-2"
             to="/"

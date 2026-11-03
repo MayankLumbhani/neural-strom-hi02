@@ -3,6 +3,7 @@ import type { UiLanguage } from "@/lib/i18n";
 export interface StatusMessages {
   serviceName: string;
   serviceDescription: string;
+  languageLabel: string;
   backToChat: string;
   title: string;
   description: string;
@@ -34,6 +35,7 @@ const translations: Record<UiLanguage, StatusMessages> = {
   en: {
     serviceName: "Furfuri Nagar Municipal Corporation",
     serviceDescription: "Citizen grievance service",
+    languageLabel: "Interface language",
     backToChat: "Back to chat",
     title: "Check your ticket",
     description:
@@ -65,6 +67,7 @@ const translations: Record<UiLanguage, StatusMessages> = {
   hi: {
     serviceName: "फुरफुरी नगर नगर निगम",
     serviceDescription: "नागरिक शिकायत सेवा",
+    languageLabel: "इंटरफ़ेस की भाषा",
     backToChat: "चैट पर वापस जाएँ",
     title: "अपनी टिकट की स्थिति देखें",
     description: "शिकायत दर्ज होने पर मिली टिकट आईडी लिखें।",
@@ -95,6 +98,7 @@ const translations: Record<UiLanguage, StatusMessages> = {
   gu: {
     serviceName: "ફુરફુરી નગર મહાનગરપાલિકા",
     serviceDescription: "નાગરિક ફરિયાદ સેવા",
+    languageLabel: "ઇન્ટરફેસની ભાષા",
     backToChat: "ચેટ પર પાછા જાઓ",
     title: "તમારી ટિકિટની સ્થિતિ જુઓ",
     description: "ફરિયાદ નોંધાયા પછી મળેલી ટિકિટ આઈડી દાખલ કરો.",

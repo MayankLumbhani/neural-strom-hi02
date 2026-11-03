@@ -195,10 +195,11 @@ Language tiers used in this file:
   - Commit: `feat(frontend): add admin analytics view`
   - Notes: Added an administrator-only `/analytics` page with localized summary cards, token-colored Recharts bars, accessible data tables, and the scoped escalated ticket queue.
 
-- [ ] **T-26** UI translations
+- [x] **T-26** UI translations
   - i18n for UI strings (buttons, labels, headings) in the Tier 1 languages English, Hindi and Gujarati with a language switcher. The chat itself already works in every registry language, and Tier 2 users see the English UI.
   - Done when: all visible UI text is translatable and the switcher works.
   - Commit: `feat(frontend): add UI internationalization`
+  - Notes: Localized citizen chat, status lookup, staff login, officer dashboard, and admin analytics UI in English, Hindi, and Gujarati. A shared, accessible language switcher updates the app-level UI language on every route; unsupported browser locales resolve to English.
 
 ## Phase 5: Deployment and performance (target: Nov 3)
 
