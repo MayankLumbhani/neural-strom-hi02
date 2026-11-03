@@ -284,3 +284,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-11-03: completed T-21 frontend tooling, routing, typed API client, script-font loading and CI checks.
 - 2026-11-03: completed T-21b design tokens, base components, multilingual preview and CI token check.
 - 2026-11-03: completed T-22 multilingual citizen chat with API-backed clarifications and ticket confirmation.
+- 2026-11-03: fixed chat follow-up replies using stale conversation language; backend API tests verify Gujarati and Hindi replies despite an English request-language header.

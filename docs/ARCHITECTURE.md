@@ -117,7 +117,9 @@ stateDiagram-v2
 
 1. Load or create the conversation and store the incoming message.
 2. Normalize text (trim, unicode normalization, collapse whitespace).
-3. Detect language and script, and set the reply language (remember it on the conversation).
+3. Detect language and script for each message, set the reply language from
+   the detected language, and remember it on the conversation. A client
+   language preference does not override the message's detected language.
 4. If the text matches the ticket ID pattern, return the status reply (read-only).
 5. Based on the conversation state:
    - `IDLE`: treat as a new complaint, or a greeting or help message.

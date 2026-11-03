@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file.
 - Seeded Tier 1 training-data review sample generator with blank verdict and notes columns.
 
 ### Changed
+- Chat now detects the language of each incoming message and uses it for the reply, rather than retaining a stale language from an earlier turn.
 - Recorded the Tier 1 dataset review results and removed the 25 specified bad rows from training data; remaining dataset rows are unreviewed.
 - Gemini dataset generation now retries transport and timeout failures with exponential backoff, exits cleanly with resume guidance when retries are exhausted, and replays cached batches without delay; the configurable per-request timeout defaults to 60 seconds.
 - Fixed Hindi combining-mark tokenization that falsely rejected adjacent words; cached raw batches are revalidated on every run, drop reasons are logged per stratum, and an environment-configured minimum stratum yield of 90% allows and reports small shortfalls.

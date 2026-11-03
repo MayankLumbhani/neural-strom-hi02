@@ -19,7 +19,10 @@ Request:
 
 `conversation_id` is optional for the first message and should be sent on
 follow-up messages. The request rejects empty text and messages above
-`MAX_MESSAGE_LENGTH`.
+`MAX_MESSAGE_LENGTH`. The reply language is detected from each submitted
+message; `Accept-Language` and the frontend interface language do not override
+it. For unsupported text, the conversation retains its previous reply language
+(or English for a new conversation).
 
 Public chat requests and `GET /api/v1/tickets/{public_id}` are rate-limited
 per client IP using `RATE_LIMIT_CHAT` and `RATE_LIMIT_STATUS` (defaults:

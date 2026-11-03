@@ -92,12 +92,15 @@ class ChatService:
                 message="Conversation not found",
                 status_code=404,
             )
+        detection = detect_language(normalized)
         if conversation is None:
-            detection = detect_language(normalized)
             language_code = detection.language.code if detection.language is not None else "en"
             conversation = create_conversation(self._session, language_code)
         else:
-            language_code = conversation.language
+            language_code = (
+                detection.language.code if detection.language is not None else conversation.language
+            )
+            conversation.language = language_code
 
         self._save_message(conversation, "citizen", normalized, language_code)
 

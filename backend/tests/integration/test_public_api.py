@@ -13,6 +13,7 @@ from grievance.core.config import Settings
 from grievance.core.database import get_session
 from grievance.models import Conversation, Department, TicketEvent
 from grievance.nlp.classifier import FakeClassifier
+from grievance.nlp.template_loader import load_templates
 from grievance.seed import DEPARTMENTS
 from grievance.services.ticket_service import TicketService
 
@@ -84,6 +85,35 @@ def test_post_chat_message_creates_ticket(public_api: tuple[TestClient, Engine])
     assert body["language_tier"] == 1
     assert body["ticket"]["department"] == "Water Supply"
     assert body["ticket"]["ticket_id"].startswith("FMC-")
+
+
+@pytest.mark.parametrize(
+    ("text", "language"),
+    [
+        ("અમારી સોસાયટીમાં બે દિવસથી પાણી નથી આવતું", "gu"),
+        ("हमारी सोसाइटी में दो दिन से पानी नहीं आ रहा है", "hi"),
+    ],
+)
+def test_chat_reply_uses_detected_language_not_request_hint(
+    public_api: tuple[TestClient, Engine],
+    text: str,
+    language: str,
+) -> None:
+    """Use the current message language even when the request hint is English."""
+    client, _ = public_api
+    headers = {"Accept-Language": "en"}
+    first = client.post("/api/v1/chat/messages", json={"text": "hello"}, headers=headers)
+    conversation_id = first.json()["conversation_id"]
+
+    response = client.post(
+        "/api/v1/chat/messages",
+        json={"text": text, "conversation_id": conversation_id},
+        headers=headers,
+    )
+
+    assert response.status_code == 200
+    assert response.json()["language"] == language
+    assert response.json()["reply"]["text"] == load_templates(language).ask_location
 
 
 def test_chat_response_marks_experimental_language_tier(
