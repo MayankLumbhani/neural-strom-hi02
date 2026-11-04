@@ -479,7 +479,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Deployment (HF Spaces, Vercel, Neon) | Planned; no live deployment is claimed |
 | Load test | Done (T-30); local 60-second/20-user Locust run recorded in `loadtests/results/` |
 | SCALING.md | Done (T-32); measured results separated from design-only ideas |
-| README with metrics and screenshots | Planned |
+| README with metrics | Done (T-34); live URLs, screenshots and video remain human placeholders |
 | Voice input (stretch) | Not started |
 
 ## 18. Key decisions and trade-offs

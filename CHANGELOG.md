@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Rewrote `README.md` with the problem, architecture, features, setup, measured Tier 1 and Tier 2 metrics, load-test summary, limitations, AI tools, early-start disclosure, documentation links and marked placeholders; completed T-34.
 - Rewrote `docs/API.md` with every implemented endpoint, auth requirements, JSON examples and curl calls, and added `docs/RUNBOOK.md` for local runs, deployment, secret rotation and troubleshooting; completed T-33.
 - Added `docs/SCALING.md` with the measured local load test and a clearly separated list of design-only scale-out ideas; completed T-32.
 - Added the Locust load test script, a load-test-only rate-limit override, exact run instructions, and recorded 60-second/20-user results under `loadtests/`; completed T-30.

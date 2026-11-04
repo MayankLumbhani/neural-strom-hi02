@@ -241,9 +241,10 @@ Language tiers used in this file:
   - Commit: `docs: complete API reference and runbook`
   - Notes: `docs/API.md` documents every route present in the routers, with auth requirements, JSON examples and curl calls. `docs/RUNBOOK.md` covers local Compose, environment variable names, migrations, seeding, HF Space and Vercel deployment, waking a Space, secret rotation, DEMO_MODE and troubleshooting.
 
-- [ ] **T-34** README
+- [x] **T-34** README
   - All items required by the hackathon: title and problem statement number HI-02, team (solo) and name, problem and approach, tech stack, setup and local run steps, screenshots or demo GIF, real metrics from the reports (Tier 1 and Tier 2 in separate tables, Tier 2 labelled experimental), AI tools used (Qoder, Cursor, Antigravity, GitHub Copilot, Claude), live links, note that development started Oct 30 with organiser permission, CI badge.
   - Commit: `docs: write project README`
+  - Notes: `README.md` includes the architecture diagram, tiered language table, setup, measured metrics from the model card and load test, honest limitations, AI tools, the early-start disclosure, documentation links, and marked live-URL and screenshot placeholders. T-28/T-29 remain human deployment tasks.
 
 - [ ] **T-35** Screenshots and GIF **(human)**
   - Capture chat in three languages, ticket confirmation, status page, officer dashboard, analytics, escalation. Save to `docs/images/`.
@@ -294,6 +295,7 @@ Add one line per day: what was finished, what is blocked.
 - 2026-11-03: completed T-22 multilingual citizen chat with API-backed clarifications and ticket confirmation.
 - 2026-11-03: fixed chat follow-up replies using stale conversation language; backend API tests verify Gujarati and Hindi replies despite an English request-language header.
 - 2026-11-03: completed T-23 ticket status lookup with localized details, public event notes, and missing-ticket handling.
+- 2026-11-04: completed T-34 with the judge-facing README, including measured Tier 1/Tier 2 metrics, limitations, AI tools, disclosure and deployment/screenshot placeholders.
 - 2026-11-04: completed T-33 with a complete API reference and an operations runbook for local, HF Space and Vercel deployment.
 - 2026-11-04: completed T-32 with measured-versus-design-only scaling notes; documented process-local rate limits and the in-process scheduler.
 - 2026-11-04: completed T-30 with a real local Locust run (20 users, 60 seconds, 29.04 req/s, p95 650 ms, 0 failures) and recorded raw CSV results; fixed request-session commits uncovered by the run.
