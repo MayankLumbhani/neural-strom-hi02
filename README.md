@@ -289,7 +289,9 @@ hackathon start, with organiser permission.
 
 ## Screenshots
 
-<!-- TODO-SCREENSHOTS: capture and commit the files below, then replace this note. -->
+<!-- TODO-SCREENSHOTS -->
+
+Capture and commit the files below, then replace this note.
 
 | Screen | Expected file |
 |---|---|
