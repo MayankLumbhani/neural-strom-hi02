@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Rewrote `docs/API.md` with every implemented endpoint, auth requirements, JSON examples and curl calls, and added `docs/RUNBOOK.md` for local runs, deployment, secret rotation and troubleshooting; completed T-33.
 - Added `docs/SCALING.md` with the measured local load test and a clearly separated list of design-only scale-out ideas; completed T-32.
 - Added the Locust load test script, a load-test-only rate-limit override, exact run instructions, and recorded 60-second/20-user results under `loadtests/`; completed T-30.
 - Added the Hugging Face Spaces production Docker image with non-root execution, configurable port, pre-start Alembic migrations, and CPU MuRIL runtime dependencies; updated local Compose and setup instructions.
