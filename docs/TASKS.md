@@ -218,10 +218,11 @@ Language tiers used in this file:
   - Done when: the full citizen and officer flow works on the live URLs.
   - Commit (config notes only): `docs: record deployment URLs and setup`
 
-- [ ] **T-30** Load test
+- [x] **T-30** Load test
   - k6 or Locust scripts in `loadtests/` for `/chat/messages` and `/tickets/{id}`. Run against one instance, save the raw results and a short summary.
   - Done when: requests per second and p95 latency are recorded from a real run (state the hardware and conditions honestly).
   - Commit: `test(load): add load test scripts and recorded results`
+  - Notes: Recorded a 60-second, 20-user Locust run against the local Docker Compose stack: 29.04 req/s aggregate, p95 650 ms, 0 failures. Raw CSV files and conditions are in `loadtests/`. The run also exposed a missing request-session commit; `get_session` now commits on success and rolls back on error.
 
 - [ ] **T-31** ONNX quantization (optional, skip if short on time)
   - Export and quantize MuRIL, compare accuracy and latency with PyTorch on the same set.
@@ -291,3 +292,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-11-03: completed T-22 multilingual citizen chat with API-backed clarifications and ticket confirmation.
 - 2026-11-03: fixed chat follow-up replies using stale conversation language; backend API tests verify Gujarati and Hindi replies despite an English request-language header.
 - 2026-11-03: completed T-23 ticket status lookup with localized details, public event notes, and missing-ticket handling.
+- 2026-11-04: completed T-30 with a real local Locust run (20 users, 60 seconds, 29.04 req/s, p95 650 ms, 0 failures) and recorded raw CSV results; fixed request-session commits uncovered by the run.

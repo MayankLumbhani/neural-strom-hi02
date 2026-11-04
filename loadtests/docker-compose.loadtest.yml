@@ -1,0 +1,7 @@
+# Load-test-only override. Raises the public rate limits so the run measures
+# application throughput instead of the per-IP quota. Do not use in production.
+services:
+  api:
+    environment:
+      RATE_LIMIT_CHAT: "100000/minute"
+      RATE_LIMIT_STATUS: "100000/minute"

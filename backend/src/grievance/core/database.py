@@ -24,6 +24,12 @@ def get_engine(settings: Settings | None = None) -> Engine:
 
 
 def get_session() -> Generator[Session, None, None]:
-    """Yield a request-scoped database session and close it after the request."""
+    """Yield a request-scoped session, committing on success and closing after the request."""
     with Session(get_engine()) as session:
-        yield session
+        try:
+            yield session
+        except Exception:
+            session.rollback()
+            raise
+        else:
+            session.commit()

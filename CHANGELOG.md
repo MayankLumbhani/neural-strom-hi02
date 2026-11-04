@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added the Locust load test script, a load-test-only rate-limit override, exact run instructions, and recorded 60-second/20-user results under `loadtests/`; completed T-30.
 - Added the Hugging Face Spaces production Docker image with non-root execution, configurable port, pre-start Alembic migrations, and CPU MuRIL runtime dependencies; updated local Compose and setup instructions.
 - Completed T-26 with English/Hindi/Gujarati UI translations and a shared, accessible language switcher across citizen, status, staff, officer, and analytics screens; unsupported browser locales continue to use English.
 - Added the admin-only `/analytics` view with ticket summary cards, token-colored Recharts breakdowns, accessible chart data tables, an escalated ticket queue, and English/Hindi/Gujarati copy.
@@ -45,6 +46,7 @@ All notable changes to this project will be documented in this file.
 - Seeded Tier 1 training-data review sample generator with blank verdict and notes columns.
 
 ### Changed
+- Request-scoped database sessions now commit on success and roll back on error, so conversations and tickets created in one request are visible to later requests; added unit coverage.
 - Chat now detects the language of each incoming message and uses it for the reply, rather than retaining a stale language from an earlier turn.
 - Recorded the Tier 1 dataset review results and removed the 25 specified bad rows from training data; remaining dataset rows are unreviewed.
 - Gemini dataset generation now retries transport and timeout failures with exponential backoff, exits cleanly with resume guidance when retries are exhausted, and replays cached batches without delay; the configurable per-request timeout defaults to 60 seconds.
