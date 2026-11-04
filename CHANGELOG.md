@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- Added `docs/SCALING.md` with the measured local load test and a clearly separated list of design-only scale-out ideas; completed T-32.
 - Added the Locust load test script, a load-test-only rate-limit override, exact run instructions, and recorded 60-second/20-user results under `loadtests/`; completed T-30.
 - Added the Hugging Face Spaces production Docker image with non-root execution, configurable port, pre-start Alembic migrations, and CPU MuRIL runtime dependencies; updated local Compose and setup instructions.
 - Completed T-26 with English/Hindi/Gujarati UI translations and a shared, accessible language switcher across citizen, status, staff, officer, and analytics screens; unsupported browser locales continue to use English.

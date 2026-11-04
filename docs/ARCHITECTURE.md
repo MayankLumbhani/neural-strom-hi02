@@ -478,7 +478,7 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Production backend container | Implemented (T-27); non-root Docker image, environment-selected port, startup migrations, CPU MuRIL dependencies and runtime Hub model loading |
 | Deployment (HF Spaces, Vercel, Neon) | Planned; no live deployment is claimed |
 | Load test | Done (T-30); local 60-second/20-user Locust run recorded in `loadtests/results/` |
-| SCALING.md | Planned |
+| SCALING.md | Done (T-32); measured results separated from design-only ideas |
 | README with metrics and screenshots | Planned |
 | Voice input (stretch) | Not started |
 

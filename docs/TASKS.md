@@ -231,9 +231,10 @@ Language tiers used in this file:
 
 ## Phase 6: Documentation and submission (target: Nov 3 to 4)
 
-- [ ] **T-32** SCALING.md
+- [x] **T-32** SCALING.md
   - Written from ARCHITECTURE section 14 plus the real load test numbers. Clearly separate measured results from design-only ideas.
   - Commit: `docs: add scaling notes with measured load test results`
+  - Notes: `docs/SCALING.md` separates the measured local load test from design-only scale-out ideas. It states that the rate limiter is process-local and the escalation scheduler runs in-process.
 
 - [ ] **T-33** API.md and RUNBOOK.md
   - Full endpoint examples; runbook for deploy, migrations, seeding, waking the Space, rotating secrets.
@@ -292,4 +293,5 @@ Add one line per day: what was finished, what is blocked.
 - 2026-11-03: completed T-22 multilingual citizen chat with API-backed clarifications and ticket confirmation.
 - 2026-11-03: fixed chat follow-up replies using stale conversation language; backend API tests verify Gujarati and Hindi replies despite an English request-language header.
 - 2026-11-03: completed T-23 ticket status lookup with localized details, public event notes, and missing-ticket handling.
+- 2026-11-04: completed T-32 with measured-versus-design-only scaling notes; documented process-local rate limits and the in-process scheduler.
 - 2026-11-04: completed T-30 with a real local Locust run (20 users, 60 seconds, 29.04 req/s, p95 650 ms, 0 failures) and recorded raw CSV results; fixed request-session commits uncovered by the run.
