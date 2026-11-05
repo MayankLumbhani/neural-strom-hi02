@@ -16,5 +16,6 @@ dist/
 /ml/data/review/
 /ml/data/raw/llm_batches/
 /ml/artifacts/muril_model/
+/ml/artifacts/baseline.joblib
 frontend/node_modules/
 frontend/dist/

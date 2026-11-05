@@ -46,8 +46,10 @@ database migrations before launching Uvicorn, using `PORT` from the host
 (7860 by default for Hugging Face Spaces). Docker Compose overrides the port to
 8000 by default for local development. The synthetic baseline training split
 (`ml/data/processed/train.csv`) is committed and copied into the production
-image at build time. In production, configure the classifier backend and model
-path through Space environment variables. Classifier initialization downloads a
+image at build time; the build fits the TF-IDF baseline once and writes
+`ml/artifacts/baseline.joblib`, which the runtime loads instead of fitting on
+every start. In production, configure the classifier backend and model path
+through Space environment variables. Classifier initialization downloads a
 configured MuRIL model from the Hugging Face Hub once when the application
 starts.
 
@@ -200,11 +202,11 @@ class Prediction(BaseModel):
 
 Implementations:
 - `MurilClassifier`: fine-tuned `google/muril-base-cased`, 9 classes, softmax confidence. MuRIL was pretrained on transliterated as well as native-script Indian text, which helps with Hinglish. This is validated by per-language metrics, not assumed.
-- `BaselineClassifier`: TF-IDF (character n-grams) plus Logistic Regression, the default backend and a lightweight alternative to MuRIL.
+- `BaselineClassifier`: TF-IDF (character n-grams) plus Logistic Regression, the default backend and a lightweight alternative to MuRIL. It loads the build-time `ml/artifacts/baseline.joblib` artifact when present and otherwise fits from the committed CSV for local development and tests.
 - ONNX export and inference are a future optional optimization; no ONNX backend is currently selectable.
 - `FakeClassifier`: deterministic test implementation; not a runtime backend choice.
 
-The active runtime implementation is chosen by `CLASSIFIER_BACKEND`, which defaults to `baseline` and accepts `baseline` or `muril`; `fake` is available only in tests. The classifier is loaded once during application startup and reused. `/ready` reports `model=ready` after initialization or returns HTTP 503 with `model=unavailable` and a safe initialization error.
+The active runtime implementation is chosen by `CLASSIFIER_BACKEND`, which defaults to `baseline` and accepts `baseline` or `muril`; `fake` is available only in tests. The classifier is loaded once during application startup and reused. The baseline loads the build-time artifact when present and otherwise fits from the CSV. `/ready` reports `model=ready` after initialization or returns HTTP 503 with `model=unavailable` and a safe initialization error. Under a 512 MB container limit, the baseline-only stack peaked at about 284 MB VmRSS after mixed-language chat flows with one Uvicorn worker.
 
 ### 6.3 Extraction
 - `nlp/extraction.py` returns an explicitly stated location or `None`. When `LLM_ENABLED=true`, it uses the configured Gemini model and API key with a request timeout and strict JSON schema. API and response-validation failures are logged without complaint text, then fall back to local rules.

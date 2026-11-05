@@ -7,6 +7,7 @@ from types import SimpleNamespace
 from typing import Any
 from unittest.mock import Mock
 
+import joblib
 import pytest
 from pydantic import ValidationError
 
@@ -20,6 +21,7 @@ from grievance.nlp.classifier import (
     MurilClassifier,
     Prediction,
     build_classifier,
+    train_baseline_model,
 )
 from grievance.seed import DEPARTMENTS
 
@@ -67,12 +69,46 @@ def test_baseline_classifier_fits_and_returns_ranked_probabilities(tmp_path: Pat
     training_path = tmp_path / "train.csv"
     _write_training_csv(training_path)
 
-    prediction = BaselineClassifier(training_path).predict("water from tap is stopped")
+    prediction = BaselineClassifier(
+        training_path,
+        artifact_path=tmp_path / "missing.joblib",
+    ).predict("water from tap is stopped")
 
     assert prediction.label == "WATER"
     assert prediction.confidence > 0.5
     assert prediction.top_k[0][0] == prediction.label
     assert all(0 <= score <= 1 for _, score in prediction.top_k)
+
+
+def test_baseline_artifact_matches_freshly_fitted_model(tmp_path: Path) -> None:
+    """Load the saved pipeline and produce identical predictions to a fresh fit."""
+    training_path = tmp_path / "train.csv"
+    artifact_path = tmp_path / "baseline.joblib"
+    _write_training_csv(training_path)
+    joblib.dump(train_baseline_model(training_path), artifact_path)
+
+    loaded = BaselineClassifier(
+        training_path=tmp_path / "missing.csv",
+        artifact_path=artifact_path,
+    )
+    fresh = BaselineClassifier(
+        training_path=training_path,
+        artifact_path=tmp_path / "missing.joblib",
+    )
+
+    for text in ("water supply stopped", "road pothole broken", "tap has no water"):
+        assert loaded.predict(text) == fresh.predict(text)
+
+
+def test_baseline_artifact_load_error_is_reported(tmp_path: Path) -> None:
+    """Reject a corrupt artifact instead of silently training from the CSV."""
+    training_path = tmp_path / "train.csv"
+    artifact_path = tmp_path / "baseline.joblib"
+    _write_training_csv(training_path)
+    artifact_path.write_bytes(b"not a joblib artifact")
+
+    with pytest.raises(ClassifierLoadError, match="Baseline artifact could not be loaded"):
+        BaselineClassifier(training_path, artifact_path=artifact_path)
 
 
 def test_backend_factory_selects_baseline_from_settings(
@@ -83,6 +119,11 @@ def test_backend_factory_selects_baseline_from_settings(
     training_path = tmp_path / "train.csv"
     _write_training_csv(training_path)
     monkeypatch.setattr(classifier_module, "DEFAULT_TRAINING_PATH", training_path)
+    monkeypatch.setattr(
+        classifier_module,
+        "DEFAULT_BASELINE_ARTIFACT_PATH",
+        tmp_path / "missing.joblib",
+    )
 
     classifier = build_classifier(Settings(_env_file=None, classifier_backend="baseline"))
 

@@ -2,20 +2,24 @@
 
 import csv
 import importlib
+import pickle
 from pathlib import Path
-from typing import Any, NewType, Protocol
+from typing import Any, NewType, Protocol, cast
 
+import joblib
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.pipeline import Pipeline, make_pipeline
 
 from grievance.core.config import Settings
+from grievance.core.logging import logger
 from grievance.seed import DEPARTMENTS
 
 DepartmentCode = NewType("DepartmentCode", str)
 DEPARTMENT_CODES = frozenset(department.code for department in DEPARTMENTS)
 DEFAULT_TRAINING_PATH = Path("ml/data/processed/train.csv")
+DEFAULT_BASELINE_ARTIFACT_PATH = Path("ml/artifacts/baseline.joblib")
 MURIL_MAX_LENGTH = 128
 TOP_K = 3
 
@@ -69,51 +73,80 @@ class ClassifierLoadError(RuntimeError):
     """A configured classifier could not be initialized."""
 
 
+def train_baseline_model(training_path: Path = DEFAULT_TRAINING_PATH) -> Pipeline:
+    """Fit the baseline pipeline using validated synthetic training rows."""
+    if not training_path.is_file():
+        raise ClassifierLoadError(f"Baseline training CSV not found: {training_path}")
+
+    texts: list[str] = []
+    labels: list[str] = []
+    with training_path.open(encoding="utf-8-sig", newline="") as training_file:
+        reader = csv.DictReader(training_file)
+        if reader.fieldnames is None or not {"text", "label"}.issubset(reader.fieldnames):
+            raise ClassifierLoadError("Baseline training CSV must include text and label columns")
+        for line_number, row in enumerate(reader, start=2):
+            text = row.get("text")
+            label = row.get("label")
+            if not text or not label:
+                raise ClassifierLoadError(
+                    f"Baseline training CSV row {line_number} has empty text or label"
+                )
+            if label not in DEPARTMENT_CODES:
+                raise ClassifierLoadError(
+                    f"Baseline training CSV row {line_number} has unknown department"
+                )
+            texts.append(text)
+            labels.append(label)
+
+    if not texts:
+        raise ClassifierLoadError("Baseline training CSV contains no data rows")
+    if len(set(labels)) < 2:
+        raise ClassifierLoadError("Baseline training CSV must contain at least two labels")
+
+    model = make_pipeline(
+        TfidfVectorizer(analyzer="char", ngram_range=(2, 5)),
+        LogisticRegression(max_iter=1000),
+    )
+    model.fit(texts, labels)
+    return model
+
+
 class BaselineClassifier:
     """Character n-gram TF-IDF and Logistic Regression classifier."""
 
-    def __init__(self, training_path: Path = DEFAULT_TRAINING_PATH) -> None:
-        self._model: Pipeline = self._load_model(training_path)
+    def __init__(
+        self,
+        training_path: Path = DEFAULT_TRAINING_PATH,
+        artifact_path: Path = DEFAULT_BASELINE_ARTIFACT_PATH,
+    ) -> None:
+        self._model: Pipeline = self._load_model(training_path, artifact_path)
 
     @staticmethod
-    def _load_model(training_path: Path) -> Pipeline:
-        """Fit the baseline using validated synthetic training rows."""
-        if not training_path.is_file():
-            raise ClassifierLoadError(f"Baseline training CSV not found: {training_path}")
-
-        texts: list[str] = []
-        labels: list[str] = []
-        with training_path.open(encoding="utf-8-sig", newline="") as training_file:
-            reader = csv.DictReader(training_file)
-            if reader.fieldnames is None or not {"text", "label"}.issubset(reader.fieldnames):
+    def _load_model(training_path: Path, artifact_path: Path) -> Pipeline:
+        """Load the saved artifact when present, otherwise fit from the CSV."""
+        if artifact_path.is_file():
+            try:
+                model = joblib.load(artifact_path)
+            except (
+                OSError,
+                ValueError,
+                EOFError,
+                ImportError,
+                AttributeError,
+                KeyError,
+                pickle.UnpicklingError,
+            ) as error:
                 raise ClassifierLoadError(
-                    "Baseline training CSV must include text and label columns"
+                    f"Baseline artifact could not be loaded: {artifact_path}"
+                ) from error
+            if not isinstance(model, Pipeline):
+                raise ClassifierLoadError(
+                    f"Baseline artifact is not a scikit-learn pipeline: {artifact_path}"
                 )
-            for line_number, row in enumerate(reader, start=2):
-                text = row.get("text")
-                label = row.get("label")
-                if not text or not label:
-                    raise ClassifierLoadError(
-                        f"Baseline training CSV row {line_number} has empty text or label"
-                    )
-                if label not in DEPARTMENT_CODES:
-                    raise ClassifierLoadError(
-                        f"Baseline training CSV row {line_number} has unknown department"
-                    )
-                texts.append(text)
-                labels.append(label)
-
-        if not texts:
-            raise ClassifierLoadError("Baseline training CSV contains no data rows")
-        if len(set(labels)) < 2:
-            raise ClassifierLoadError("Baseline training CSV must contain at least two labels")
-
-        model = make_pipeline(
-            TfidfVectorizer(analyzer="char", ngram_range=(2, 5)),
-            LogisticRegression(max_iter=1000),
-        )
-        model.fit(texts, labels)
-        return model
+            logger.info("classifier.baseline.loaded source=artifact path=%s", artifact_path)
+            return cast(Pipeline, model)
+        logger.info("classifier.baseline.loaded source=csv path=%s", training_path)
+        return train_baseline_model(training_path)
 
     def predict(self, text: str) -> Prediction:
         """Predict a department with the baseline model's class probabilities."""

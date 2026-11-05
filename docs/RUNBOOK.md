@@ -49,9 +49,12 @@ python -m grievance.seed
 python -m uvicorn grievance.main:app --app-dir backend/src --reload
 ```
 
-The default baseline classifier reads `ml/data/processed/train.csv`. This
-synthetic training split is committed to the repository and copied into the
-Docker image at build time, so local and deployed runs use the same data.
+The default baseline classifier is fitted once when the Docker image is built
+and saved to `ml/artifacts/baseline.joblib` inside the image. At startup it
+loads that artifact and logs `classifier.baseline.loaded source=artifact`.
+Without Docker, if the artifact is absent, it falls back to fitting from the
+committed synthetic `ml/data/processed/train.csv` and logs `source=csv`. The
+generated artifact is Git-ignored; rebuild the image after changing the CSV.
 
 ## Environment variables
 
@@ -189,10 +192,13 @@ print the value in logs or issues.
 - Check `/ready`: `model=unavailable` means classifier initialization failed.
   For the MuRIL backend, confirm `MODEL_NAME_OR_PATH` and, if required,
   `HF_TOKEN`.
-- The baseline backend reads `ml/data/processed/train.csv`, which is committed
-  and copied into the image by the Dockerfile. If the model is still unavailable,
-  confirm the file exists with
-  `docker compose exec -T api ls -l /app/ml/data/processed/train.csv`.
+- The production image fits the baseline from `ml/data/processed/train.csv`
+  during the build and loads `ml/artifacts/baseline.joblib` at startup. Confirm
+  both files exist with
+  `docker compose exec -T api ls -l /app/ml/data/processed/train.csv /app/ml/artifacts/baseline.joblib`.
+  Startup logs should show `classifier.baseline.loaded source=artifact`. A
+  `source=csv` line means the artifact was absent and the loader fitted from the
+  CSV; rebuild the image to regenerate it.
 
 ### Status lookup returns 404 for a new ticket
 

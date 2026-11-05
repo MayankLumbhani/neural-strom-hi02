@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- Fit the baseline classifier once during the Docker image build and load the resulting joblib artifact at startup instead of fitting on every start, with a CSV-fit fallback for local development and tests; run Uvicorn with one worker. Under a 512 MB container limit the API peaked at 284,132 kB VmRSS after English/Hindi/Gujarati chat flows, was not OOM-killed, and did not import PyTorch, Transformers or SentencePiece on the baseline path.
 - Ship the committed synthetic baseline training split (`ml/data/processed/train.csv`) in the Docker image so the default baseline classifier initializes on Render instead of failing with `Baseline training CSV not found`; updated Compose to use the image copy rather than a host bind mount.
 
 ### Added

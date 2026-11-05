@@ -15,12 +15,16 @@ RUN python -m pip install --no-cache-dir \
 
 COPY backend ./backend
 
-COPY ml/data/processed/train.csv ./ml/data/processed/train.csv
-
 RUN python -m pip install --no-cache-dir --timeout 120 --retries 5 . \
     && python -m pip install --no-cache-dir --timeout 120 --retries 5 \
         "sentencepiece>=0.2,<1" \
-        "transformers>=4.46,<5" \
+        "transformers>=4.46,<5"
+
+COPY ml/data/processed/train.csv ./ml/data/processed/train.csv
+
+RUN python -m grievance.nlp.export_baseline \
+        --training ml/data/processed/train.csv \
+        --output ml/artifacts/baseline.joblib \
     && useradd --create-home --uid 10001 appuser \
     && chown -R appuser:appuser /app /home/appuser
 

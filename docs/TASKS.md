@@ -207,7 +207,7 @@ Language tiers used in this file:
   - Backend image for Hugging Face Spaces (Docker SDK), non-root user, port from env, model loaded from the Hub at startup, Alembic migration on start.
   - Done when: image builds and runs locally against Neon or local Postgres.
   - Commit: `chore(deploy): add production Dockerfile for Hugging Face Spaces`
-  - Notes: The production image installs the CPU-only PyTorch runtime, runs as a non-root user, migrates before serving on `PORT` (default 7860 for Spaces), and loads the configured classifier during application startup. The committed synthetic baseline training split is copied into the image, so the default baseline initializes in production. Local Compose keeps the API on port 8000 by default and uses the image copy. The image was rebuilt locally and `/ready` reported `model=ready` with no classifier initialization failure.
+  - Notes: The production image installs the CPU-only PyTorch runtime, runs as a non-root user, migrates before serving on `PORT` (default 7860 for Spaces), and loads the configured classifier during application startup. The committed synthetic baseline training split is copied into the image, and the baseline is fitted at build time into `ml/artifacts/baseline.joblib` so startup loads it instead of training (D-16). Local Compose keeps the API on port 8000 by default and uses the image copy. The image was rebuilt locally and `/ready` reported `model=ready` with no classifier initialization failure.
 
 - [ ] **T-28** Deploy backend **(human)**
   - Create the Space, set secrets (`DATABASE_URL`, `JWT_SECRET`, keys), run migrations and seed, check `/ready`.
@@ -300,3 +300,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-11-04: completed T-32 with measured-versus-design-only scaling notes; documented process-local rate limits and the in-process scheduler.
 - 2026-11-04: completed T-30 with a real local Locust run (20 users, 60 seconds, 29.04 req/s, p95 650 ms, 0 failures) and recorded raw CSV results; fixed request-session commits uncovered by the run.
 - 2026-11-05: fixed the deployed baseline classifier by committing and copying `ml/data/processed/train.csv` into the image; verified local Compose `/ready`, clean classifier logs, and English/Hindi/Gujarati ticket creation.
+- 2026-11-05: moved baseline fitting to the Docker build and loaded the joblib artifact at startup; under a 512 MB Compose limit the API peaked at 284,132 kB VmRSS, stayed below the cap, was not OOM-killed, and created English/Hindi/Gujarati tickets with no torch/transformers imports on the baseline path.
