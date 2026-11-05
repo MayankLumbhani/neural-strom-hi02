@@ -27,8 +27,9 @@ class Settings(BaseSettings):
     classifier_backend: Literal["muril", "baseline", "fake"] = "baseline"
     model_name_or_path: str | None = None
     hf_token: SecretStr | None = None
-    classifier_high_threshold: float = Field(default=0.75, gt=0, le=1)
-    classifier_low_threshold: float = Field(default=0.45, gt=0, le=1)
+    classifier_accept_threshold: float = Field(default=0.35, gt=0, le=1)
+    classifier_margin_threshold: float = Field(default=0.12, gt=0, le=1)
+    classifier_margin_min_confidence: float = Field(default=0.25, gt=0, le=1)
     ticket_id_prefix: str = Field(
         default="FMC", min_length=1, max_length=12, pattern=r"^[A-Z0-9]+$"
     )
@@ -51,10 +52,12 @@ class Settings(BaseSettings):
     demo_admin_password: SecretStr | None = None
 
     @model_validator(mode="after")
-    def validate_confidence_thresholds(self) -> "Settings":
-        """Require the low confidence threshold to be lower than the high threshold."""
-        if self.classifier_low_threshold >= self.classifier_high_threshold:
-            raise ValueError("CLASSIFIER_LOW_THRESHOLD must be less than CLASSIFIER_HIGH_THRESHOLD")
+    def validate_classifier_thresholds(self) -> "Settings":
+        """Keep the margin branch's confidence floor below the direct accept threshold."""
+        if self.classifier_margin_min_confidence >= self.classifier_accept_threshold:
+            raise ValueError(
+                "CLASSIFIER_MARGIN_MIN_CONFIDENCE must be less than CLASSIFIER_ACCEPT_THRESHOLD"
+            )
         return self
 
     @property

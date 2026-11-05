@@ -1,4 +1,4 @@
-.PHONY: dev test lint format migrate seed generate-dataset review-sample eval-baseline
+.PHONY: dev test lint format migrate seed generate-dataset review-sample eval-baseline calibrate-baseline
 
 dev:
 	python -m uvicorn grievance.main:app --app-dir backend/src --reload
@@ -28,3 +28,6 @@ review-sample:
 
 eval-baseline:
 	python -m ml.src.evaluate
+
+calibrate-baseline:
+	python -m ml.src.calibrate

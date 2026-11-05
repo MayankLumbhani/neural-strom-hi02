@@ -127,6 +127,12 @@ Language tiers used in this file:
   - Commit: `feat(chat): add conversation state machine with clarification flow`
   - Notes: Persists conversation state and transcript, uses language templates and classifier confidence thresholds, and passes offline integration tests for filing, location follow-up, unresolved ambiguity, greetings/help and ticket status lookup.
 
+- [x] **T-15b** Clarification choices and startup seeding
+  - Clarification replies always return the nine seeded departments as localized quick replies, repeat them after failed choices instead of routing to `OTHER`, and resolve department codes, localized names and aliases from free text. Startup runs the idempotent seed after migrations so a fresh database always has departments; demo accounts are created only when `DEMO_MODE=true` and every `DEMO_*` value is set.
+  - Done when: a fresh Compose database serves a clarification with nine clickable choices, alias replies create tickets, and the configured demo logins work without manual seeding.
+  - Commit: `fix(chat): seed on startup, department choices, calibrated thresholds`
+  - Notes: With the validation-tuned `0.35/0.12/0.25` rule, validation Tier 1 accepted 466/720 (64.7% coverage, 89.3% precision) and the held-out 100-row Tier 1 evaluation accepted 77 (77.0%) with all correct. From a fresh database without manual seeding, 12 eval-derived complaints produced 5 direct tickets, 3 clarifications with nine choices and 4 location follow-ups, all ending in tickets; two failed clarification replies kept nine buttons, then `water` created a ticket. Officer/admin logins passed, and the API used 223.1 MiB (`docker stats`), not OOM-killed. D-17 and `ml/reports/confidence_calibration.json` record the calibration.
+
 - [x] **T-16** Public API
   - `POST /api/v1/chat/messages` and `GET /api/v1/tickets/{public_id}` with schemas, CORS from config, `docs/API.md` started.
   - Done when: API tests pass and the flow works in Swagger UI.
@@ -207,7 +213,7 @@ Language tiers used in this file:
   - Backend image for Hugging Face Spaces (Docker SDK), non-root user, port from env, model loaded from the Hub at startup, Alembic migration on start.
   - Done when: image builds and runs locally against Neon or local Postgres.
   - Commit: `chore(deploy): add production Dockerfile for Hugging Face Spaces`
-  - Notes: The production image installs the CPU-only PyTorch runtime, runs as a non-root user, migrates before serving on `PORT` (default 7860 for Spaces), and loads the configured classifier during application startup. The committed synthetic baseline training split is copied into the image, and the baseline is fitted at build time into `ml/artifacts/baseline.joblib` so startup loads it instead of training (D-16). Local Compose keeps the API on port 8000 by default and uses the image copy. The image was rebuilt locally and `/ready` reported `model=ready` with no classifier initialization failure.
+  - Notes: The production image installs the CPU-only PyTorch runtime, runs as a non-root user, migrates and runs the idempotent seed before serving on `PORT` (default 7860 for Spaces), and loads the configured classifier during application startup. The committed synthetic baseline training split is copied into the image, and the baseline is fitted at build time into `ml/artifacts/baseline.joblib` so startup loads it instead of training (D-16). Local Compose keeps the API on port 8000 by default and uses the image copy. The image was rebuilt locally and `/ready` reported `model=ready` with no classifier initialization failure; the fresh Compose database logged `seed.completed departments=9 accounts=2` without manual seeding.
 
 - [ ] **T-28** Deploy backend **(human)**
   - Create the Space, set secrets (`DATABASE_URL`, `JWT_SECRET`, keys), run migrations and seed, check `/ready`.
@@ -301,3 +307,4 @@ Add one line per day: what was finished, what is blocked.
 - 2026-11-04: completed T-30 with a real local Locust run (20 users, 60 seconds, 29.04 req/s, p95 650 ms, 0 failures) and recorded raw CSV results; fixed request-session commits uncovered by the run.
 - 2026-11-05: fixed the deployed baseline classifier by committing and copying `ml/data/processed/train.csv` into the image; verified local Compose `/ready`, clean classifier logs, and English/Hindi/Gujarati ticket creation.
 - 2026-11-05: moved baseline fitting to the Docker build and loaded the joblib artifact at startup; under a 512 MB Compose limit the API peaked at 284,132 kB VmRSS, stayed below the cap, was not OOM-killed, and created English/Hindi/Gujarati tickets with no torch/transformers imports on the baseline path.
+- 2026-11-05: completed T-15b by seeding after migrations, returning all nine localized department choices, resolving aliases, and calibrating the accept rule on validation; fresh-DB verification produced 13 tickets across 12 eval complaints plus one alias clarification, demo logins passed, and the API used 223.1 MiB.

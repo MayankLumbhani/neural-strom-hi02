@@ -35,8 +35,9 @@ def test_settings_cover_architecture_environment_variables() -> None:
         "CLASSIFIER_BACKEND",
         "MODEL_NAME_OR_PATH",
         "HF_TOKEN",
-        "CLASSIFIER_HIGH_THRESHOLD",
-        "CLASSIFIER_LOW_THRESHOLD",
+        "CLASSIFIER_ACCEPT_THRESHOLD",
+        "CLASSIFIER_MARGIN_THRESHOLD",
+        "CLASSIFIER_MARGIN_MIN_CONFIDENCE",
         "TICKET_ID_PREFIX",
         "LLM_ENABLED",
         "GEMINI_API_KEY",
@@ -77,13 +78,22 @@ def test_classifier_backend_defaults_to_baseline_and_accepts_fake_for_tests() ->
     assert Settings(_env_file=None, classifier_backend="fake").classifier_backend == "fake"
 
 
-def test_settings_reject_inverted_confidence_thresholds() -> None:
-    """Require the low classifier threshold to remain below the high threshold."""
+def test_classifier_thresholds_default_to_validation_calibrated_values() -> None:
+    """Keep the calibrated accept, margin, and confidence-floor defaults aligned."""
+    settings = Settings(_env_file=None)
+
+    assert settings.classifier_accept_threshold == 0.35
+    assert settings.classifier_margin_threshold == 0.12
+    assert settings.classifier_margin_min_confidence == 0.25
+
+
+def test_settings_reject_margin_floor_above_accept_threshold() -> None:
+    """Require the margin branch to use a lower confidence floor than direct acceptance."""
     with pytest.raises(ValidationError):
         Settings(
             _env_file=None,
-            classifier_low_threshold=0.8,
-            classifier_high_threshold=0.7,
+            classifier_accept_threshold=0.2,
+            classifier_margin_min_confidence=0.3,
         )
 
 

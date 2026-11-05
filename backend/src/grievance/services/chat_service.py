@@ -51,6 +51,20 @@ HELP_PHRASES: dict[str, frozenset[str]] = {
 TICKET_ID_PATTERN = re.compile(r"^[A-Z0-9]+-\d{6}-[A-Z0-9]{4}$", re.IGNORECASE)
 
 
+def _normalize_choice(value: str) -> str:
+    """Normalize a department reply to casefolded words without punctuation."""
+    normalized = unicodedata.normalize("NFC", value).casefold()
+    return " ".join(re.sub(r"[^\w\s]", " ", normalized).split())
+
+
+def _contains_choice_phrase(choice: str, phrase: str) -> bool:
+    """Match a department alias as a whole word or phrase inside a reply."""
+    normalized_phrase = _normalize_choice(phrase)
+    if not normalized_phrase:
+        return False
+    return f" {normalized_phrase} " in f" {choice} "
+
+
 class ChatService:
     """Handle a citizen message and persist the updated conversation and transcript."""
 
@@ -169,42 +183,30 @@ class ChatService:
         """Choose a department or ask a fixed-template clarification."""
         templates = load_templates(language_code)
         prediction = self._classifier.predict(classification_text)
-        if (
-            department_code is None
-            and prediction.confidence < self._settings.classifier_low_threshold
-        ):
-            if conversation.state == "AWAITING_DEPARTMENT":
-                department_code = "OTHER"
-            else:
-                conversation.state = "AWAITING_DEPARTMENT"
-                conversation.pending_text = complaint_text
-                conversation.pending_department = None
-                choices = self._all_departments(language_code)
-                return self._response(
-                    conversation,
-                    language_code,
-                    "AWAITING_DEPARTMENT",
-                    templates.ask_department,
-                    choices,
-                )
-        elif (
-            department_code is None
-            and prediction.confidence < self._settings.classifier_high_threshold
-        ):
+        if department_code is None and not self._accept_prediction(prediction):
             conversation.state = "AWAITING_DEPARTMENT"
             conversation.pending_text = complaint_text
             conversation.pending_department = None
-            choices = self._prediction_departments(prediction, language_code)
             return self._response(
                 conversation,
                 language_code,
                 "AWAITING_DEPARTMENT",
                 templates.ask_department,
-                choices,
+                self._all_departments(language_code),
             )
 
         selected_code = department_code or str(prediction.label)
         return self._collect_location(conversation, complaint_text, language_code, selected_code)
+
+    def _accept_prediction(self, prediction: Prediction) -> bool:
+        """Accept a top class by absolute confidence or a clear runner-up margin."""
+        top_confidence = prediction.confidence
+        runner_up_confidence = prediction.top_k[1][1] if len(prediction.top_k) > 1 else 0.0
+        margin = top_confidence - runner_up_confidence
+        return top_confidence >= self._settings.classifier_accept_threshold or (
+            top_confidence >= self._settings.classifier_margin_min_confidence
+            and margin >= self._settings.classifier_margin_threshold
+        )
 
     def _resolve_department(
         self,
@@ -323,44 +325,27 @@ class ChatService:
         )
 
     def _resolve_department_choice(self, choice: str, language_code: str) -> str | None:
-        """Match a quick reply by code or the known localized department names."""
-        normalized_choice = choice.casefold().strip()
+        """Match a free-text or quick-reply department by code, name, or alias."""
+        normalized_choice = _normalize_choice(choice)
         for seed in DEPARTMENTS:
-            department = get_department_by_code(self._session, seed.code)
-            if department is None:
-                continue
-            names = {
-                seed.code.casefold(),
-                seed.name_en.casefold(),
-                seed.name_hi.casefold(),
-                seed.name_gu.casefold(),
-                department_display_name(department, language_code).casefold(),
-            }
-            if normalized_choice in names:
+            candidates = (
+                seed.code,
+                seed.name_en,
+                seed.name_hi,
+                seed.name_gu,
+                seed.localized_name(language_code),
+                *seed.aliases,
+            )
+            if any(
+                _contains_choice_phrase(normalized_choice, candidate) for candidate in candidates
+            ):
                 return seed.code
         return None
 
-    def _all_departments(self, language_code: str) -> list[str]:
-        """Return translated choices for all configured departments."""
-        choices = []
-        for seed in DEPARTMENTS:
-            department = get_department_by_code(self._session, seed.code)
-            if department is not None:
-                choices.append(department_display_name(department, language_code))
-        return choices
-
-    def _prediction_departments(
-        self,
-        prediction: Prediction,
-        language_code: str,
-    ) -> list[str]:
-        """Return the classifier's ranked departments as translated quick replies."""
-        choices = []
-        for code, _ in prediction.top_k[:2]:
-            department = get_department_by_code(self._session, str(code))
-            if department is not None:
-                choices.append(department_display_name(department, language_code))
-        return choices
+    @staticmethod
+    def _all_departments(language_code: str) -> list[str]:
+        """Return localized choices for every department from the seed registry."""
+        return [seed.localized_name(language_code) for seed in DEPARTMENTS]
 
     @staticmethod
     def _ticket_summary(ticket: Ticket, department: str, status: str) -> ChatTicketSummary:

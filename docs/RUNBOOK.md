@@ -15,10 +15,11 @@ docker compose up -d --build
 curl http://localhost:8000/ready
 ```
 
-The API container waits for PostgreSQL, runs `alembic upgrade head` from
-`backend/scripts/start.sh`, and then serves on `PORT` (Compose defaults to
-8000). `API_PORT` controls the host port. Seed the demo departments and accounts
-once the database is up:
+The API container waits for PostgreSQL, runs `alembic upgrade head`, runs the
+idempotent seed, and then serves on `PORT` (Compose defaults to 8000).
+`API_PORT` controls the host port. The seed creates the nine departments and,
+when `DEMO_MODE=true` and `DEMO_*` is complete, the demo officer/admin accounts.
+It is safe to run again manually:
 
 ```bash
 docker compose exec -T api python -m grievance.seed
@@ -73,7 +74,7 @@ Names only; values belong in `.env` or host secrets.
 | `CORS_ORIGINS` | Comma-separated allowed frontend origins |
 | `CLASSIFIER_BACKEND` | `baseline` (default) or `muril` |
 | `MODEL_NAME_OR_PATH`, `HF_TOKEN` | MuRIL model path and optional Hub token |
-| `CLASSIFIER_HIGH_THRESHOLD`, `CLASSIFIER_LOW_THRESHOLD` | Confidence policy |
+| `CLASSIFIER_ACCEPT_THRESHOLD`, `CLASSIFIER_MARGIN_THRESHOLD`, `CLASSIFIER_MARGIN_MIN_CONFIDENCE` | Calibrated auto-accept and clarification policy |
 | `TICKET_ID_PREFIX` | Public ticket ID prefix |
 | `LLM_ENABLED`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `LLM_TIMEOUT_SECONDS` | Optional location extraction and offline dataset generation |
 | `DATASET_SEED`, `DATASET_TIER1_SAMPLES_PER_CLASS_LANGUAGE`, `DATASET_TIER2_SAMPLES_PER_CLASS_LANGUAGE`, `DATASET_MINIMUM_STRATUM_FRACTION` | Offline dataset generation |
@@ -98,11 +99,18 @@ revision instead.
 
 ## Seeding demo accounts
 
-`python -m grievance.seed` (or `docker compose exec -T api python -m grievance.seed`)
-is idempotent. It seeds the nine departments and the officer/admin accounts
-defined by the `DEMO_*` variables. Passwords must be 12 to 72 UTF-8 bytes.
-Re-running updates seeded fields and keeps existing hashes when the password is
-unchanged. Demo credentials are deliberately not published in the repository.
+The container entrypoint runs `python -m grievance.seed` after migrations and
+before Uvicorn. The seed is idempotent: it always creates or updates the nine
+departments, and creates the officer/admin accounts only when `DEMO_MODE=true`
+and all `DEMO_*` values are present. If demo configuration is incomplete or
+`DEMO_MODE=false`, it logs a skip reason and still seeds the departments, so
+startup does not fail. Passwords must be 12 to 72 UTF-8 bytes. Re-running
+updates seeded fields and keeps existing hashes when the password is unchanged.
+Passwords and other secret values are never logged. Demo credentials are
+deliberately not published in the repository.
+
+Check startup logs for `seed.completed departments=9 accounts=2` (or
+`accounts=0` when demo accounts are disabled).
 
 ## Deploy the backend to Hugging Face Spaces
 
@@ -119,11 +127,12 @@ unchanged. Demo credentials are deliberately not published in the repository.
 5. Port handling: Spaces sets `PORT` and expects the app on that port. The
    image defaults to `PORT=7860` and passes it to Uvicorn. Do not hardcode 8000
    in the Space.
-6. The entrypoint applies migrations before serving. Run the seed once against
-   the production database from a local shell or a one-off Space command:
-   `python -m grievance.seed` with the production `DATABASE_URL` and `DEMO_*`
-   values set.
-7. Check `GET /health` and `GET /ready` on the public Space URL.
+6. The entrypoint applies migrations and runs the idempotent seed before
+   serving. Check the startup logs for `seed.completed departments=9`; run
+   `python -m grievance.seed` manually only to repair or refresh seeded data.
+7. Check `GET /health` and `GET /ready` on the public Space URL, then send a
+   chat message that should require a department clarification and confirm that
+   localized department buttons appear.
 
 ## Deploy the frontend to Vercel
 
@@ -165,9 +174,11 @@ the Space a few minutes before judging.
 ## DEMO_MODE
 
 `DEMO_MODE=true` interprets department `sla_hours` as **minutes** instead of
-hours, so escalation can be shown quickly in a demo. It does not change the
-department list, classification, templates or authentication. Set it to
-`false` for normal SLA behaviour.
+hours, so escalation can be shown quickly in a demo. Since the startup seed
+also uses it, demo officer/admin accounts are created only when it is `true`
+and the `DEMO_*` values are complete. It does not change the department list,
+classification, templates or authentication. Set it to `false` for normal SLA
+behaviour and no demo-account seeding.
 
 ## Troubleshooting
 
@@ -199,6 +210,21 @@ print the value in logs or issues.
   Startup logs should show `classifier.baseline.loaded source=artifact`. A
   `source=csv` line means the artifact was absent and the loader fitted from the
   CSV; rebuild the image to regenerate it.
+
+### Clarification shows no department buttons or `water` repeats the question
+
+- Confirm the API startup logs include `seed.completed departments=9`. If the
+  departments table is empty, the seed did not run or the API points at a
+  different database.
+- Department buttons are generated from the seed registry, not from the request
+  language, so a non-empty locale list should always return nine labels.
+- A free-text reply such as `water`, `paani`, `पानी` or `પાણી` is matched
+  against department codes, names and aliases. If it still repeats, check the
+  API logs for the classifier label and confidence, and confirm the configured
+  `CLASSIFIER_ACCEPT_THRESHOLD`, `CLASSIFIER_MARGIN_THRESHOLD` and
+  `CLASSIFIER_MARGIN_MIN_CONFIDENCE` values.
+- `seed.demo_accounts.skipped` lists the missing setting names, never their
+  values. Staff login requires `DEMO_MODE=true` plus a complete `DEMO_*` set.
 
 ### Status lookup returns 404 for a new ticket
 

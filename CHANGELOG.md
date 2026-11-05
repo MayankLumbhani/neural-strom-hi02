@@ -5,10 +5,15 @@ All notable changes to this project will be documented in this file.
 ## [Unreleased]
 
 ### Fixed
+- Run the idempotent seed automatically from `backend/scripts/start.sh` after Alembic migrations. Departments are always seeded; demo officer/admin accounts are seeded only when `DEMO_MODE=true` and all `DEMO_*` values are present. Incomplete demo configuration logs missing setting names (never values) and skips accounts without blocking startup. On a fresh Compose database the logs showed `seed.completed departments=9 accounts=2`, and department/officer counts were 9 and 2.
+- Clarification replies now always include all nine localized department buttons from the seed registry, so an empty or unseeded database cannot produce a question with no choices. Repeated failed clarifications keep the buttons instead of silently routing to `OTHER`, and free-text replies resolve department codes, localized names and aliases such as `water`, `paani`, `पानी` and `પાણી`.
+- Recalibrated the chat acceptance rule from validation data. The old `0.75/0.45` policy accepted only 3 of 720 validation Tier 1 rows (0.42% coverage). The new `CLASSIFIER_ACCEPT_THRESHOLD=0.35`, `CLASSIFIER_MARGIN_THRESHOLD=0.12`, `CLASSIFIER_MARGIN_MIN_CONFIDENCE=0.25` rule accepted 466 of 720 (64.7% coverage) at 89.3% precision (416 correct, 50 incorrect); the held-out 100-row Tier 1 evaluation accepted 77 (77.0%) with all 77 correct. The evaluation set is small and AI-authored, so this is an observed tradeoff, not a general claim.
+- Verified the complete flow from a fresh Compose database without manual seeding: 12 eval-derived complaints (3 each in English, Hindi, Gujarati and Hinglish) produced 5 direct tickets, 3 department clarifications with nine choices, and 4 location follow-ups, all ending in tickets. A repeated clarification kept nine buttons twice, then `water` created a ticket. Officer and admin logins both returned 200. The API used 223.1 MiB and was not OOM-killed.
 - Fit the baseline classifier once during the Docker image build and load the resulting joblib artifact at startup instead of fitting on every start, with a CSV-fit fallback for local development and tests; run Uvicorn with one worker. Under a 512 MB container limit the API peaked at 284,132 kB VmRSS after English/Hindi/Gujarati chat flows, was not OOM-killed, and did not import PyTorch, Transformers or SentencePiece on the baseline path.
 - Ship the committed synthetic baseline training split (`ml/data/processed/train.csv`) in the Docker image so the default baseline classifier initializes on Render instead of failing with `Baseline training CSV not found`; updated Compose to use the image copy rather than a host bind mount.
 
 ### Added
+- Added `ml/src/calibrate.py`, the `make calibrate-baseline` target and the generated `ml/reports/confidence_calibration.json`, which compares candidate accept/margin rules on validation and the handwritten evaluation set; recorded the chosen rule in D-17.
 - Rewrote `README.md` with the problem, architecture, features, setup, measured Tier 1 and Tier 2 metrics, load-test summary, limitations, AI tools, early-start disclosure, documentation links and marked placeholders; completed T-34.
 - Rewrote `docs/API.md` with every implemented endpoint, auth requirements, JSON examples and curl calls, and added `docs/RUNBOOK.md` for local runs, deployment, secret rotation and troubleshooting; completed T-33.
 - Added `docs/SCALING.md` with the measured local load test and a clearly separated list of design-only scale-out ideas; completed T-32.
@@ -53,6 +58,7 @@ All notable changes to this project will be documented in this file.
 - Seeded Tier 1 training-data review sample generator with blank verdict and notes columns.
 
 ### Changed
+- Replaced `CLASSIFIER_HIGH_THRESHOLD` and `CLASSIFIER_LOW_THRESHOLD` with `CLASSIFIER_ACCEPT_THRESHOLD` (0.35), `CLASSIFIER_MARGIN_THRESHOLD` (0.12) and `CLASSIFIER_MARGIN_MIN_CONFIDENCE` (0.25); settings validation rejects a margin floor at or above the accept threshold. Updated `.env.example`, tests and docs.
 - Request-scoped database sessions now commit on success and roll back on error, so conversations and tickets created in one request are visible to later requests; added unit coverage.
 - Chat now detects the language of each incoming message and uses it for the reply, rather than retaining a stale language from an earlier turn.
 - Recorded the Tier 1 dataset review results and removed the 25 specified bad rows from training data; remaining dataset rows are unreviewed.

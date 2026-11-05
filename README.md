@@ -57,9 +57,12 @@ swappable. The classifier is loaded once at startup.
 
 The chat uses a persisted state machine: collect the complaint, ask for the
 department when confidence is low, ask for the location when missing, then
-create the ticket. The confidence policy is configurable: at or above the high
-threshold accept the department, between the thresholds ask the citizen to
-confirm, below the low threshold ask an open clarifying question.
+create the ticket. The confidence policy is configurable: accept the top
+department at `CLASSIFIER_ACCEPT_THRESHOLD` or when its margin over the
+runner-up is at least `CLASSIFIER_MARGIN_THRESHOLD` (with a minimum
+`CLASSIFIER_MARGIN_MIN_CONFIDENCE`); otherwise ask the citizen to choose from
+all localized department buttons. Free-text answers such as `water`, `paani` or
+`પાણી` resolve through department names and aliases.
 
 ## Features
 
@@ -123,13 +126,15 @@ Start the backend and PostgreSQL:
 ```bash
 docker compose up -d --build
 curl http://localhost:8000/ready
-docker compose exec -T api python -m grievance.seed
 ```
 
-The API container waits for PostgreSQL and applies Alembic migrations before
-serving. The seed command creates the nine synthetic departments and the demo
-officer/admin accounts. It is safe to run more than once. The default baseline
-classifier is trained once during the Docker image build and loaded from
+The API container waits for PostgreSQL, applies Alembic migrations, runs the
+idempotent seed automatically, then serves. The seed creates the nine synthetic
+departments and, when `DEMO_MODE=true` and the `DEMO_*` values are complete,
+the demo officer/admin accounts. It is safe to run more than once and can be
+rerun manually with `docker compose exec -T api python -m grievance.seed`.
+Passwords are never logged. The default baseline classifier is trained once
+during the Docker image build and loaded from
 `ml/artifacts/baseline.joblib` at startup; the committed synthetic split
 `ml/data/processed/train.csv` is the build input and the local fallback. To use
 the published MuRIL model instead, set `CLASSIFIER_BACKEND=muril` and
@@ -204,6 +209,19 @@ because it is lighter and faster, has substantially better HEALTH F1, and the
 accuracy gap is too small to be meaningful on 100 AI-authored rows. The baseline
 report predates the D-10 training-label normalization; the MuRIL report is from
 a second run on normalized training data. Both use the same evaluation set.
+
+### Chat acceptance calibration
+
+The chat auto-accept rule was tuned on the validation split only, not on this
+evaluation set. With `CLASSIFIER_ACCEPT_THRESHOLD=0.35`,
+`CLASSIFIER_MARGIN_THRESHOLD=0.12` and
+`CLASSIFIER_MARGIN_MIN_CONFIDENCE=0.25`, validation Tier 1 accepted 466 of 720
+rows (64.7% coverage) with 416 correct (89.3% precision). The held-out
+handwritten Tier 1 evaluation accepted 77 of 100 rows (77.0% coverage), all 77
+correct. Because the evaluation set is small and AI-authored, this is an
+observed tradeoff, not a general correctness claim. The generated report is
+`ml/reports/confidence_calibration.json`; regenerate it with
+`make calibrate-baseline`.
 
 ### Tier 2 classifier results (experimental, unverified)
 

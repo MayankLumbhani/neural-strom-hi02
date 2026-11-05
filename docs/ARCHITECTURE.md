@@ -33,7 +33,7 @@ flowchart LR
 | Piece | Host | Notes |
 |---|---|---|
 | Frontend | Vercel | Static React build, calls the backend over HTTPS |
-| Backend and model | Hugging Face Spaces (Docker, CPU) | Production image defaults to `PORT=7860`, applies Alembic migrations before serving, and loads the configured classifier at startup. Set `CLASSIFIER_BACKEND=muril` and `MODEL_NAME_OR_PATH` in Space variables to load MuRIL from the Hub; local application defaults remain baseline. Sleeps when idle, so wake it before judging |
+| Backend and model | Hugging Face Spaces (Docker, CPU) | Production image defaults to `PORT=7860`, applies Alembic migrations and the idempotent seed before serving, and loads the configured classifier at startup. Set `CLASSIFIER_BACKEND=muril` and `MODEL_NAME_OR_PATH` in Space variables to load MuRIL from the Hub; local application defaults remain baseline. Sleeps when idle, so wake it before judging |
 | Database | Neon PostgreSQL | Persistent, free tier |
 | Model weights | Hugging Face Hub | Not committed to Git, loaded by name from config |
 | Local dev | docker-compose (api and postgres) | `make dev`; Postgres host port is `POSTGRES_PORT` (default 5432) |
@@ -42,8 +42,9 @@ CORS allows only the configured frontend origin.
 
 The root `Dockerfile` installs the CPU PyTorch runtime, runs as an unprivileged
 user, and starts through `backend/scripts/start.sh`. The entrypoint applies
-database migrations before launching Uvicorn, using `PORT` from the host
-(7860 by default for Hugging Face Spaces). Docker Compose overrides the port to
+database migrations, runs the idempotent seed (departments always; demo accounts
+only when `DEMO_MODE=true` and `DEMO_*` is complete), then launches Uvicorn,
+using `PORT` from the host (7860 by default for Hugging Face Spaces). Docker Compose overrides the port to
 8000 by default for local development. The synthetic baseline training split
 (`ml/data/processed/train.csv`) is committed and copied into the production
 image at build time; the build fits the TF-IDF baseline once and writes
@@ -142,17 +143,17 @@ stateDiagram-v2
 7. Decide the next action (ask for department, ask for location, create ticket).
 8. Build the reply from templates, store it, update the state, and return.
 
-The implemented service stores both sides of the transcript in `messages`; each request reloads its conversation by UUID, so no chat state lives in process memory. A conversation creates at most one ticket, matching the unique `tickets.conversation_id` constraint. Low-confidence classification asks the citizen to choose among departments; if the next clarification remains below the low threshold, it routes to `OTHER`. Missing locations are collected before the ticket and its initial status event are created.
+The implemented service stores both sides of the transcript in `messages`; each request reloads its conversation by UUID, so no chat state lives in process memory. A conversation creates at most one ticket, matching the unique `tickets.conversation_id` constraint. Low-confidence classification asks the citizen to choose among all nine localized departments, and every further failed clarification keeps offering them instead of forcing `OTHER`. Free-text department replies match seed codes, localized names and aliases (for example `water`, `paani`, `पानी` and `પાણી`). Missing locations are collected before the ticket and its initial status event are created.
 
 ### Classification confidence policy
 
-| Condition (initial values, tuned on the validation set) | Action |
+| Condition (defaults calibrated on validation Tier 1) | Action |
 |---|---|
-| confidence at or above `CLASSIFIER_HIGH_THRESHOLD` (start at 0.75) | Accept the department |
-| between the thresholds | Ask to confirm, offering top-2 departments as quick replies |
-| below `CLASSIFIER_LOW_THRESHOLD` (start at 0.45) | Ask what the problem is, then offer all departments as quick replies. If it is still unclear, route to OTHER |
+| top-1 at or above `CLASSIFIER_ACCEPT_THRESHOLD` (0.35) | Accept the department |
+| top-1 at or above `CLASSIFIER_MARGIN_MIN_CONFIDENCE` (0.25) and top-1 minus top-2 at least `CLASSIFIER_MARGIN_THRESHOLD` (0.12) | Accept the department |
+| otherwise | Ask the citizen, offering all nine localized departments as quick replies |
 
-Thresholds are environment config. The values above are starting points, not results.
+On the 720 validation Tier 1 rows this rule accepted 466 (64.7% coverage) with 416 correct (89.3% precision). On the held-out 100 handwritten Tier 1 evaluation rows it accepted 77 (77% coverage), all 77 correct (100% precision). The evaluation set is small and AI-authored, so these are an observed tradeoff, not a general correctness claim. The thresholds are environment config; see `ml/reports/confidence_calibration.json`, D-17 and `make calibrate-baseline`.
 
 ## 6. NLP pipeline
 
@@ -335,7 +336,7 @@ Status codes: 400 validation, 401 unauthenticated, 403 forbidden, 404 not found,
 | `CORS_ORIGINS` | Allowed frontend origins |
 | `CLASSIFIER_BACKEND` | Runtime backend: `baseline` (default) or `muril`; `fake` is test-only |
 | `MODEL_NAME_OR_PATH`, `HF_TOKEN` | Published classifier model path and optional Hugging Face Hub access token |
-| `CLASSIFIER_HIGH_THRESHOLD`, `CLASSIFIER_LOW_THRESHOLD` | Confidence policy |
+| `CLASSIFIER_ACCEPT_THRESHOLD`, `CLASSIFIER_MARGIN_THRESHOLD`, `CLASSIFIER_MARGIN_MIN_CONFIDENCE` | Calibrated auto-accept and clarification policy |
 | `TICKET_ID_PREFIX` | Public ticket ID prefix (default `FMC`) |
 | `LLM_ENABLED`, `GEMINI_API_KEY`, `GEMINI_MODEL`, `LLM_TIMEOUT_SECONDS` | Optional extraction helper and offline Gemini dataset generation; per-request timeout defaults to 60 seconds and the model has no default |
 | `DATASET_SEED`, `DATASET_TIER1_SAMPLES_PER_CLASS_LANGUAGE`, `DATASET_TIER2_SAMPLES_PER_CLASS_LANGUAGE`, `DATASET_MINIMUM_STRATUM_FRACTION` | Dataset seed, requested examples (100 Tier 1, 30 Tier 2), and minimum accepted stratum fraction (0.9) |

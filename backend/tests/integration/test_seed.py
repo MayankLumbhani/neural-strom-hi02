@@ -32,7 +32,7 @@ def test_seed_database_is_idempotent_and_hashes_demo_passwords() -> None:
     SQLModel.metadata.create_all(engine)
 
     with Session(engine) as session:
-        seed_database(session, _seed_settings())
+        assert seed_database(session, _seed_settings()) == 2
         session.commit()
         first_hashes = {
             officer.username: officer.password_hash
@@ -81,6 +81,54 @@ def test_seed_database_is_idempotent_and_hashes_demo_passwords() -> None:
         b"synthetic-admin-password",
         first_hashes["demo-admin"].encode("ascii"),
     )
+
+
+def test_seed_with_demo_mode_disabled_creates_departments_without_accounts() -> None:
+    """Keep startup seeding safe when demo accounts are intentionally disabled."""
+    engine = create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+
+    with Session(engine) as session:
+        accounts = seed_database(session, Settings(_env_file=None, demo_mode=False))
+        session.commit()
+        departments = session.exec(select(Department)).all()
+        officers = session.exec(select(Officer)).all()
+
+    assert accounts == 0
+    assert len(departments) == 9
+    assert officers == []
+
+
+def test_seed_with_incomplete_demo_config_still_creates_departments() -> None:
+    """Avoid failing startup when DEMO_MODE is on but account settings are incomplete."""
+    engine = create_engine(
+        "sqlite://",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+
+    with Session(engine) as session:
+        accounts = seed_database(
+            session,
+            Settings(
+                _env_file=None,
+                demo_mode=True,
+                demo_officer_username="demo-officer",
+                demo_officer_password="synthetic-officer-password",
+            ),
+        )
+        session.commit()
+        departments = session.exec(select(Department)).all()
+        officers = session.exec(select(Officer)).all()
+
+    assert accounts == 0
+    assert len(departments) == 9
+    assert officers == []
 
 
 @pytest.mark.parametrize(

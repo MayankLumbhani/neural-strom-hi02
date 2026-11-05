@@ -96,39 +96,100 @@ def test_missing_location_waits_for_citizen_then_files_ticket(
     assert ticket.location_text == "Ward 7"
 
 
-def test_low_confidence_clarification_offers_all_departments_then_uses_other(
+def test_repeated_failed_clarifications_keep_all_department_buttons(
     chat_database: Session,
 ) -> None:
-    """Offer department choices and route unresolved clarification to OTHER."""
-    service = _service(chat_database, "OTHER", confidence=0.2)
-    first = service.handle_message("Something is wrong.")
+    """Keep offering every department, then use the citizen's explicit choice."""
+    service = ChatService(
+        chat_database,
+        Settings(_env_file=None, llm_enabled=False),
+        FakeClassifier("WATER", top_k=[("WATER", 0.3), ("ROADS", 0.22)]),
+    )
+    first = service.handle_message("Water supply is not available near Ward 5.")
 
     assert first.state == "AWAITING_DEPARTMENT"
     assert len(first.reply.quick_replies) == 9
 
-    second = service.handle_message("I still do not know; near Ward 2", first.conversation_id)
+    second = service.handle_message("I still do not know", first.conversation_id)
+
+    assert second.state == "AWAITING_DEPARTMENT"
+    assert len(second.reply.quick_replies) == 9
+
+    third = service.handle_message("Water Supply", first.conversation_id)
 
     ticket = chat_database.exec(select(Ticket)).one()
-    assert second.state == "TICKET_CREATED"
-    assert second.ticket is not None
-    assert second.ticket.department == "General or Unclear"
-    assert ticket.location_text == "Ward 2"
+    assert third.state == "TICKET_CREATED"
+    assert third.ticket is not None
+    assert third.ticket.department == "Water Supply"
+    assert ticket.location_text == "Ward 5"
 
 
-def test_medium_confidence_offers_two_ranked_departments(
+def test_margin_rule_accepts_clear_runner_up_gap(
     chat_database: Session,
 ) -> None:
-    """Ask the citizen to confirm one of the model's two leading departments."""
+    """Accept a moderate top score when the margin over the runner-up is large."""
     service = ChatService(
         chat_database,
         Settings(_env_file=None, llm_enabled=False),
-        FakeClassifier("WATER", top_k=[("WATER", 0.6), ("ROADS", 0.4)]),
+        FakeClassifier("WATER", top_k=[("WATER", 0.3), ("ROADS", 0.1)]),
     )
 
-    response = service.handle_message("Water is not available.")
+    response = service.handle_message("Water supply is cut near Lotus Park.")
 
-    assert response.state == "AWAITING_DEPARTMENT"
-    assert response.reply.quick_replies == ["Water Supply", "Roads and Infrastructure"]
+    assert response.state == "TICKET_CREATED"
+    assert response.ticket is not None
+    assert response.ticket.department == "Water Supply"
+
+
+def test_direct_threshold_accepts_low_confidence_without_margin(
+    chat_database: Session,
+) -> None:
+    """Accept the lowered absolute threshold even when the runner-up is close."""
+    service = ChatService(
+        chat_database,
+        Settings(_env_file=None, llm_enabled=False),
+        FakeClassifier("WATER", top_k=[("WATER", 0.4), ("ROADS", 0.35)]),
+    )
+
+    response = service.handle_message("Water supply is cut near Lotus Park.")
+
+    assert response.state == "TICKET_CREATED"
+    assert response.ticket is not None
+    assert response.ticket.department == "Water Supply"
+
+
+@pytest.mark.parametrize(
+    ("complaint", "clarification", "localized_choice"),
+    [
+        ("પાણી ની સમસ્યા છે, વોર્ડ 5 માં.", "પાણી", "પાણી પુરવઠો"),
+        ("पानी की समस्या है, वार्ड 5 में।", "पानी", "जल आपूर्ति"),
+        ("paani ki samasya hai, ward 5 mein", "paani", "Water Supply"),
+    ],
+)
+def test_free_text_department_alias_resolves_pending_complaint(
+    chat_database: Session,
+    complaint: str,
+    clarification: str,
+    localized_choice: str,
+) -> None:
+    """Resolve Hindi, Gujarati, and Hinglish department aliases to the WATER seed."""
+    service = _service(chat_database, "OTHER", confidence=0.2)
+    first = service.handle_message(complaint)
+
+    assert first.state == "AWAITING_DEPARTMENT"
+    assert localized_choice in first.reply.quick_replies
+
+    resolved = service.handle_message(clarification, first.conversation_id)
+
+    assert resolved.state in {"AWAITING_LOCATION", "TICKET_CREATED"}
+    if resolved.state == "AWAITING_LOCATION":
+        resolved = service.handle_message("Ward 5", first.conversation_id)
+
+    ticket = chat_database.exec(select(Ticket)).one()
+    department = chat_database.get(Department, ticket.department_id)
+    assert resolved.state == "TICKET_CREATED"
+    assert department is not None
+    assert department.code == "WATER"
 
 
 def test_ticket_id_status_lookup_returns_fixed_localized_reply(

@@ -22,23 +22,67 @@ from grievance.repositories.officer_repository import (
 
 @dataclass(frozen=True)
 class DepartmentSeed:
-    """Synthetic multilingual department data and its starting SLA."""
+    """Synthetic multilingual department data, aliases, and its starting SLA."""
 
     code: str
     name_en: str
     name_hi: str
     name_gu: str
     sla_hours: int
+    aliases: tuple[str, ...] = ()
+
+    def localized_name(self, language_code: str) -> str:
+        """Return the seed name for a supported language, falling back to English."""
+        if language_code == "hi":
+            return self.name_hi
+        if language_code == "gu":
+            return self.name_gu
+        return self.name_en
 
 
 DEPARTMENTS = (
-    DepartmentSeed("WATER", "Water Supply", "जल आपूर्ति", "પાણી પુરવઠો", 24),
+    DepartmentSeed(
+        "WATER",
+        "Water Supply",
+        "जल आपूर्ति",
+        "પાણી પુરવઠો",
+        24,
+        (
+            "water",
+            "water supply",
+            "paani",
+            "pani",
+            "jal",
+            "tap",
+            "nal",
+            "नल",
+            "पानी",
+            "जल",
+            "નળ",
+            "પાણી",
+            "જળ",
+        ),
+    ),
     DepartmentSeed(
         "ROADS",
         "Roads and Infrastructure",
         "सड़क एवं आधारभूत संरचना",
         "રસ્તા અને ઇન્ફ્રાસ્ટ્રક્ચર",
         48,
+        (
+            "road",
+            "roads",
+            "rasta",
+            "sadak",
+            "pothole",
+            "potholes",
+            "सड़क",
+            "रास्ता",
+            "गड्ढा",
+            "સડક",
+            "રસ્તો",
+            "ગડ્ડો",
+        ),
     ),
     DepartmentSeed(
         "SANITATION",
@@ -46,40 +90,176 @@ DEPARTMENTS = (
         "स्वच्छता एवं कचरा",
         "સફાઈ અને કચરો",
         24,
+        (
+            "sanitation",
+            "waste",
+            "garbage",
+            "kachra",
+            "safai",
+            "कचरा",
+            "सफाई",
+            "स्वच्छता",
+            "કચરો",
+            "સફાઈ",
+        ),
     ),
-    DepartmentSeed("ELECTRICITY", "Electricity", "बिजली", "વીજળી", 12),
-    DepartmentSeed("STREETLIGHT", "Street Lights", "स्ट्रीट लाइट", "સ્ટ્રીટ લાઇટ", 24),
+    DepartmentSeed(
+        "ELECTRICITY",
+        "Electricity",
+        "बिजली",
+        "વીજળી",
+        12,
+        (
+            "electricity",
+            "electric",
+            "power",
+            "power cut",
+            "bijli",
+            "current",
+            "बिजली",
+            "करंट",
+            "વીજળી",
+            "વીજ",
+        ),
+    ),
+    DepartmentSeed(
+        "STREETLIGHT",
+        "Street Lights",
+        "स्ट्रीट लाइट",
+        "સ્ટ્રીટ લાઇટ",
+        24,
+        (
+            "street light",
+            "street lights",
+            "streetlight",
+            "streetlights",
+            "lamp",
+            "lamp post",
+            "स्ट्रीट लाइट",
+            "સ્ટ્રીટ લાઇટ",
+        ),
+    ),
     DepartmentSeed(
         "DRAINAGE",
         "Drainage and Sewage",
         "जल निकासी एवं सीवेज",
         "ગટર અને ગંદા પાણી",
         12,
+        (
+            "drainage",
+            "drain",
+            "sewage",
+            "sewer",
+            "nali",
+            "gutter",
+            "जल निकासी",
+            "सीवेज",
+            "नाली",
+            "ગટર",
+            "ગંદા પાણી",
+            "ડ્રેનેજ",
+        ),
     ),
-    DepartmentSeed("HEALTH", "Public Health", "जन स्वास्थ्य", "જાહેર આરોગ્ય", 24),
+    DepartmentSeed(
+        "HEALTH",
+        "Public Health",
+        "जन स्वास्थ्य",
+        "જાહેર આરોગ્ય",
+        24,
+        (
+            "health",
+            "public health",
+            "hospital",
+            "clinic",
+            "doctor",
+            "disease",
+            "स्वास्थ्य",
+            "अस्पताल",
+            "बीमारी",
+            "આરોગ્ય",
+            "હોસ્પિટલ",
+            "બીમારી",
+        ),
+    ),
     DepartmentSeed(
         "TAX",
         "Property Tax and Billing",
         "संपत्ति कर एवं बिलिंग",
         "મિલકત વેરો અને બિલિંગ",
         72,
+        (
+            "tax",
+            "property tax",
+            "billing",
+            "bill",
+            "कर",
+            "संपत्ति कर",
+            "बिल",
+            "વેરો",
+            "મિલકત વેરો",
+            "બિલ",
+        ),
     ),
-    DepartmentSeed("OTHER", "General or Unclear", "सामान्य या अस्पष्ट", "સામાન્ય અથવા અસ્પષ્ટ", 48),
+    DepartmentSeed(
+        "OTHER",
+        "General or Unclear",
+        "सामान्य या अस्पष्ट",
+        "સામાન્ય અથવા અસ્પષ્ટ",
+        48,
+        ("other", "general", "unclear", "anything", "अन्य", "सामान्य", "અન્ય", "સામાન્ય"),
+    ),
 )
 
 
 def _required_value(value: str | None, setting_name: str) -> str:
     """Return a required non-empty seed setting or raise a clear error."""
     if value is None or not value.strip():
-        raise ValueError(f"{setting_name} must be configured before running make seed")
+        raise ValueError(f"{setting_name} must be configured before seeding demo accounts")
     return value
 
 
 def _required_password(secret: SecretStr | None, setting_name: str) -> str:
     """Return a required seed password without exposing it in error messages."""
     if secret is None or not secret.get_secret_value().strip():
-        raise ValueError(f"{setting_name.upper()} must be configured before running make seed")
+        raise ValueError(f"{setting_name.upper()} must be configured before seeding demo accounts")
     return secret.get_secret_value()
+
+
+def _seed_departments(session: Session) -> None:
+    """Create or update every synthetic department."""
+    for seed in DEPARTMENTS:
+        upsert_department(
+            session,
+            Department(
+                code=seed.code,
+                name_en=seed.name_en,
+                name_hi=seed.name_hi,
+                name_gu=seed.name_gu,
+                sla_hours=seed.sla_hours,
+            ),
+        )
+
+
+def _missing_demo_settings(settings: Settings) -> list[str]:
+    """Return names of missing demo account settings without exposing their values."""
+    missing: list[str] = []
+    if settings.demo_officer_username is None or not settings.demo_officer_username.strip():
+        missing.append("DEMO_OFFICER_USERNAME")
+    if (
+        settings.demo_officer_password is None
+        or not settings.demo_officer_password.get_secret_value().strip()
+    ):
+        missing.append("DEMO_OFFICER_PASSWORD")
+    if not settings.demo_officer_department_code.strip():
+        missing.append("DEMO_OFFICER_DEPARTMENT_CODE")
+    if settings.demo_admin_username is None or not settings.demo_admin_username.strip():
+        missing.append("DEMO_ADMIN_USERNAME")
+    if (
+        settings.demo_admin_password is None
+        or not settings.demo_admin_password.get_secret_value().strip()
+    ):
+        missing.append("DEMO_ADMIN_PASSWORD")
+    return missing
 
 
 def _seed_officer_account(
@@ -131,39 +311,36 @@ def _seed_admin_account(session: Session, username: str, password: str) -> None:
     )
 
 
-def seed_database(session: Session, settings: Settings) -> None:
-    """Seed departments and demo accounts using repository operations."""
+def _seed_demo_accounts(session: Session, settings: Settings) -> int:
+    """Create demo accounts when configuration is complete and valid."""
     officer_username = _required_value(
         settings.demo_officer_username,
         "DEMO_OFFICER_USERNAME",
     )
     admin_username = _required_value(settings.demo_admin_username, "DEMO_ADMIN_USERNAME")
     if officer_username == admin_username:
-        raise ValueError("DEMO_OFFICER_USERNAME and DEMO_ADMIN_USERNAME must be different")
+        logger.warning("seed.demo_accounts.skipped reason=duplicate_usernames")
+        return 0
 
     officer_password = _required_password(
         settings.demo_officer_password,
         "demo_officer_password",
     )
     admin_password = _required_password(settings.demo_admin_password, "demo_admin_password")
-    validate_password(officer_password)
-    validate_password(admin_password)
+    try:
+        validate_password(officer_password)
+        validate_password(admin_password)
+    except ValueError:
+        logger.warning("seed.demo_accounts.skipped reason=invalid_password")
+        return 0
+
     officer_department_code = _required_value(
         settings.demo_officer_department_code,
         "DEMO_OFFICER_DEPARTMENT_CODE",
     )
-
-    for seed in DEPARTMENTS:
-        upsert_department(
-            session,
-            Department(
-                code=seed.code,
-                name_en=seed.name_en,
-                name_hi=seed.name_hi,
-                name_gu=seed.name_gu,
-                sla_hours=seed.sla_hours,
-            ),
-        )
+    if get_department_by_code(session, officer_department_code) is None:
+        logger.warning("seed.demo_accounts.skipped reason=unknown_department_code")
+        return 0
 
     _seed_officer_account(
         session,
@@ -172,6 +349,23 @@ def seed_database(session: Session, settings: Settings) -> None:
         officer_department_code,
     )
     _seed_admin_account(session, admin_username, admin_password)
+    return 2
+
+
+def seed_database(session: Session, settings: Settings) -> int:
+    """Seed departments always and demo accounts only when enabled and configured."""
+    _seed_departments(session)
+    if not settings.demo_mode:
+        logger.info("seed.demo_accounts.skipped reason=DEMO_MODE_disabled")
+        return 0
+    missing = _missing_demo_settings(settings)
+    if missing:
+        logger.warning(
+            "seed.demo_accounts.skipped reason=incomplete_config settings=%s",
+            ",".join(missing),
+        )
+        return 0
+    return _seed_demo_accounts(session, settings)
 
 
 def main() -> None:
@@ -179,8 +373,8 @@ def main() -> None:
     settings = get_settings()
     configure_logging(settings.log_level)
     with Session(get_engine(settings)) as session, session.begin():
-        seed_database(session, settings)
-    logger.info("seed.completed departments=%d accounts=2", len(DEPARTMENTS))
+        accounts = seed_database(session, settings)
+    logger.info("seed.completed departments=%d accounts=%d", len(DEPARTMENTS), accounts)
 
 
 if __name__ == "__main__":
