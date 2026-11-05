@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+- Ship the committed synthetic baseline training split (`ml/data/processed/train.csv`) in the Docker image so the default baseline classifier initializes on Render instead of failing with `Baseline training CSV not found`; updated Compose to use the image copy rather than a host bind mount.
+
 ### Added
 - Rewrote `README.md` with the problem, architecture, features, setup, measured Tier 1 and Tier 2 metrics, load-test summary, limitations, AI tools, early-start disclosure, documentation links and marked placeholders; completed T-34.
 - Rewrote `docs/API.md` with every implemented endpoint, auth requirements, JSON examples and curl calls, and added `docs/RUNBOOK.md` for local runs, deployment, secret rotation and troubleshooting; completed T-33.

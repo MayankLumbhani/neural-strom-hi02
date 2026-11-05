@@ -12,8 +12,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./ml/data/processed:/app/ml/data/processed:ro
 
   postgres:
     image: postgres:16

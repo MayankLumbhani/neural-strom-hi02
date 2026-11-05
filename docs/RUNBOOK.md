@@ -49,8 +49,9 @@ python -m grievance.seed
 python -m uvicorn grievance.main:app --app-dir backend/src --reload
 ```
 
-The default baseline classifier reads `ml/data/processed/train.csv`. That file
-is generated locally and is not committed.
+The default baseline classifier reads `ml/data/processed/train.csv`. This
+synthetic training split is committed to the repository and copied into the
+Docker image at build time, so local and deployed runs use the same data.
 
 ## Environment variables
 
@@ -188,9 +189,10 @@ print the value in logs or issues.
 - Check `/ready`: `model=unavailable` means classifier initialization failed.
   For the MuRIL backend, confirm `MODEL_NAME_OR_PATH` and, if required,
   `HF_TOKEN`.
-- The baseline backend needs `ml/data/processed/train.csv`, which is generated
-  locally and is not in the production image. In a Space, use `muril` or mount
-  the data explicitly.
+- The baseline backend reads `ml/data/processed/train.csv`, which is committed
+  and copied into the image by the Dockerfile. If the model is still unavailable,
+  confirm the file exists with
+  `docker compose exec -T api ls -l /app/ml/data/processed/train.csv`.
 
 ### Status lookup returns 404 for a new ticket
 

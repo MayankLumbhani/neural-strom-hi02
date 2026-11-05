@@ -11,6 +11,7 @@ htmlcov/
 build/
 dist/
 /ml/data/processed/*.csv
+!/ml/data/processed/train.csv
 /ml/data/processed/backup/
 /ml/data/review/
 /ml/data/raw/llm_batches/

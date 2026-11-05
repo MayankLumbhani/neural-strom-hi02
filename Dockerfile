@@ -15,6 +15,8 @@ RUN python -m pip install --no-cache-dir \
 
 COPY backend ./backend
 
+COPY ml/data/processed/train.csv ./ml/data/processed/train.csv
+
 RUN python -m pip install --no-cache-dir --timeout 120 --retries 5 . \
     && python -m pip install --no-cache-dir --timeout 120 --retries 5 \
         "sentencepiece>=0.2,<1" \

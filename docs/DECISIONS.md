@@ -120,3 +120,10 @@ Short log of technology and design choices. Newest at the bottom. Format: contex
 - **Decision:** Enforce sliding-window limits in process memory using `RATE_LIMIT_CHAT` and `RATE_LIMIT_STATUS`; identify callers by the direct ASGI client address and do not trust unconfigured forwarded-IP headers.
 - **Alternatives:** Shared database counters or a distributed cache, which require persistent/shared rate-limit infrastructure.
 - **Consequences:** Each worker or replica maintains an independent quota, so aggregate enforcement is not distributed. Move to a shared store before relying on these limits across multiple replicas. Stale per-IP windows are periodically removed; no raw request content or address is logged.
+
+## D-16 Ship the baseline training split in the image
+
+- **Context:** The default baseline classifier fits at startup from `ml/data/processed/train.csv`. The processed CSV pattern was Git-ignored and the whole `ml` tree was Docker-ignored, so Render images (built from the root Dockerfile without Compose volumes) could not find the file and logged `classifier.initialization.failed backend=baseline reason=Baseline training CSV not found`.
+- **Decision:** Commit only the synthetic `ml/data/processed/train.csv` (about 1 MB) and copy it into the production image at `/app/ml/data/processed/train.csv` with the Dockerfile. Keep validation and review data ignored and out of the image. Local Compose now uses the image copy instead of a host bind mount so it matches the deployed path.
+- **Alternatives:** Commit a serialized joblib artifact and change the loader to prefer it, or require a host or Hub download. The loader currently reads CSV only, so serialization would add loader code and a format contract for similar image size.
+- **Consequences:** The baseline initializes on Render without extra runtime downloads. The committed file is LLM-generated synthetic data, not real citizen data, and is already separately documented as unverified for Tier 2. Regenerating the dataset requires refreshing this committed file so local and deployed behavior stay aligned.

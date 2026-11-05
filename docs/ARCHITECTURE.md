@@ -44,11 +44,12 @@ The root `Dockerfile` installs the CPU PyTorch runtime, runs as an unprivileged
 user, and starts through `backend/scripts/start.sh`. The entrypoint applies
 database migrations before launching Uvicorn, using `PORT` from the host
 (7860 by default for Hugging Face Spaces). Docker Compose overrides the port to
-8000 by default for local development and mounts generated baseline training
-data read-only; the dataset is not included in the production image. In
-production, configure the classifier backend and model path through Space
-environment variables. Classifier initialization downloads a configured
-MuRIL model from the Hugging Face Hub once when the application starts.
+8000 by default for local development. The synthetic baseline training split
+(`ml/data/processed/train.csv`) is committed and copied into the production
+image at build time. In production, configure the classifier backend and model
+path through Space environment variables. Classifier initialization downloads a
+configured MuRIL model from the Hugging Face Hub once when the application
+starts.
 
 ## 4. Backend layering
 

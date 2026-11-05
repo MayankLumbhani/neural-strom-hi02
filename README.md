@@ -129,9 +129,9 @@ docker compose exec -T api python -m grievance.seed
 The API container waits for PostgreSQL and applies Alembic migrations before
 serving. The seed command creates the nine synthetic departments and the demo
 officer/admin accounts. It is safe to run more than once. The default baseline
-classifier needs `ml/data/processed/train.csv`; Compose mounts that generated
-file read-only. Without it, configure `CLASSIFIER_BACKEND=muril` and
-`MODEL_NAME_OR_PATH` instead.
+classifier reads `ml/data/processed/train.csv`, which is committed and copied
+into the Docker image at build time. To use the published MuRIL model instead,
+set `CLASSIFIER_BACKEND=muril` and `MODEL_NAME_OR_PATH`.
 
 Start the frontend in another terminal:
 
