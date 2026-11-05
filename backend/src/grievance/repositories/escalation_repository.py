@@ -56,7 +56,7 @@ def escalate_overdue_tickets(
         )
         .returning(col(Ticket.id))
     )
-    updated_ids = updated_result.scalars().all()
+    updated_ids: list[UUID] = list(updated_result.scalars().all())
     session.add_all(
         [
             TicketEvent(
