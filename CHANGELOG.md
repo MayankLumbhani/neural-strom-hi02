@@ -4,7 +4,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-05
+
+### Added
+- Released v1.0.0 for the Neural Storm 2026 HI-02 submission. Live frontend at `https://neural-strom-hi02.vercel.app`; backend API at `https://hi02-grievance-api.onrender.com`; PostgreSQL on Neon. The backend runs on Render's free tier instead of Hugging Face Docker Spaces, which required a paid plan (D-18).
+- Documented that the Render free tier has 512 MB RAM and sleeps after about 15 minutes idle, so the first request can take up to about 50 seconds. Demo credentials are provided in the submission notes and set through `DEMO_*` variables, not committed to the repository.
+
 ### Fixed
+- Annotated the escalated-ticket ID list so mypy passes on the CI Python 3.11 environment, restoring the backend check.
 - Run the idempotent seed automatically from `backend/scripts/start.sh` after Alembic migrations. Departments are always seeded; demo officer/admin accounts are seeded only when `DEMO_MODE=true` and all `DEMO_*` values are present. Incomplete demo configuration logs missing setting names (never values) and skips accounts without blocking startup. On a fresh Compose database the logs showed `seed.completed departments=9 accounts=2`, and department/officer counts were 9 and 2.
 - Clarification replies now always include all nine localized department buttons from the seed registry, so an empty or unseeded database cannot produce a question with no choices. Repeated failed clarifications keep the buttons instead of silently routing to `OTHER`, and free-text replies resolve department codes, localized names and aliases such as `water`, `paani`, `पानी` and `પાણી`.
 - Recalibrated the chat acceptance rule from validation data. The old `0.75/0.45` policy accepted only 3 of 720 validation Tier 1 rows (0.42% coverage). The new `CLASSIFIER_ACCEPT_THRESHOLD=0.35`, `CLASSIFIER_MARGIN_THRESHOLD=0.12`, `CLASSIFIER_MARGIN_MIN_CONFIDENCE=0.25` rule accepted 466 of 720 (64.7% coverage) at 89.3% precision (416 correct, 50 incorrect); the held-out 100-row Tier 1 evaluation accepted 77 (77.0%) with all 77 correct. The evaluation set is small and AI-authored, so this is an observed tradeoff, not a general claim.
@@ -18,7 +25,7 @@ All notable changes to this project will be documented in this file.
 - Rewrote `docs/API.md` with every implemented endpoint, auth requirements, JSON examples and curl calls, and added `docs/RUNBOOK.md` for local runs, deployment, secret rotation and troubleshooting; completed T-33.
 - Added `docs/SCALING.md` with the measured local load test and a clearly separated list of design-only scale-out ideas; completed T-32.
 - Added the Locust load test script, a load-test-only rate-limit override, exact run instructions, and recorded 60-second/20-user results under `loadtests/`; completed T-30.
-- Added the Hugging Face Spaces production Docker image with non-root execution, configurable port, pre-start Alembic migrations, and CPU MuRIL runtime dependencies; updated local Compose and setup instructions.
+- Added the production Docker image with non-root execution, configurable port, pre-start Alembic migrations, and CPU MuRIL runtime dependencies; updated local Compose and setup instructions. The image is deployed on Render (D-18).
 - Completed T-26 with English/Hindi/Gujarati UI translations and a shared, accessible language switcher across citizen, status, staff, officer, and analytics screens; unsupported browser locales continue to use English.
 - Added the admin-only `/analytics` view with ticket summary cards, token-colored Recharts breakdowns, accessible chart data tables, an escalated ticket queue, and English/Hindi/Gujarati copy.
 - Added the English/Hindi/Gujarati staff login and protected officer dashboard with department-scoped status, text, and inclusive date filters, ticket history, and public/internal status updates; verified that public updates appear in the citizen status API.

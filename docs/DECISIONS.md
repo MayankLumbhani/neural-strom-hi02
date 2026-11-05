@@ -35,9 +35,9 @@ Short log of technology and design choices. Newest at the bottom. Format: contex
 ## D-05 Hosting
 
 - **Context:** The model needs more RAM than small free instances give.
-- **Decision:** Backend and model on Hugging Face Spaces (Docker), frontend on Vercel.
+- **Decision:** Backend and model on Hugging Face Spaces (Docker), frontend on Vercel. Superseded by D-18.
 - **Alternatives:** Render free tier.
-- **Consequences:** More RAM. The Space sleeps when idle, so wake it before judging and show a waking-up message in the UI.
+- **Consequences:** More RAM. The Space sleeps when idle, so wake it before judging and show a waking-up message in the UI. Docker Spaces required a paid plan, so the final deployment uses Render instead; see D-18.
 
 ## D-06 No orchestration framework
 
@@ -138,3 +138,10 @@ Short log of technology and design choices. Newest at the bottom. Format: contex
 - **Tuning evidence:** Thresholds were selected on validation Tier 1 rows only. With the chosen rule, validation Tier 1 accepted 466 of 720 rows (64.7% coverage), 416 correct and 50 incorrect (89.3% precision). Validation all-language results were 546 of 1,098 accepted (49.7%) at 88.3% precision. Held-out handwritten Tier 1 evaluation accepted 77 of 100 rows (77.0%) with all 77 correct (100% precision); all-language evaluation accepted 98 of 170 (57.6%) with all 98 correct. Raw Tier 1 top-1 accuracy was English 0.722, Hindi 0.789, Gujarati 0.800 and Hinglish 0.822 on validation, and 0.84, 0.96, 0.96 and 0.92 on the small 25-row-per-language evaluation set. Nearby candidates show the tradeoff: `0.25/0.10/0.0` gave 78.3% validation coverage at 85.6% precision, while `0.45/0.18/0.25` gave 50.3% coverage at 90.3% precision. The numbers are generated in `ml/reports/confidence_calibration.json` by `make calibrate-baseline`.
 - **Alternatives:** Keep manual deployment seeding and the `0.75/0.45` policy (0.42% validation acceptance); always accept top-1 (78.3% validation accuracy, so more wrong tickets); ask an LLM to choose the department (forbidden by the architecture).
 - **Consequences:** Clear complaints now usually create or continue a ticket, while ambiguous ones still show localized buttons. Some accepted validation rows are wrong (50 of 466 here), so department reassignment remains a real operational need. The evaluation set is small and AI-authored; the 100% held-out precision is an observation, not a general claim. Adding or renaming a department requires updating its seed aliases. Threshold changes require no code change, only environment values.
+
+## D-18 Backend hosting: Render instead of Hugging Face Spaces
+
+- **Context:** The project originally planned to host the Docker backend on Hugging Face Spaces. Docker Spaces required a paid plan, which is outside the free-tier constraint for this submission.
+- **Decision:** Deploy the backend on Render's free tier (Docker, 512 MB RAM, sleeps after about 15 minutes idle), keep the frontend on Vercel and PostgreSQL on Neon. The live URLs are `https://neural-strom-hi02.vercel.app` and `https://hi02-grievance-api.onrender.com`.
+- **Alternatives:** Pay for Hugging Face Docker Spaces, use another paid container host, or run only locally. None fit the free-tier submission constraint.
+- **Consequences:** The deployment is free and the same image runs on Render, but cold starts can take up to about 50 seconds and memory is limited to 512 MB. Demo users must wake the backend before judging. Secrets live in Render's environment variables, and demo credentials are provided only in the submission notes. D-05 is superseded.

@@ -55,7 +55,7 @@ The only measured numbers come from the local load test recorded in
   requests/second with a p95 of 650 ms under this mixed workload.
 - The chat endpoint dominates latency because each request performs language
   detection, classification and database work. Status lookups are cheaper.
-- It does not measure Hugging Face Spaces, Neon, Vercel, a cold start, the
+- It does not measure the Render free tier, Neon, Vercel, a cold start, the
   MuRIL backend, a multi-replica deployment, or the default production rate
   limits. The load generator and the API shared CPU, so the numbers are a
   laptop-scale indication, not a capacity promise.

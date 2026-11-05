@@ -210,19 +210,21 @@ Language tiers used in this file:
 ## Phase 5: Deployment and performance (target: Nov 3)
 
 - [x] **T-27** Production Dockerfile
-  - Backend image for Hugging Face Spaces (Docker SDK), non-root user, port from env, model loaded from the Hub at startup, Alembic migration on start.
+  - Backend Docker image for Render, non-root user, port from env, model loaded from the Hub at startup, Alembic migration on start.
   - Done when: image builds and runs locally against Neon or local Postgres.
-  - Commit: `chore(deploy): add production Dockerfile for Hugging Face Spaces`
-  - Notes: The production image installs the CPU-only PyTorch runtime, runs as a non-root user, migrates and runs the idempotent seed before serving on `PORT` (default 7860 for Spaces), and loads the configured classifier during application startup. The committed synthetic baseline training split is copied into the image, and the baseline is fitted at build time into `ml/artifacts/baseline.joblib` so startup loads it instead of training (D-16). Local Compose keeps the API on port 8000 by default and uses the image copy. The image was rebuilt locally and `/ready` reported `model=ready` with no classifier initialization failure; the fresh Compose database logged `seed.completed departments=9 accounts=2` without manual seeding.
+  - Commit: `chore(deploy): add production Docker image`
+  - Notes: The production image installs the CPU-only PyTorch runtime, runs as a non-root user, migrates and runs the idempotent seed before serving on `PORT` (default 7860 when `PORT` is unset), and loads the configured classifier during application startup. The committed synthetic baseline training split is copied into the image, and the baseline is fitted at build time into `ml/artifacts/baseline.joblib` so startup loads it instead of training (D-16). Local Compose keeps the API on port 8000 by default and uses the image copy. The image was rebuilt locally and `/ready` reported `model=ready` with no classifier initialization failure; the fresh Compose database logged `seed.completed departments=9 accounts=2` without manual seeding.
 
-- [ ] **T-28** Deploy backend **(human)**
-  - Create the Space, set secrets (`DATABASE_URL`, `JWT_SECRET`, keys), run migrations and seed, check `/ready`.
+- [x] **T-28** Deploy backend
+  - Deployed on Render free tier instead of Hugging Face Spaces, with Neon PostgreSQL. Render provides `PORT`; the container migrates, seeds and serves.
   - Done when: the public backend URL answers `/health` and `/ready`.
+  - Notes: Live API at `https://hi02-grievance-api.onrender.com`. Free tier has 512 MB RAM and sleeps after about 15 minutes idle; the first request can take up to about 50 seconds. Secrets are set through Render environment variables and are not recorded here.
 
-- [ ] **T-29** Deploy frontend **(human)**
+- [x] **T-29** Deploy frontend
   - Vercel project, set the backend URL env var, set `CORS_ORIGINS` on the backend.
   - Done when: the full citizen and officer flow works on the live URLs.
   - Commit (config notes only): `docs: record deployment URLs and setup`
+  - Notes: Live frontend at `https://neural-strom-hi02.vercel.app`, calling the Render API. Demo officer/admin logins are provided in the submission notes and set via `DEMO_*` variables.
 
 - [x] **T-30** Load test
   - k6 or Locust scripts in `loadtests/` for `/chat/messages` and `/tickets/{id}`. Run against one instance, save the raw results and a short summary.
@@ -230,10 +232,11 @@ Language tiers used in this file:
   - Commit: `test(load): add load test scripts and recorded results`
   - Notes: Recorded a 60-second, 20-user Locust run against the local Docker Compose stack: 29.04 req/s aggregate, p95 650 ms, 0 failures. Raw CSV files and conditions are in `loadtests/`. The run also exposed a missing request-session commit; `get_session` now commits on success and rolls back on error.
 
-- [ ] **T-31** ONNX quantization (optional, skip if short on time)
+- [ ] **T-31** ONNX quantization **(not done)**
   - Export and quantize MuRIL, compare accuracy and latency with PyTorch on the same set.
   - Done when: measured comparison is saved in `ml/reports/`. Only switch the deployed backend if accuracy holds.
   - Commit: `perf(ml): add ONNX export and latency comparison`
+  - Status: Not done for v1.0.0.
 
 ## Phase 6: Documentation and submission (target: Nov 3 to 4)
 
@@ -243,25 +246,27 @@ Language tiers used in this file:
   - Notes: `docs/SCALING.md` separates the measured local load test from design-only scale-out ideas. It states that the rate limiter is process-local and the escalation scheduler runs in-process.
 
 - [x] **T-33** API.md and RUNBOOK.md
-  - Full endpoint examples; runbook for deploy, migrations, seeding, waking the Space, rotating secrets.
+  - Full endpoint examples; runbook for deploy, migrations, seeding, waking the Render backend, rotating secrets.
   - Commit: `docs: complete API reference and runbook`
-  - Notes: `docs/API.md` documents every route present in the routers, with auth requirements, JSON examples and curl calls. `docs/RUNBOOK.md` covers local Compose, environment variable names, migrations, seeding, HF Space and Vercel deployment, waking a Space, secret rotation, DEMO_MODE and troubleshooting.
+  - Notes: `docs/API.md` documents every route present in the routers, with auth requirements, JSON examples and curl calls. `docs/RUNBOOK.md` covers local Compose, environment variable names, migrations, seeding, Render and Vercel deployment, waking the backend, secret rotation, DEMO_MODE and troubleshooting.
 
 - [x] **T-34** README
   - All items required by the hackathon: title and problem statement number HI-02, team (solo) and name, problem and approach, tech stack, setup and local run steps, screenshots or demo GIF, real metrics from the reports (Tier 1 and Tier 2 in separate tables, Tier 2 labelled experimental), AI tools used (Qoder, Cursor, Antigravity, GitHub Copilot, Claude), live links, note that development started Oct 30 with organiser permission, CI badge.
   - Commit: `docs: write project README`
-  - Notes: `README.md` includes the architecture diagram, tiered language table, setup, measured metrics from the model card and load test, honest limitations, AI tools, the early-start disclosure, documentation links, and marked live-URL and screenshot placeholders. T-28/T-29 remain human deployment tasks.
+  - Notes: `README.md` includes the architecture diagram, tiered language table, setup, measured metrics from the model card and load test, honest limitations, AI tools, the early-start disclosure, documentation links, and the live Render/Vercel URLs. No screenshots or video are committed, so T-35/T-36 are not done and the README makes no claim about them.
 
-- [ ] **T-35** Screenshots and GIF **(human)**
+- [ ] **T-35** Screenshots and GIF **(not done)**
   - Capture chat in three languages, ticket confirmation, status page, officer dashboard, analytics, escalation. Save to `docs/images/`.
   - Commit: `docs: add screenshots and demo gif`
+  - Status: Not done. No images are committed, so the README has no screenshot section and makes no screenshot claim.
 
-- [ ] **T-36** Demo video script and recording **(human)**
+- [ ] **T-36** Demo video script and recording **(not done)**
   - Follow the demo plan in PRD section 11. Use `DEMO_MODE` so escalation is visible. Mention the stack and that AI tools built the code.
   - Done when: video is uploaded and the link is in the README.
+  - Status: Not done. No video is claimed in the README.
 
 - [ ] **T-37** Final check and release
-  - Fresh clone test (follow the README on a clean folder), CI green, no secrets in history, live demo works, wake the Space. Tag `v1.0.0`.
+  - Fresh clone test (follow the README on a clean folder), CI green, no secrets in history, live demo works, wake the Render backend. Tag `v1.0.0`.
   - Commit: `chore: prepare v1.0.0 release` then `git tag v1.0.0 && git push --tags`
 
 - [ ] **T-38** Submit **(human)**
@@ -302,9 +307,10 @@ Add one line per day: what was finished, what is blocked.
 - 2026-11-03: fixed chat follow-up replies using stale conversation language; backend API tests verify Gujarati and Hindi replies despite an English request-language header.
 - 2026-11-03: completed T-23 ticket status lookup with localized details, public event notes, and missing-ticket handling.
 - 2026-11-04: completed T-34 with the judge-facing README, including measured Tier 1/Tier 2 metrics, limitations, AI tools, disclosure and deployment/screenshot placeholders.
-- 2026-11-04: completed T-33 with a complete API reference and an operations runbook for local, HF Space and Vercel deployment.
+- 2026-11-04: completed T-33 with a complete API reference and an operations runbook for local, Render and Vercel deployment.
 - 2026-11-04: completed T-32 with measured-versus-design-only scaling notes; documented process-local rate limits and the in-process scheduler.
 - 2026-11-04: completed T-30 with a real local Locust run (20 users, 60 seconds, 29.04 req/s, p95 650 ms, 0 failures) and recorded raw CSV results; fixed request-session commits uncovered by the run.
 - 2026-11-05: fixed the deployed baseline classifier by committing and copying `ml/data/processed/train.csv` into the image; verified local Compose `/ready`, clean classifier logs, and English/Hindi/Gujarati ticket creation.
 - 2026-11-05: moved baseline fitting to the Docker build and loaded the joblib artifact at startup; under a 512 MB Compose limit the API peaked at 284,132 kB VmRSS, stayed below the cap, was not OOM-killed, and created English/Hindi/Gujarati tickets with no torch/transformers imports on the baseline path.
 - 2026-11-05: completed T-15b by seeding after migrations, returning all nine localized department choices, resolving aliases, and calibrating the accept rule on validation; fresh-DB verification produced 13 tickets across 12 eval complaints plus one alias clarification, demo logins passed, and the API used 223.1 MiB.
+- 2026-11-05: prepared v1.0.0 for submission with live Vercel frontend and Render backend URLs, documented Render free-tier cold starts and the serverless constraints, updated the runbook and architecture, recorded T-28/T-29 deployment, and honestly marked T-31/T-35/T-36 not done.

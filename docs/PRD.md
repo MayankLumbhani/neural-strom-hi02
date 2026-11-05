@@ -238,7 +238,7 @@ No impact statistic (for example "reduces resolution time by X%") is claimed unl
 | Hinglish and code-mixed text confuse the classifier | Include Hinglish heavily in training data; per-language metrics reveal weak spots |
 | Tier 2 language quality cannot be verified without native speakers | Label Tier 2 as experimental, sample-check with native speakers where possible, report Tier 2 results separately from Tier 1 |
 | Free LLM API rate limits or outage | LLM is optional for extraction; fall back to asking the citizen directly |
-| Free hosting sleeps or has limited RAM | Host the model on Hugging Face Spaces; wake the app before judging; show a waking-up message in the UI |
+| Free hosting sleeps or has limited RAM | Host the backend on Render's free tier (512 MB, sleeps after about 15 minutes); wake the app before judging and show a waking-up message in the UI |
 | Too much scope for 5 days solo | Strict P0 first; stretch goals only after the core works; skip monitoring stack |
 | Rule on building during the hackathon window | Organiser permission to start early is kept in writing; README notes the start date |
 

@@ -33,7 +33,7 @@ flowchart LR
 | Piece | Host | Notes |
 |---|---|---|
 | Frontend | Vercel | Static React build, calls the backend over HTTPS |
-| Backend and model | Hugging Face Spaces (Docker, CPU) | Production image defaults to `PORT=7860`, applies Alembic migrations and the idempotent seed before serving, and loads the configured classifier at startup. Set `CLASSIFIER_BACKEND=muril` and `MODEL_NAME_OR_PATH` in Space variables to load MuRIL from the Hub; local application defaults remain baseline. Sleeps when idle, so wake it before judging |
+| Backend and model | Render free tier (Docker, CPU, 512 MB) | Production image applies Alembic migrations and the idempotent seed before serving, and loads the configured classifier at startup. Set `CLASSIFIER_BACKEND=muril` and `MODEL_NAME_OR_PATH` in Render environment variables to load MuRIL from the Hub; local application defaults remain baseline. Sleeps after about 15 minutes idle, so the first request can take up to about 50 seconds |
 | Database | Neon PostgreSQL | Persistent, free tier |
 | Model weights | Hugging Face Hub | Not committed to Git, loaded by name from config |
 | Local dev | docker-compose (api and postgres) | `make dev`; Postgres host port is `POSTGRES_PORT` (default 5432) |
@@ -44,7 +44,7 @@ The root `Dockerfile` installs the CPU PyTorch runtime, runs as an unprivileged
 user, and starts through `backend/scripts/start.sh`. The entrypoint applies
 database migrations, runs the idempotent seed (departments always; demo accounts
 only when `DEMO_MODE=true` and `DEMO_*` is complete), then launches Uvicorn,
-using `PORT` from the host (7860 by default for Hugging Face Spaces). Docker Compose overrides the port to
+using `PORT` from the host (the image defaults to 7860 when unset). Docker Compose overrides the port to
 8000 by default for local development. The synthetic baseline training split
 (`ml/data/processed/train.csv`) is committed and copied into the production
 image at build time; the build fits the TF-IDF baseline once and writes
@@ -480,10 +480,10 @@ Chat integration tests use a deterministic fake `Classifier` so they do not depe
 | Frontend login and officer dashboard | Implemented (T-24); protected login, scoped filtered queue, ticket details, event history, and public status updates |
 | Frontend admin analytics | Implemented (T-25); admin-only summary cards, department/status/language charts, accessible data tables, and escalated ticket queue |
 | Production backend container | Implemented (T-27); non-root Docker image, environment-selected port, startup migrations, CPU MuRIL dependencies and runtime Hub model loading |
-| Deployment (HF Spaces, Vercel, Neon) | Planned; no live deployment is claimed |
+| Deployment (Render, Vercel, Neon) | Live demo URLs in `README.md`; backend on Render free tier, frontend on Vercel, database on Neon |
 | Load test | Done (T-30); local 60-second/20-user Locust run recorded in `loadtests/results/` |
 | SCALING.md | Done (T-32); measured results separated from design-only ideas |
-| README with metrics | Done (T-34); live URLs, screenshots and video remain human placeholders |
+| README with metrics | Done (T-34); live URLs recorded, no screenshots or video are claimed |
 | Voice input (stretch) | Not started |
 
 ## 18. Key decisions and trade-offs
@@ -497,6 +497,6 @@ Detailed entries go in `docs/DECISIONS.md`. Initial ones:
 | Background work | APScheduler in the API process | Celery plus Redis | Far less infrastructure, enough for the demo, idempotent so safe with replicas |
 | Database | PostgreSQL | SQLite | Persistent on free hosts, supports concurrency and `SKIP LOCKED` |
 | Conversation state | In the database | In memory | Keeps the API stateless and horizontally scalable |
-| Hosting the model | Hugging Face Spaces | Render free tier | More RAM for the model |
+| Hosting the model | Render free tier | Hugging Face Spaces (required a paid plan for Docker Spaces) | Fits the baseline and free-tier constraints without a paid plan |
 | Orchestration framework | Plain services | Rasa, LangChain | Simpler, easier for AI IDEs to keep clean, easier to test |
 | Language support | Two tiers behind one registry | Only 3 or 4 languages, or all languages claimed as equal | Wider reach for the core problem without overclaiming what cannot be verified |

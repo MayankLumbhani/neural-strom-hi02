@@ -6,8 +6,15 @@
 **Event:** Neural Storm 2026  
 **Solo participant:** Mayank Lumbhani
 
-- Live demo: <!-- TODO-LIVE-URL -->
-- Demo video: <!-- TODO-VIDEO-URL -->
+## Live demo
+
+- Frontend: [https://neural-strom-hi02.vercel.app](https://neural-strom-hi02.vercel.app)
+- Backend API: [https://hi02-grievance-api.onrender.com](https://hi02-grievance-api.onrender.com)
+
+The backend runs on Render's free tier and sleeps after about 15 minutes idle.
+The first request can take up to about 50 seconds, so open the frontend a minute
+before demoing. Health and readiness are at `/health` and `/ready`; interactive
+API docs are at `/docs` if enabled on the deployment.
 
 A citizen types a civic complaint in their own language. The system detects the
 language, routes the complaint to the right municipal department, asks for
@@ -106,7 +113,7 @@ Odia, Assamese and romanized text other than Hinglish are not supported.
 | ML | scikit-learn TF-IDF + Logistic Regression baseline; optional PyTorch / Hugging Face MuRIL fine-tune |
 | Frontend | React, Vite, TypeScript, Tailwind CSS, shadcn/ui, Recharts |
 | Tooling | ruff, mypy, pytest, ESLint, pre-commit, Docker, Docker Compose, GitHub Actions |
-| Deployment target | Hugging Face Spaces (Docker backend), Vercel (frontend), Neon (PostgreSQL) |
+| Deployment target | Render free tier (Docker backend), Vercel (frontend), Neon (PostgreSQL) |
 
 ## Setup and local run
 
@@ -281,10 +288,16 @@ The Locust generator shared the laptop CPU. See
   workers or replicas.
 - The escalation scheduler runs inside the API process; the update is
   idempotent, but each replica would run its own scheduler.
-- Hugging Face free-tier Spaces sleep when idle, so the first request can be
-  slow. The UI retries readiness before the first chat message.
-- The live deployment is operated separately and is not claimed as verified by
-  the measurements above.
+- Short or typo-heavy messages can be misrouted. In a live test, a misspelled
+  Hinglish electricity complaint was routed to Property Tax and Billing.
+- The lowered confidence thresholds from D-17 were tuned on validation data and
+  trade precision for coverage, so some accepted complaints are still wrong.
+- Render's free tier sleeps after about 15 minutes idle, so the first request
+  can take up to about 50 seconds. The UI retries readiness before the first
+  chat message.
+- The load test was run locally against Docker Compose, not against the live
+  Render deployment. The live deployment is provided for the demo and is not
+  claimed as verified by the measurements above.
 
 ## AI tools used
 
@@ -306,28 +319,6 @@ replies.
 
 Development started on **October 30, 2026**, before the official November 2
 hackathon start, with organiser permission.
-
-## Screenshots
-
-<!-- TODO-SCREENSHOTS -->
-
-Capture and commit the files below, then replace this note.
-
-| Screen | Expected file |
-|---|---|
-| Gujarati chat and ticket confirmation | `docs/images/chat-gujarati.png` |
-| Hindi chat clarification | `docs/images/chat-hindi.png` |
-| Public ticket status timeline | `docs/images/status-page.png` |
-| Officer dashboard | `docs/images/officer-dashboard.png` |
-| Admin analytics | `docs/images/analytics.png` |
-| Escalated ticket view | `docs/images/escalation.png` |
-
-<!--
-![Gujarati chat](docs/images/chat-gujarati.png)
-![Ticket status](docs/images/status-page.png)
-![Officer dashboard](docs/images/officer-dashboard.png)
-![Admin analytics](docs/images/analytics.png)
--->
 
 ## Documentation
 

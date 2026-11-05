@@ -2,7 +2,8 @@
 
 Operational steps for running, deploying and troubleshooting the grievance
 chatbot. Never commit `.env` or any real secret. Use placeholders and set real
-values only in the local environment, Space secrets or the Vercel dashboard.
+values only in the local environment, Render environment variables or the
+Vercel dashboard.
 
 ## Local run with Docker Compose
 
@@ -112,27 +113,34 @@ deliberately not published in the repository.
 Check startup logs for `seed.completed departments=9 accounts=2` (or
 `accounts=0` when demo accounts are disabled).
 
-## Deploy the backend to Hugging Face Spaces
+## Deploy the backend to Render
 
-1. Create a **Docker** Space.
-2. Push this repository to the Space, or connect the Space to the GitHub repo.
-   The root `Dockerfile` and `backend/scripts/start.sh` are the entrypoint.
-3. Add Space **secrets**: `DATABASE_URL` (for example a Neon connection string),
-   `JWT_SECRET`, `DEMO_OFFICER_PASSWORD`, `DEMO_ADMIN_PASSWORD`, and
-   `HF_TOKEN` only if a private Hub model is used.
-4. Add Space **variables**: `APP_ENV=production`, `DEMO_MODE`, `CORS_ORIGINS`
-   (the Vercel origin), `CLASSIFIER_BACKEND` (`baseline` or `muril`),
-   `MODEL_NAME_OR_PATH` when using MuRIL, and `LLM_ENABLED=false` unless
-   location extraction is configured.
-5. Port handling: Spaces sets `PORT` and expects the app on that port. The
-   image defaults to `PORT=7860` and passes it to Uvicorn. Do not hardcode 8000
-   in the Space.
-6. The entrypoint applies migrations and runs the idempotent seed before
+The production backend is a Render free-tier Docker web service at
+`https://hi02-grievance-api.onrender.com`.
+
+1. Create a Render **Web Service** from this repository using the root
+   `Dockerfile`. The container starts through `backend/scripts/start.sh`.
+2. Set environment variables on Render:
+   - Secrets: `DATABASE_URL` (the Neon connection string), `JWT_SECRET`,
+     `DEMO_OFFICER_PASSWORD`, `DEMO_ADMIN_PASSWORD`, and `HF_TOKEN` only if a
+     private Hub model is used.
+   - Non-secrets: `APP_ENV=production`, `DEMO_MODE`, `CORS_ORIGINS` (the Vercel
+     origin), `CLASSIFIER_BACKEND` (`baseline` or `muril`),
+     `MODEL_NAME_OR_PATH` when using MuRIL, and `LLM_ENABLED=false` unless
+     location extraction is configured.
+   - Demo credentials are provided in the submission notes and set through the
+     `DEMO_*` variables. Never commit them.
+3. Port handling: Render provides `PORT`; the image passes it to Uvicorn and
+   defaults to 7860 only when `PORT` is unset. Do not hardcode 8000.
+4. The entrypoint applies migrations and runs the idempotent seed before
    serving. Check the startup logs for `seed.completed departments=9`; run
    `python -m grievance.seed` manually only to repair or refresh seeded data.
-7. Check `GET /health` and `GET /ready` on the public Space URL, then send a
+5. Check `GET /health` and `GET /ready` on the public Render URL, then send a
    chat message that should require a department clarification and confirm that
    localized department buttons appear.
+6. Render's free tier has 512 MB RAM and sleeps after about 15 minutes idle.
+   The first request after sleep can take up to about 50 seconds; the frontend
+   retries readiness before the first chat message.
 
 ## Deploy the frontend to Vercel
 
@@ -144,24 +152,24 @@ Check startup logs for `seed.completed departments=9 accounts=2` (or
    `https://<project>.vercel.app`. Multiple origins are comma-separated.
 5. Redeploy and check the citizen chat, status lookup and staff login.
 
-## Waking a sleeping Space
+## Waking the sleeping Render backend
 
-Free Spaces sleep when idle. Before a demo, open the Space URL or call:
+Render's free tier sleeps after about 15 minutes idle. Before a demo, open the
+frontend or call:
 
 ```bash
-curl -s https://<space-subdomain>.hf.space/health
-curl -s https://<space-subdomain>.hf.space/ready
+curl -s https://hi02-grievance-api.onrender.com/health
+curl -s https://hi02-grievance-api.onrender.com/ready
 ```
 
-The chat UI already retries `/ready` before the first message. A cold start can
-take tens of seconds, especially if the MuRIL model is downloaded again. Wake
-the Space a few minutes before judging.
+The chat UI already retries `/ready` before the first message. The first request
+can take up to about 50 seconds; open the frontend a minute before demoing.
 
 ## Rotating secrets
 
-- **JWT secret:** generate a new random value, update `JWT_SECRET` in the Space
-  secrets (and locally), and redeploy. All existing tokens become invalid and
-  users must log in again.
+- **JWT secret:** generate a new random value, update `JWT_SECRET` in Render's
+  environment variables (and locally), and redeploy. All existing tokens become
+  invalid and users must log in again.
 - **Database password:** change it in the database provider, then update
   `DATABASE_URL` (and the local `POSTGRES_PASSWORD` if applicable) and
   redeploy. Verify `/ready` and staff login.
@@ -194,12 +202,13 @@ behaviour and no demo-account seeding.
 
 This is a PostgreSQL authentication error, usually from a missing or empty
 `POSTGRES_PASSWORD` or a `DATABASE_URL` whose credentials do not match the
-database. Check `.env` or the Space secrets and the connection string. Do not
+database. Check `.env` or Render's environment variables and the connection string. Do not
 print the value in logs or issues.
 
-### Space cold start or `503` readiness
+### Render cold start or `503` readiness
 
-- A sleeping Space returns timeouts or HTTP 503 until the container starts.
+- A sleeping Render free instance returns timeouts or HTTP 503 until the
+  container starts. The first request can take up to about 50 seconds.
 - Check `/ready`: `model=unavailable` means classifier initialization failed.
   For the MuRIL backend, confirm `MODEL_NAME_OR_PATH` and, if required,
   `HF_TOKEN`.
